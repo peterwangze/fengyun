@@ -117,7 +117,7 @@ func _draw() -> void:
 	if screen:
 		screen.paint()
 		if touch_ui():
-			touch_controls.paint(self, _touch_mode())
+			touch_controls.paint_back(self, _touch_mode())
 
 func touch_ui() -> bool:
 	return touch_controls != null and not using_joypad
@@ -917,9 +917,9 @@ func _touch(event: InputEventScreenTouch) -> void:
 		"stick": return
 		"confirm": _confirm()
 		"cancel": cancel()
-		"journal": _open_journal()
-		"martial": _open_martial("field")
 		_:
+			if mode == "field":
+				return
 			var hit: Dictionary = screen.hit(position_on_canvas)
 			if not hit.is_empty():
 				click(hit.kind, hit.index)

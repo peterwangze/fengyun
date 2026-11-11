@@ -192,6 +192,8 @@ func paint() -> void:
 		"ending": _ending()
 	if g.toast_time > 0 and g.mode in ["field","battle","dialogue"]:
 		var yy := 290 if g.mode == "field" else 171
+		if g.mode == "field" and g.touch_ui():
+			yy = 283
 		_fill(Rect2(163, yy, 314, 28), Color("#0a1020ef"))
 		_stroke(Rect2(163, yy, 314, 28), GOLD)
 		_center(g.toast, 320, yy + 20, 14, CREAM)
@@ -253,6 +255,9 @@ func _field(interactive: bool = true) -> void:
 		else:
 			campaign_art.stage(units,marks)
 		_chronicle_field(units,marks)
+	var touch_field: bool = interactive and g.touch_ui()
+	if touch_field:
+		g.touch_controls.paint_stick(g)
 	_draw_field_actors(units)
 	if g.field_key in ["garden","village","lodge","inn","apothecary","tearoom","cavern","tidal_ford","tidal_fort"]:
 		_picture("field/%s_canopy" % g.field_key)
@@ -280,10 +285,14 @@ func _field(interactive: bool = true) -> void:
 	if objective.is_empty():
 		objective = g.first.objective() if g.first.active() else g.campaign.objective()
 	_right(objective,620,43,13,DIM)
-	_fill(Rect2(0,321,640,39),Color("#12192bf8"))
-	_line(Vector2(0,321),Vector2(640,321),LINE)
+	var footer_top: float = g.touch_controls.FOOTER_TOP if touch_field else 321.0
+	_fill(Rect2(0,footer_top,640,360-footer_top),Color("#12192b") if touch_field else Color("#12192bf8"))
+	_line(Vector2(0,footer_top),Vector2(640,footer_top),LINE)
 	var medicine: int = g.afterstory.state().tonics if g.afterstory.active else g.slot.tonics
 	_text("金创药  ×%d" % medicine,20,345,14,TEAL)
+	if touch_field:
+		g.touch_controls.paint_footer(g, g.nearest().get("name", ""))
+		return
 	var interact_key: String = "A" if g.using_joypad else "E"
 	if g.mode == "ferry":
 		var skip_key: String = "A" if g.using_joypad else "Enter"
@@ -296,10 +305,10 @@ func _field(interactive: bool = true) -> void:
 	if interactive:
 		var spot: Dictionary = g.nearest()
 		if spot.is_empty():
-			_center("靠近人物、敌人或物品，点按互动" if g.touch_ui() else "靠近人物、敌人或物品，按 %s 互动" % interact_key,321,345,14,DIM)
+			_center("靠近人物、敌人或物品，按 %s 互动" % interact_key,321,345,14,DIM)
 		else:
 			_fill(Rect2(201,329,239,24),Color("#333047"))
-			_center(spot.name if g.touch_ui() else interact_key + "   " + spot.name,320,346,14,GOLD)
+			_center(interact_key + "   " + spot.name,320,346,14,GOLD)
 			_hit(Rect2(201,325,239,31),"confirm")
 
 func _afterstory_field(units: Array, marks: Array[Dictionary]) -> void:

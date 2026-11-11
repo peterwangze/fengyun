@@ -4,7 +4,7 @@
 
 ## 开始游戏
 
-**Android** 下载并打开 [2.1.0 APK](https://github.com/peterwangze/fengyun/releases/download/v2.1.0-android/Fengyun-2.1.0-android.apk)。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。查看 [发布说明与校验文件](https://github.com/peterwangze/fengyun/releases/tag/v2.1.0-android)。
+**Android** 下载并打开 [2.1.1 APK](https://github.com/peterwangze/fengyun/releases/download/v2.1.1-android/Fengyun-2.1.1-android.apk)。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。查看 [发布说明与校验文件](https://github.com/peterwangze/fengyun/releases/tag/v2.1.1-android)。
 
 **Windows** 用下文的 Windows Desktop 预设导出后，双击 **Windows/Fengyun.exe**。游戏资源内嵌。[第三方许可](Windows/Licenses) 收录 Godot 和开源字体许可。
 
@@ -20,13 +20,13 @@
 
 | Android 操作 | 触屏 | 手柄 |
 | --- | --- | --- |
-| 行走 | 按住左侧虚拟摇杆，可斜向移动 | 左摇杆或十字键 |
-| 调查、对话、确认 | 点按「互动」、对白框或菜单选项 | A 确认，左摇杆或十字键选择 |
+| 行走 | 在地图左下按住并拖动，松手即停。摇杆随触点出现 | 左摇杆或十字键 |
+| 调查、对话、确认 | 靠近目标后点底栏出现的动作按钮，也可直接点对白框或菜单选项 | A 确认，左摇杆或十字键选择 |
 | 战斗 | 点按招式及目标，使用「取消选招」或「跳过演出」 | 方向选择，A 确认，B 取消，Y 跳过演出 |
-| 手记、武学 | 点按「手记」或「武学」，可点队员及栏位装配 | 探索时 X 打开手记，Y 打开武学。武学里左右换人，X 换栏位 |
-| 暂停、返回 | 「暂停」、「返回」或系统返回键 | Start 暂停，B 返回 |
+| 手记、武学 | 从底栏「菜单」进入，可点队员及栏位装配 | 探索时 X 打开手记，Y 打开武学。武学里左右换人，X 换栏位 |
+| 暂停、返回 | 底栏「菜单」、「返回」或系统返回键 | Start 暂停，B 返回 |
 
-在 Android 系统连接 USB 或蓝牙手柄，使用手柄后界面切换为手柄提示。再次触屏可恢复虚拟摇杆与按钮。手柄按键名称以 Xbox 布局表示。
+在 Android 系统连接 USB 或蓝牙手柄，使用手柄后界面切换为手柄提示。再次触屏可恢复触屏布局。手柄按键名称以 Xbox 布局表示。
 
 | Windows 操作 | 输入 |
 | --- | --- |
@@ -83,8 +83,8 @@ Android 使用 `Android` 导出预设。安装 OpenJDK 17、Android SDK 和匹�
 
 ```powershell
 New-Item -ItemType Directory -Force Android
-& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.1.0-android.apk')
+& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.1.1-android.apk')
 ```
 
-查看 [游戏设计与体量审视](DESIGN.md)、[素材记录](ASSETS.md)、[2.1 验收记录](verification/tidal/README.md) 与 [Android 验收记录](verification/android/README.md)。
+查看 [游戏设计与体量审视](DESIGN.md)、[素材记录](ASSETS.md)、[2.1 验收记录](verification/tidal/README.md) 与 [Android 2.1.1 触屏验收](verification/android-touch/README.md)。
 
