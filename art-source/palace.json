@@ -1,0 +1,9 @@
+{
+  "tool": "local Qwen Turbo via ComfyUI",
+  "mode": "turbo",
+  "seed": 221113,
+  "prompt": "Wide 16:9 landscape for an original Chinese wuxia 2D role-playing game. High quality modern 16-bit pixel art, deliberate crisply clustered pixels, hand-pixelled SFC-era JRPG environment, limited dark indigo shadows, restrained luminous accents, strong foreground and atmospheric layers, no text, no logos, no panels, no interface. Ancient Chinese palace seized by a warlord, stormy moonlit cobalt sky above ornate blue-roof gates, torn crimson pennants, thin moonlight on the empty cold blue-gray stone plaza in the foreground, a few amber flames near walls, no figures.",
+  "job": "381f3da1-8965-4a52-8032-34f3199746b7",
+  "output": "game/assets/paintings/palace.png",
+  "processing": "crop and downsample to 320x180, quantize 72 colors"
+}

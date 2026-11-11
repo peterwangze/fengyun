@@ -1,0 +1,9 @@
+{
+  "tool": "local Qwen Turbo via ComfyUI",
+  "mode": "turbo",
+  "seed": 221112,
+  "prompt": "Wide 16:9 landscape for an original Chinese wuxia 2D role-playing game. High quality modern 16-bit pixel art, deliberate crisply clustered pixels, hand-pixelled SFC-era JRPG environment, limited dark indigo shadows, restrained luminous accents, strong foreground and atmospheric layers, no text, no logos, no panels, no interface. Dark haunted Chinese mountain cave shrine with layered purple rock pillars, a still wine-red reflecting pool behind an empty platform, candles and one torii-like Chinese stone portal in the distance, plum and magenta dusk light, empty dark stone foreground in lower half, no figures.",
+  "job": "904403c8-4a30-4853-a75d-3061afee2923",
+  "output": "game/assets/paintings/pool.png",
+  "processing": "crop and downsample to 320x180, quantize 72 colors"
+}

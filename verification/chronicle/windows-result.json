@@ -1,0 +1,24 @@
+{
+  "Result": "passed",
+  "Executable": "D:\\AI\\agent\\codex\\test\\game\\fengyun\\Windows\\Fengyun.exe",
+  "WindowTitle": "风云：山河劫",
+  "ProductVersion": "2.0.0.0",
+  "Tested": "Launch, Windows keyboard, stagger tutorial, wedding scene, two evacuations, rear route entry, continue",
+  "Mouse": true,
+  "ExpandedOpening": true,
+  "IsolatedFengxiTrial": true,
+  "LaterChapters": [
+    "Ferry, two merit on landing, west-bank continue",
+    "West-bank inn, corroborate the orders, equip a new martial art",
+    "Enter prison, free prisoner, relaunch, leave via side stair",
+    "Play farewell and open the altar confrontation",
+    "Playable dawn, light the lantern and complete the campaign"
+  ],
+  "Merit": 2,
+  "Cleared": [
+    0
+  ],
+  "Checkpoint": "garden",
+  "Evacuated": 2,
+  "Log": "D:\\AI\\agent\\codex\\test\\game\\fengyun\\verification\\chronicle\\windows-run.log"
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "local Qwen Turbo via ComfyUI",
+  "mode": "turbo",
+  "seed": 221109,
+  "prompt": "Wide 16:9 landscape for an original Chinese wuxia 2D role-playing game. High quality modern 16-bit pixel art, deliberate crisply clustered pixels, hand-pixelled SFC-era JRPG environment, limited dark indigo shadows, restrained luminous accents, strong foreground and atmospheric layers, no text, no logos, no panels, no interface. Empty grand ancient Chinese mountain sect courtyard at dusk, tiered roofs across top with red lanterns, towering crimson pillars at edges, dramatic warm amber lit stairway centered in distance, broad dark blue stone tiled floor completely empty in lower half, no people.",
+  "job": "49578a01-76c4-41f7-af72-ee9a3cb74c8a",
+  "output": "game/assets/paintings/hall.png",
+  "processing": "crop and downsample to 320x180, quantize 72 colors"
+}

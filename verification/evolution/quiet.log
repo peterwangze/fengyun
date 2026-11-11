@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS chapter 1 encounter 0 rounds 2 tonics 5 qi 步惊云 13/30,聂风 16/34
+PASS wedding, both evacuations, and room reload
+PASS quiet rear escape without a second fight
+PASS chapter 2 encounter 0 rounds 2 tonics 9 qi 聂风 16/34,秦霜 26/32
+PASS ferry turn back, land and reload with reduced motion
+PASS signal blocked
+PASS chapter 2 encounter 1 rounds 2 tonics 9 qi 聂风 22/36,秦霜 22/34
+PASS chapter 3 encounter 0 rounds 2 tonics 9 qi 步惊云 12/32,聂风 14/36
+PASS chapter 3 encounter 1 rounds 2 tonics 9 qi 步惊云 20/34,聂风 16/38
+PASS chapter 4 encounter 0 rounds 2 tonics 9 qi 聂风 16/38,第二梦 39/47
+PASS chapter 4 encounter 1 rounds 2 tonics 9 qi 聂风 18/40,第二梦 31/49
+PASS chapter 5 encounter 0 rounds 2 tonics 9 qi 步惊云 22/36,无名 38/44
+PASS chapter 5 encounter 1 rounds 5 tonics 9 qi 步惊云 10/38,无名 18/46
+PASS chapter 6 encounter 0 rounds 3 tonics 9 qi 聂风 20/42,步惊云 20/38
+PASS chapter 6 encounter 1 rounds 5 tonics 9 qi 聂风 9/44,步惊云 19/40
+PASS final shield combo
+PASS directions, synthetic controller inputs, 1.1/1.2 saves and backup recovery
+Connected physical controllers: []
+RESULT wins=11 combos=4 failures=0 actions={ "tonics": 0, "techniques": 49, "guard": 0, "combo": 4 }

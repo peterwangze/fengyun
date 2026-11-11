@@ -1,0 +1,9 @@
+{
+  "tool": "local Qwen Turbo via ComfyUI",
+  "mode": "turbo",
+  "seed": 221110,
+  "prompt": "Wide 16:9 landscape for an original Chinese wuxia 2D role-playing game. High quality modern 16-bit pixel art, deliberate crisply clustered pixels, hand-pixelled SFC-era JRPG environment, limited dark indigo shadows, restrained luminous accents, strong foreground and atmospheric layers, no text, no logos, no panels, no interface. Quiet mountain village of ancient China at rainy twilight, elegant dark curved tiled roofs and bamboo with golden lanterns along a wooden bridge, distant pale jade blue fog, the entire lower half is an empty mossy flat stone courtyard, no figures.",
+  "job": "f8fe1ae2-3a32-4e62-9aa8-69f27517f60f",
+  "output": "game/assets/paintings/village.png",
+  "processing": "crop and downsample to 320x180, quantize 72 colors"
+}

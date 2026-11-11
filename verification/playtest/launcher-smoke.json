@@ -1,0 +1,9 @@
+{
+  "Result": "passed",
+  "Scope": "Automated Windows launcher smoke test in a temporary directory",
+  "ActualParticipants": 0,
+  "SeparateProfiles": true,
+  "ResumeReusesProfile": true,
+  "PerLaunchLogAndExitRecord": true,
+  "SHA256": "5B45A765E43C4E271C37C831EF13BF7CE14E9BCE614ADE2622E17EFE4EA9F103"
+}

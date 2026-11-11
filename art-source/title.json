@@ -1,0 +1,9 @@
+{
+  "tool": "local Qwen Turbo via ComfyUI",
+  "mode": "turbo",
+  "seed": 221108,
+  "prompt": "Wide 16:9 landscape for an original Chinese wuxia 2D role-playing game. High quality modern 16-bit pixel art, deliberate crisply clustered pixels, hand-pixelled SFC-era JRPG environment, limited dark indigo shadows, restrained luminous accents, strong foreground and atmospheric layers, no text, no logos, no panels, no interface. A small black silhouette of two wandering swordsmen seen from behind on a jagged ridge in the lower right corner. Huge golden full moon in the upper right half above misty jagged Chinese karst mountains and a temple silhouette on a cliff. LEFT HALF is quiet dark midnight blue mountain haze, intentionally much darker and blank to leave space for title.",
+  "job": "b740232a-c943-46f1-a7b6-a197440783a1",
+  "output": "game/assets/paintings/title.png",
+  "processing": "crop and downsample to 320x180, quantize 72 colors"
+}

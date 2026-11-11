@@ -1,0 +1,13 @@
+/Android/*.apk
+/Android/*.aab
+/Android/*.idsig
+/Windows/*.exe
+/Windows/*.pck
+**/.godot/
+**/__pycache__/
+*.keystore
+*.jks
+*.p12
+*.pfx
+.env
+.env.*

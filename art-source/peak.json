@@ -1,0 +1,9 @@
+{
+  "tool": "local Qwen Turbo via ComfyUI",
+  "mode": "turbo",
+  "seed": 221114,
+  "prompt": "Wide 16:9 landscape for an original Chinese wuxia 2D role-playing game. High quality modern 16-bit pixel art, deliberate crisply clustered pixels, hand-pixelled SFC-era JRPG environment, limited dark indigo shadows, restrained luminous accents, strong foreground and atmospheric layers, no text, no logos, no panels, no interface. Chinese wuxia final duel atop mountain terrace above a sea of storm clouds, giant stylized Chinese stone dragon relief in distance beneath an eclipsed amber sun, tattered flags on the two edges, desaturated violet rock and dark slate empty stone floor in lower half, no figures.",
+  "job": "c5d6566e-059f-4c11-8fc8-9c7e2b2c43cb",
+  "output": "game/assets/paintings/peak.png",
+  "processing": "crop and downsample to 320x180, quantize 72 colors"
+}

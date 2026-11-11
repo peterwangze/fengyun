@@ -1,0 +1,11 @@
+{
+  "Result": "passed",
+  "Executable": "D:\\AI\\agent\\codex\\test\\game\\fengyun\\Windows\\Fengyun.exe",
+  "WindowTitle": "风云：山河劫",
+  "Tested": "Launch, Windows key messages, movement, first fight victory, autosave, continue",
+  "Merit": 2,
+  "Cleared": [
+    0
+  ],
+  "Log": "D:\\AI\\agent\\codex\\test\\game\\fengyun\\verification\\windows-run.log"
+}

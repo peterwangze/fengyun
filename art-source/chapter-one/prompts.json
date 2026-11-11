@@ -1,0 +1,31 @@
+{
+  "banquet": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Full bleed 16:9 explorable map for a Chinese wuxia pixel JRPG. Match the two reference images' deep indigo shadows, clustered hand-placed pixels, careful warm amber glows and restrained painterly 16-bit palette. High top-down three-quarter orthographic game map (the reference courtyard camera), no sky/horizon, no people or living figures, no text, no UI. Art should read clearly when reduced to 320x180. Important walkable ground is in the middle 70% of the image (HUD will crop top and bottom). Leave room for characters and text overlays. Interior of the same ancient mountain sect, a wedding banquet laid out in a great Chinese timber hall at night. Top 25% raised ceremonial dais and steps in the center beneath red and gold silk drapes and a golden folding screen, with a few orange lanterns. From 35% through 83% height a wide open dim gray-stone central aisle with a muted red runner. Banquet tables along the extreme LEFT and RIGHT edges only and columns framing the edges; sparse fallen flower petals. Two readable side doors near mid-height, one on left with amber light, one on right with cool blue night light. The center must remain empty walkable ground; no central tables or other objects. Slightly ominous quiet, silk in red and muted gold with dark indigo timber. Rich small crafted details, clear focal point at the ceremonial steps.",
+    "references": [
+      "art-source/ending.png",
+      "art-source/art-update/hall.png"
+    ],
+    "raw": "art-source/chapter-one/banquet.png"
+  },
+  "garden": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Full bleed 16:9 explorable map for a Chinese wuxia pixel JRPG. Match the two reference images' deep indigo shadows, clustered hand-placed pixels, careful warm amber glows and restrained painterly 16-bit palette. High top-down three-quarter orthographic game map (the reference courtyard camera), no sky/horizon, no people or living figures, no text, no UI. Art should read clearly when reduced to 320x180. Important walkable ground is in the middle 70% of the image (HUD will crop top and bottom). Leave room for characters and text overlays. Nighttime bamboo and stone service garden hidden behind the same Chinese martial sect compound. Three-quarter overhead. A low blue tile roof and plaster garden wall along the top, partially hidden moon gate exit at the upper right. An open winding stone route traverses from the lower left of the scene across the middle to the upper right, through two small open clearings. A dense oblong rock and bamboo clump near the bottom-center and one small bamboo clump along the upper center create two readable pockets of cover beside the path. Ground is continuous on both sides of those little clumps, with enough open space around the center for a patrolling guard. Bamboo grows along the outer edges. A few muted lanterns and dark wet paving, subtle deep jade and violet, exactly the visual language of the reference courtyard. Avoid a big river, bridge or chasm. Camera remains high, clear, tactical, flat game-map perspective.",
+    "references": [
+      "art-source/ending.png",
+      "art-source/art-update/hall.png"
+    ],
+    "raw": "art-source/chapter-one/garden.png"
+  },
+  "wedding_cast": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "A transparent, landscape 2x2 atlas with four independent full-body Chinese wuxia JRPG character sprites, one isolated sprite in the exact center of each equally sized cell, large air gaps, identical logical human scale and matching foot lines. Top left: kind young Chinese bride in layered cinnabar and warm gold wedding hanfu, tiny gold hair ornaments, no veil covering face, no weapon. Top right: groom martial artist with short dark tied hair in refined burgundy over icy-blue clothes, no weapon, calm face. Bottom left: young servant woman in desaturated apricot hanfu with neat high bun, small folded cloth. Bottom right: male servant in desaturated jade-gray clothes and cloth headwrap, hands close, no tools. Short stylized proportions, 3/4 facing screen-right, rich muted colors, dark contours, clusters of hand-pixeled detail. Match the original character atlas exactly in rendering quality and body proportions, silhouettes readable at about 49 pixels tall in game. True transparent alpha, no scenery, no captions, no cast shadows, no borders.",
+    "references": [
+      "art-source/art-update/heroes.png"
+    ],
+    "raw": "art-source/chapter-one/wedding_cast.png"
+  }
+}

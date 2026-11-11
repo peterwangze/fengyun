@@ -1,0 +1,4 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FAIL left stick advances the new-game menu
+FAIL a held stick does not repeat menu navigation

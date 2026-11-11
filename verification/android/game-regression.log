@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS injected joypad menu navigation, drift rejection and reconnect latch
+PASS added encounter spar
+PASS chapter 1 encounter 0 rounds 2 tonics 5 qi 步惊云 13/30,聂风 16/34
+PASS chapter 1 encounter 2 rounds 2 tonics 6 qi 步惊云 26/30,聂风 23/34
+PASS wedding, both evacuations, and room reload
+PASS quiet rear escape without a second fight
+PASS ferry turn back, land and reload
+PASS added encounter courier_guard
+PASS chapter 2 encounter 2 rounds 1 tonics 9 qi 聂风 25/36,秦霜 28/34
+PASS signal called
+PASS chapter 2 encounter 1 rounds 3 tonics 9 qi 聂风 20/38,秦霜 36/36
+PASS chapter 3 encounter 0 rounds 2 tonics 9 qi 步惊云 19/36,聂风 29/40
+PASS chapter 3 encounter 1 rounds 2 tonics 9 qi 步惊云 22/36,聂风 29/40
+PASS chapter 3 encounter 2 rounds 2 tonics 9 qi 步惊云 37/38,聂风 31/42
+PASS added encounter first_tyrant
+PASS chapter 4 encounter 0 rounds 2 tonics 9 qi 聂风 20/42,第二梦 43/51
+PASS chapter 4 encounter 2 rounds 2 tonics 9 qi 聂风 30/44,第二梦 44/53
+PASS chapter 4 encounter 1 rounds 2 tonics 9 qi 聂风 24/46,第二梦 46/55
+PASS chapter 5 encounter 0 rounds 2 tonics 9 qi 步惊云 28/42,无名 38/50
+PASS chapter 5 encounter 2 rounds 2 tonics 9 qi 步惊云 22/44,无名 45/52
+PASS added encounter shift_guard
+PASS chapter 5 encounter 1 rounds 4 tonics 9 qi 步惊云 23/44,无名 31/52
+PASS added encounter cavern_guard
+PASS added encounter prepare_guard
+PASS chapter 6 encounter 0 rounds 3 tonics 9 qi 聂风 36/50,步惊云 39/46
+PASS chapter 6 encounter 2 rounds 2 tonics 9 qi 聂风 36/50,步惊云 32/46
+PASS chapter 6 encounter 1 rounds 6 tonics 9 qi 聂风 10/52,步惊云 19/48
+PASS final shield poise
+PASS added encounter stairs_guard
+Quest outcomes: { "courier": "done_fight", "forgework": "done_rack", "lamps": "done_goods", "remedy": "done_aid", "seals": "done_proof", "shift": "done_fight", "stairs": "done_decoy", "swordstory": "done_guard" }
+PASS Tidegate route=sluice rescue=false ending=witness
+PASS partner combos, delayed reinforcement and ally-targeted protection
+PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery
+Connected physical controllers: []
+RESULT wins=16 combos=6 failures=0 actions={ "tonics": 0, "techniques": 76, "guard": 2, "combo": 6 }

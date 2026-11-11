@@ -1,0 +1,7 @@
+{
+  "tool": "Built-in GPT Image / image_gen",
+  "model_version": "Not exposed by tool",
+  "prompt": "Production key art for the ending screen of an original 16-bit Chinese wuxia JRPG. A quiet ancient Chinese ferry village seen from an elevated three-quarter camera at rainy blue dusk. On the right two tiny silhouetted traveling swordsmen with clearly separate silhouettes quietly walk away over a low wooden footbridge, one wears a faded teal cloak and the other a faded red cloak. One single small warm paper lantern on the bridge railing in the lower right quadrant, reflected in rain-rippled dark water, old curved tiled roofs and layered karst peaks behind, a few bamboo leaves. Melancholy, luminous, understated. Leave the left 45% mostly quiet dark blue open water/mist so cream text can later be placed over it. Render like a premium indie pixel-art narrative game from a true 320 x 180 logical pixel canvas with deliberately clustered pixels, square stair-step edges, selective dithering in foliage only, detailed focal area, 45-70 muted colors, midnight indigo and jade with one amber light, no outlines around the entire image. Full bleed wide 16:9 landscape, no text of any kind, no watermarks, no UI, no framed borders, original character silhouettes.",
+  "output": "game/assets/paintings/ending.png",
+  "processing": "crop to 16:9, 320×180 resample, 112-color quantization, no dithering"
+}

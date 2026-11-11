@@ -1,0 +1,9 @@
+{
+  "tool": "local Qwen Turbo via ComfyUI",
+  "mode": "turbo",
+  "seed": 221111,
+  "prompt": "Wide 16:9 landscape for an original Chinese wuxia 2D role-playing game. High quality modern 16-bit pixel art, deliberate crisply clustered pixels, hand-pixelled SFC-era JRPG environment, limited dark indigo shadows, restrained luminous accents, strong foreground and atmospheric layers, no text, no logos, no panels, no interface. Immense underground Chinese sword forge in mountain cavern, amber molten channels and ancient bronze braziers along distant walls, rows of swords embedded near the side walls, huge deep orange light from above, open charcoal rocky platform in foreground, no figures.",
+  "job": "7c5b0c54-06d3-4b59-bffe-f8df0245f359",
+  "output": "game/assets/paintings/forge.png",
+  "processing": "crop and downsample to 320x180, quantize 72 colors"
+}

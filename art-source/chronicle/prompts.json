@@ -1,0 +1,43 @@
+{
+  "inn.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "A single full bleed wide 16:9 original SNES late-era 16-bit Chinese wuxia RPG playable interior map. Orthographic three-quarter top down, 320x180 game pixel look with large deliberate pixel clusters. Fengxi riverside inn in blue rain at night seen through two back windows, warmly lit ochre teapot counter along upper-right, rice-paper lamps and wooden posts at sides, empty continuous worn wood floor in middle and lower area from x12%-88% y53%-84% for roaming, front door gap at bottom center. Understated amber lighting and indigo framing, hand-placed pixel clusters with modern density. No characters, no text, no UI, no panels, full bleed."
+  },
+  "swordhall.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Single full bleed 16:9 original SNES-style pixel RPG playable Chinese sword workshop in daylight, orthographic three-quarter top-down view, use bold 320x180 pixel cluster design. Jianshan mountain sword hall in grey jade and cream daylight, blade racks behind at back wall in upper quarter, small anvil at upper-left, broad shaft of warm sun from tall window at upper-right, carved timber pillars at extreme sides only, broad unobstructed warm stone floor spans x10%-90% and y47%-84%, open footpath at lower edge. Quiet atmosphere after forge, bronze, pale sand, sage hues. No characters, no text or UI, full bleed."
+  },
+  "apothecary.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Single full bleed 16:9 original pixel art gameplay map 320x180 look, late 16-bit SNES-style wuxia RPG, orthographic three quarter top down. Mountain apothecary, carved wood shelving with ceramic jars on back wall, warm small herb stove upper-left, mortar and medicinal drawers in upper quarter, blue dusk through right window, subdued teal walls and amber accents, bottom half is very open continuous wooden floor for walking, empty between x12%-88% and y47%-84%. Lower edge centered entrance. No people, no text or lettering, no HUD, no collage."
+  },
+  "tearoom.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Single full bleed 16:9 original pixel art gameplay map, 320x180 game density in late 16-bit SNES wuxia style. Orthographic three quarter top-down. Palace tearoom adjoining side corridor, smoky dark blue grey carved pillars on outside margins, cold moonlight from top-left, small tea service on raised stage at upper-right, two small lanterns, subtle warm light toward rear windows, broad empty continuous flagstone floor x10%-90% y47%-84%, lower edge open entrance, plausible character path. Room holds calm before a fire, no actual conflagration. No figures, lettering, UI or frame."
+  },
+  "cavern.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Single full bleed 16:9 original pixel art RPG gameplay level, 320x180 game pixel look, SNES-style late era Chinese wuxia fantasy, orthographic three-quarter top down. Lingyun cave entry and dragon relic chamber, slate, jade cyan and tiny warm sparks, rear center contains a mysterious pale jade dragon-shaped fossil embedded on a raised natural dais behind the playable floor. Cavern walls and stalactites at upper edge and extreme sides, bottom half wide unobstructed slate stone floor from x12%-88% y48%-84% and path out lower center. Strong lighting hierarchy, calm black silhouettes and meaningful pixel clusters, no character, text or UI."
+  },
+  "moves.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "One cohesive transparent PNG sprite atlas of original 16-bit SNES style wuxia RPG visual effects, exactly 4 columns by 2 rows equal cells with generous padding all eight cells, individually isolated alpha cutouts. No characters, UI, labels or grids. Each effect takes up center 65% of its cell, no touching or crossover. Reading order: cyan white thin crescent rising wind kick; compressed vermilion palm imprint and layered smoke; angular indigo-white frost crystals; pearlescent rose and gold medicinal ribbon; gold white spear of glint and separated sword blades; warm dark plum circular demonic blade with clean serration; concentric jade and red two-element hurricane; gold slate protective shield with a single broken edge. Chunky intentional pixel clusters and hard contours, restrained edge highlights, clear on dark backgrounds. Actual transparent background."
+  },
+  "dawn.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Edit this specific original pixel RPG level, preserving the map geometry precisely: bridge spans the river horizontally at original center coordinates, same width; same riverbanks, houses, stairs, shrubs and walkable ground lines. Convert late night rain to pale golden early morning just after the rain, with sage trees, damp slate reflecting warm sunlight, thin layers of ground mist and morning sky reflection in water. Detailed 16-bit chunky pixel clusters, original SNES-style top-down Chinese wuxia RPG, landscape 16:9. No people, text or UI. The original bridge, walkable banks and layout must line up with the image.",
+    "reference": "game/assets/field/village.png"
+  },
+  "cast.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Transparent background, cohesive 4 columns by 1 row game character atlas. Original 16-bit Chinese wuxia RPG character full bodies at three-quarter top-down angle, all face slightly toward screen-right, same baseline and scale, full feet, cell centers evenly spaced, all four independently isolated alpha cutouts. Left to right: young artisan woman Yu Chuchu in light muted jade and parchment hanfu holding a short unsharpened sword wrapped in cloth, high dark bun; proud martial woman Dugu Meng in faded indigo and white robes, straight black hair tied back with red cord; court lady Yan Ying in soft pink crimson and gold, combed-up black hair, subtle muted clothing; round sturdy middle-aged herbalist Zhu Huang in warm grey and ochre robe holding a small medicine bundle, wide braided belt. Strong distinct silhouettes, clusters legible at 48 pixels tall, limited colors and shadow shaping. No lettering, UI, grids, or scenery."
+  },
+  "fire.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Single isolated transparent PNG cutout of a small orange fire burning on fallen dark charcoal wooden debris, designed as an environmental game sprite for a 16-bit SNES-style Chinese wuxia pixel RPG. Orthographic three-quarter top-down, grounded charcoal embers and forked bright amber tongues rising in a loose triangular profile, restrained red outer edge, 48x44 pixel visual density with chunky intentional clusters and alpha cutout. No buildings, no people, no hands, no faces, no letters, no UI, no cast shadow outside the debris. Centered with margin. Actual transparent background."
+  },
+  "portraits.png": {
+    "source": "内置 GPT 图像生成",
+    "prompt": "Four by one horizontally arranged atlas of four alpha-transparent close-up portrait busts at the same scale for an original wuxia pixel RPG. Deliberate chunky late-SNES 16-bit pixels, head-and-shoulders, crisp edges, individual alpha-separated character groups. Left to right: black-haired young man with blue-green scarf, diagonal dark eyebrows and restrained compassion; black-haired young swordsman with red-black long cloak and one hand raised, controlled grief; young woman healer in pink lilac robes with a red tie in dark hair, calm determined features and a subtle scar; middle-aged black and gold warlord with narrow sharp eyes and a groomed beard, oxblood and bronze embroidery. Original interpretations, no celebrity resemblance. Unified high contrast amber key light and violet shadows, match all four, balanced crop, no text, UI or scenery."
+  }
+}

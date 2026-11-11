@@ -1,0 +1,14 @@
+{
+  "Result": "passed",
+  "Executable": "D:\\AI\\agent\\codex\\test\\game\\fengyun\\Windows\\Fengyun.exe",
+  "WindowTitle": "风云：山河劫",
+  "ProductVersion": "1.2.0.0",
+  "Tested": "Launch, Windows keyboard, stagger tutorial, wedding scene, two evacuations, rear route entry, continue",
+  "Merit": 2,
+  "Cleared": [
+    0
+  ],
+  "Checkpoint": "garden",
+  "Evacuated": 2,
+  "Log": "D:\\AI\\agent\\codex\\test\\game\\fengyun\\verification\\chapter-one\\windows-run.log"
+}

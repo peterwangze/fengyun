@@ -1,0 +1,59 @@
+{
+  "front": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Make a precise technical atlas of SIX separate transparent pixel-art sprites in EXACTLY 3 columns x 2 rows, equal invisible square cells, 3:2 landscape. All are full-body, separately centered within their cell, big transparent gutters, same height and foot line, no ground, no divider, no lettering. 16-bit wuxia JRPG, same 3.5-head body scale and specific clothes, hair and color identity as the reference sheet, deliberate pixellated clusters that read at 49 logical pixels tall. Order, top row: teal ponytailed swordsman with silver saber at his side, burgundy swordsman with wavy shoulder-length black hair and heavy dark sword, cobalt martial artist with pale blue legs and bare fists. Bottom row: dusty orchid / pink swordswoman with pinned black hair and slim pale saber, silver-haired elderly sword master in cream gray, middle-aged ferry man with short dark beard, deep brown conical straw hat and olive gray cotton robe. Hands and weapons close to bodies. All six face exactly toward the camera, straight-on front view, looking downward toward screen bottom, visible faces and chest, feet at same y. Neutral standing pose for local walk-frame production.",
+    "references": [
+      "art-source/art-update/heroes.png"
+    ],
+    "raw": "art-source/evolution/front.png"
+  },
+  "back": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Make a precise technical atlas of SIX separate transparent pixel-art sprites in EXACTLY 3 columns x 2 rows, equal invisible square cells, 3:2 landscape. All are full-body, separately centered within their cell, big transparent gutters, same height and foot line, no ground, no divider, no lettering. 16-bit wuxia JRPG, same 3.5-head body scale and specific clothes, hair and color identity as the reference sheet, deliberate pixellated clusters that read at 49 logical pixels tall. Order, top row: teal ponytailed swordsman with silver saber at his side, burgundy swordsman with wavy shoulder-length black hair and heavy dark sword, cobalt martial artist with pale blue legs and bare fists. Bottom row: dusty orchid / pink swordswoman with pinned black hair and slim pale saber, silver-haired elderly sword master in cream gray, middle-aged ferry man with short dark beard, deep brown conical straw hat and olive gray cotton robe. Hands and weapons close to bodies. All six face directly AWAY from camera, visible BACK of head and body, walking northward from the player's view. No faces visible. Neutral standing pose for local walk-frame production.",
+    "references": [
+      "art-source/art-update/heroes.png"
+    ],
+    "raw": "art-source/evolution/back.png"
+  },
+  "skills": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Technical pixel-art character pose atlas for a 2D wuxia RPG. EXACTLY 8 separately centered sprites on TRUE transparent alpha, 4 columns × 2 rows, identical invisible square cell layout, big transparent gutters, baseline at bottom of each cell. Character design, cloth and hair closely match the reference atlas. Strong hand-pixeled 16-bit silhouettes, 3.5 heads tall, sprite-readable at 49 pixels. All characters face screen right in 3/4. Row 1 left to right: 1 teal ponytail swordsman with one knee raised crouched in a coiled martial kick wind-up; 2 SAME man leaning back with right leg extended horizontally at right in an emphatic flying kick, ponytail trailing left; 3 red-burgundy dark-haired swordsman in low rooted stance with both hands drawn back near his waist preparing a palm strike; 4 SAME man takes forward stride and thrusts a bare open palm to the right, red cloak trailing left, sword sheathed. Row 2 left to right: 1 teal warrior sets saber in rising diagonal en garde; 2 red warrior holds massive sword diagonally above shoulder with weight set for simultaneous cross-slash; 3 pink swordswoman both palms up holding a gentle jade healing light; 4 cobalt blue martial artist with fists together ready to use a frost fist. No labels, scenery or effects outside bodies, no ground shadow.",
+    "references": [
+      "art-source/art-update/heroes.png"
+    ],
+    "raw": "art-source/evolution/skills.png"
+  },
+  "props": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "A 2×2 landscape technical sprite sheet for a Chinese rainy river village 16-bit RPG, true transparent alpha and equal invisible cells, exactly 4 separate centered isolated game assets, no UI, no text or background. Crisp pixel clusters suitable at 32–70 logical pixels. Top left: small old black-brown wood ferry sampan, bow points left, broadside from slightly above (3/4 top-down), open center with a small bamboo canopy at rear and a pale rope, no people or water. Top right: tall signal lantern stand with narrow vertical red silk and bright warm amber lamp. Bottom left: dark iron and bronze square winch gear with short wooden handle and ember highlights suitable for a cave forge. Bottom right: full-body older Chinese noble prisoner in simple pale worn gray silk robes, short beard, no weapons, three-quarter facing right, cutout like the character atlas. Distinct gaps around all items.",
+    "references": [
+      "art-source/art-update/heroes.png",
+      "art-source/ending.png"
+    ],
+    "raw": "art-source/evolution/props.png"
+  },
+  "jail": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a full-bleed 16:9 explorable 16-bit Chinese wuxia JRPG scene with a high top-down three-quarter game-map camera, broad walkable floor in the middle 70%, no characters, no UI, no text, no borders. Match the muted indigo pixel clusters and amber lamps in the given reference, with lighting read at 320x180. A hidden underground jail beneath the blue-roofed palace, midnight slate flagstones and rain dripping from cold carved walls. One large iron prison cell at center top, one aged amber brazier on each side, open cell doorway at center and broad open courtyard-like flagstone floor across the entire central and lower image. Small stairway toward left side at mid-height, heavy wood beams, a few chains and baskets off the path, deeper cool-blue shadow at bottom corners. No giant cell bars in foreground; characters must have clear floor on which to walk and talk. Chinese stone architecture, subdued navy and one warm focal light.",
+    "references": [
+      "art-source/art-update/palace.png",
+      "art-source/ending.png"
+    ],
+    "raw": "art-source/evolution/jail.png"
+  },
+  "lodge": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a full-bleed 16:9 explorable 16-bit Chinese wuxia JRPG scene with a high top-down three-quarter game-map camera, broad walkable floor in the middle 70%, no characters, no UI, no text, no borders. Match the muted indigo pixel clusters and amber lamps in the given reference, with lighting read at 320x180. Quiet bamboo and pine mountain refuge at night, a small open-front ancient Chinese pavilion looking out over softly falling rain. Raised amber candle-lit veranda along the upper third, paper windows and bedding hinting at a private room, a wide stone terrace in the central lower part. The center foreground and center-right must be unobstructed for a pair of characters to stand and kneel, two small pale blossoms on the stones, shadowed pines and dark rocks only at the edges. A blue and dusky violet farewell mood with a single surviving amber lamp. Keep the same strong high camera as a game map, no horizon and no people.",
+    "references": [
+      "art-source/ending.png",
+      "art-source/art-update/peak.png"
+    ],
+    "raw": "art-source/evolution/lodge.png"
+  }
+}

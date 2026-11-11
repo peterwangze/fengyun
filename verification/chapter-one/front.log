@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS chapter 1 encounter 0 rounds 2 tonics 5
+PASS wedding, both evacuations, and room reload
+PASS chapter 1 encounter 1 rounds 2 tonics 6
+PASS chapter 2 encounter 0 rounds 2 tonics 9
+PASS chapter 2 encounter 1 rounds 3 tonics 9
+PASS chapter 3 encounter 0 rounds 2 tonics 9
+PASS chapter 3 encounter 1 rounds 2 tonics 9
+PASS chapter 4 encounter 0 rounds 2 tonics 9
+PASS chapter 4 encounter 1 rounds 3 tonics 9
+PASS chapter 5 encounter 0 rounds 2 tonics 9
+PASS chapter 5 encounter 1 rounds 5 tonics 9
+PASS chapter 6 encounter 0 rounds 3 tonics 9
+PASS chapter 6 encounter 1 rounds 5 tonics 9
+RESULT wins=12 combos=6 failures=0

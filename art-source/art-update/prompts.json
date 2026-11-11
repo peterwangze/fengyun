@@ -1,0 +1,98 @@
+{
+  "hall": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a production-ready, edge-to-edge 16:9 world map for one explorable room of a Chinese wuxia pixel RPG, with no characters, labels, UI, icons, text or borders. The reference ending illustration supplies its rich muted blue-gray palette, amber lighting, confident pixel clusters and atmosphere. The second reference is the actual old level map, supplying only the geographic placement of the ground, structures, crossings, and open circulation. Redraw it from scratch with higher artistry and much more environmental detail. Use a shallow top-down three-quarter orthographic gameplay camera like a late-16-bit 2D console RPG. No vanishing point, no low-angle view. Use crisp curated square pixels with art composed for a 320x180 logical canvas. Give the floor soft lower-contrast texture, walkways read clearly and silhouettes of permanent obstacles read distinctly. Geometry at a glance: the upper 28% contains most of the buildings and tall decor, central and lower playable ground extends across the frame. Some atmospheric scenery can go along the left, right and bottom edges, but keep the playable ground clear. Imagine an empty screenshot of a whole Chrono Trigger-style location in a contemporary indie pixel-art game. No faux TV scanlines, no letterbox, no gradient blur. Tianxia sect courtyard on a mountain at late dusk, slate and midnight blue pavement, terracotta-red painted timber, roof ridges and amber hanging lanterns. Four distinct timber pavilions set along the top third with dark ink roof silhouettes and readable doorways. Slate paths through the courtyard connect lower left and far right. Small worn brass compass inlaid in the center floor, quiet reflecting puddles, glints of red silk and pine at the edges. Layout is very open and lateral, with clear negative space for the heroes at left, enemies at center and right. Look-down three-quarter camera, roofs occupy top 25-37%.",
+    "transparent_background": false,
+    "references": [
+      "art-source/ending.png",
+      "game/assets/maps/hall.png"
+    ],
+    "raw": "art-source/art-update/hall.png"
+  },
+  "village": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a production-ready, edge-to-edge 16:9 world map for one explorable room of a Chinese wuxia pixel RPG, with no characters, labels, UI, icons, text or borders. The reference ending illustration supplies its rich muted blue-gray palette, amber lighting, confident pixel clusters and atmosphere. The second reference is the actual old level map, supplying only the geographic placement of the ground, structures, crossings, and open circulation. Redraw it from scratch with higher artistry and much more environmental detail. Use a shallow top-down three-quarter orthographic gameplay camera like a late-16-bit 2D console RPG. No vanishing point, no low-angle view. Use crisp curated square pixels with art composed for a 320x180 logical canvas. Give the floor soft lower-contrast texture, walkways read clearly and silhouettes of permanent obstacles read distinctly. Geometry at a glance: the upper 28% contains most of the buildings and tall decor, central and lower playable ground extends across the frame. Some atmospheric scenery can go along the left, right and bottom edges, but keep the playable ground clear. Imagine an empty screenshot of a whole Chrono Trigger-style location in a contemporary indie pixel-art game. No faux TV scanlines, no letterbox, no gradient blur. Rainy Fengxi ferry village like the ending painting but seen from the game camera. The blue-green river runs vertically down the center of the image with an unmistakable single horizontal wooden footbridge at exactly 58% image height, the same crossing as the level reference. Clearly open walkable slate and beaten-earth ground on BOTH left and right banks across most of the middle and lower screen. Old curving roofs and amber windows along the upper third, smaller wooden boats moored in river corners, low blue ferns and deep jade bamboo around edges. Warm lantern light reflected in puddles and river. Readable traversable bridge deck. No giant foreground that hides either bank.",
+    "transparent_background": false,
+    "references": [
+      "art-source/ending.png",
+      "game/assets/maps/village.png"
+    ],
+    "raw": "art-source/art-update/village.png"
+  },
+  "forge": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a production-ready, edge-to-edge 16:9 world map for one explorable room of a Chinese wuxia pixel RPG, with no characters, labels, UI, icons, text or borders. The reference ending illustration supplies its rich muted blue-gray palette, amber lighting, confident pixel clusters and atmosphere. The second reference is the actual old level map, supplying only the geographic placement of the ground, structures, crossings, and open circulation. Redraw it from scratch with higher artistry and much more environmental detail. Use a shallow top-down three-quarter orthographic gameplay camera like a late-16-bit 2D console RPG. No vanishing point, no low-angle view. Use crisp curated square pixels with art composed for a 320x180 logical canvas. Give the floor soft lower-contrast texture, walkways read clearly and silhouettes of permanent obstacles read distinctly. Geometry at a glance: the upper 28% contains most of the buildings and tall decor, central and lower playable ground extends across the frame. Some atmospheric scenery can go along the left, right and bottom edges, but keep the playable ground clear. Imagine an empty screenshot of a whole Chrono Trigger-style location in a contemporary indie pixel-art game. No faux TV scanlines, no letterbox, no gradient blur. A subterranean Chinese sword forge. Straight channel of deep red glowing molten rock runs vertically down the center and one horizontal, distinctly walkable sturdy stone bridge crosses at 58% of image height as in the layout. Open dark blue charcoal basalt floor with striations on both banks, ample clear ground over the middle and bottom; framed by cold jagged cave walls and recessed forges along the top third, small scattered sparks, a few swords set into racks beside the cave perimeter. Ember orange against cooled indigo and violet shale. Almost all bright lava confined to the center channel.",
+    "transparent_background": false,
+    "references": [
+      "art-source/ending.png",
+      "game/assets/maps/forge.png"
+    ],
+    "raw": "art-source/art-update/forge.png"
+  },
+  "pool": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a production-ready, edge-to-edge 16:9 world map for one explorable room of a Chinese wuxia pixel RPG, with no characters, labels, UI, icons, text or borders. The reference ending illustration supplies its rich muted blue-gray palette, amber lighting, confident pixel clusters and atmosphere. The second reference is the actual old level map, supplying only the geographic placement of the ground, structures, crossings, and open circulation. Redraw it from scratch with higher artistry and much more environmental detail. Use a shallow top-down three-quarter orthographic gameplay camera like a late-16-bit 2D console RPG. No vanishing point, no low-angle view. Use crisp curated square pixels with art composed for a 320x180 logical canvas. Give the floor soft lower-contrast texture, walkways read clearly and silhouettes of permanent obstacles read distinctly. Geometry at a glance: the upper 28% contains most of the buildings and tall decor, central and lower playable ground extends across the frame. Some atmospheric scenery can go along the left, right and bottom edges, but keep the playable ground clear. Imagine an empty screenshot of a whole Chrono Trigger-style location in a contemporary indie pixel-art game. No faux TV scanlines, no letterbox, no gradient blur. A haunting purple mountain cave named the Pool of the Inner Demon, seen from above. A still, unmistakable dark burgundy reflecting water channel runs down the center with one short horizontal walkable dark-stone crossing at 58% of image height, as in the layout. Mauve and indigo strata in cave walls across the upper third, low candles and delicate scarlet reflection on water and empty gray-violet stone paths on both banks. Dim amber paper shrine in top right, pockets of mineral light at edges. Distinct walkable floor on both banks across the middle and lower parts.",
+    "transparent_background": false,
+    "references": [
+      "art-source/ending.png",
+      "game/assets/maps/pool.png"
+    ],
+    "raw": "art-source/art-update/pool.png"
+  },
+  "palace": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a production-ready, edge-to-edge 16:9 world map for one explorable room of a Chinese wuxia pixel RPG, with no characters, labels, UI, icons, text or borders. The reference ending illustration supplies its rich muted blue-gray palette, amber lighting, confident pixel clusters and atmosphere. The second reference is the actual old level map, supplying only the geographic placement of the ground, structures, crossings, and open circulation. Redraw it from scratch with higher artistry and much more environmental detail. Use a shallow top-down three-quarter orthographic gameplay camera like a late-16-bit 2D console RPG. No vanishing point, no low-angle view. Use crisp curated square pixels with art composed for a 320x180 logical canvas. Give the floor soft lower-contrast texture, walkways read clearly and silhouettes of permanent obstacles read distinctly. Geometry at a glance: the upper 28% contains most of the buildings and tall decor, central and lower playable ground extends across the frame. Some atmospheric scenery can go along the left, right and bottom edges, but keep the playable ground clear. Imagine an empty screenshot of a whole Chrono Trigger-style location in a contemporary indie pixel-art game. No faux TV scanlines, no letterbox, no gradient blur. Moonlit wuxia palace taken over by foreign warriors, four separate deep-cobalt roofed Chinese buildings along the upper third including a taller main gate in the center. The broad open blue-gray flagstone courtyard stretches across the full width of the middle and lower frame. Delicate swaying torn plum banners at the margins, small desaturated gold embers on iron stands, a few rain reflections and faded dragon patterns on open ground. Cooler and more imposing than Tianxia. Distant architecture drawn at the same top-down three-quarter pitch as the courtyard.",
+    "transparent_background": false,
+    "references": [
+      "art-source/ending.png",
+      "game/assets/maps/palace.png"
+    ],
+    "raw": "art-source/art-update/palace.png"
+  },
+  "peak": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Create a production-ready, edge-to-edge 16:9 world map for one explorable room of a Chinese wuxia pixel RPG, with no characters, labels, UI, icons, text or borders. The reference ending illustration supplies its rich muted blue-gray palette, amber lighting, confident pixel clusters and atmosphere. The second reference is the actual old level map, supplying only the geographic placement of the ground, structures, crossings, and open circulation. Redraw it from scratch with higher artistry and much more environmental detail. Use a shallow top-down three-quarter orthographic gameplay camera like a late-16-bit 2D console RPG. No vanishing point, no low-angle view. Use crisp curated square pixels with art composed for a 320x180 logical canvas. Give the floor soft lower-contrast texture, walkways read clearly and silhouettes of permanent obstacles read distinctly. Geometry at a glance: the upper 28% contains most of the buildings and tall decor, central and lower playable ground extends across the frame. Some atmospheric scenery can go along the left, right and bottom edges, but keep the playable ground clear. Imagine an empty screenshot of a whole Chrono Trigger-style location in a contemporary indie pixel-art game. No faux TV scanlines, no letterbox, no gradient blur. Open high-altitude Chinese ceremonial terrace cut into a mountain ridge, pale blue clouds below the cliff edges, indigo pine and crag silhouettes. At the top third a monumental ancient dark stone dragon relief and broken stone gates, all framed from an elevated game-map view. Empty gray-violet stone terrace occupies the vast majority of the central and lower image with one worn gold dragon medallion off-center at right. Scraps of red cloth and fractured slate steps at the edges, thin beams of a sunset. Do not turn this into a landscape illustration: all central ground must be a clearly walkable continuous terrace in a 3/4 high view.",
+    "transparent_background": false,
+    "references": [
+      "art-source/ending.png",
+      "game/assets/maps/peak.png"
+    ],
+    "raw": "art-source/art-update/peak.png"
+  },
+  "heroes": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Make an evenly spaced game sprite atlas in 4 columns by 2 rows, 2:1 landscape (four square cells across, two down). EXACTLY eight isolated full-body characters, one per cell, genuine transparent alpha, no background, no checkerboard pixels, no scenery, no cast shadow, no dividers, no frame, no text. Each character centered at cell center, feet aligned at same height within every cell, no effects outside bodies, large air gutters, short equipment kept close to body. Make same silhouette scale for the humans, feet to top occupy about 70% of each square. Angle is 3/4, facing toward screen-right for combat, torso visible; heads readable at 38x48 pixel logical size, hair and clothing have clustered 2–4 shaded colors with cold blue cast shadows and warm deliberate accents. Crisp hand-pixeled modern 16-bit Chinese wuxia sprites, approximately 48 logical pixels high, SNES JRPG silhouettes and nuanced compact lighting. Stylized mature figures with 3.5 heads in height, detailed cloth, bold distinctive hair and stance. Use the ending image as tonal reference only, brighter subjects with clean dark contours so they read on a dark tile map. No 3D or smooth painting. ROW ONE, left to right: (1) teal-robed young swordsman with long flowing black ponytail, silver crescent saber kept low, athletic forward stance; (2) oxblood-and-ember red robed young swordsman with wavy shoulder-length dark hair, strong stance and heavy black blade carried vertically; (3) resolute short-haired young man in cobalt and ice-blue martial jacket, raised frost fist in unarmed stance; (4) young woman in orchid and dusty pink layered hanfu with black hair pinned and short pale saber. ROW TWO: (1) older wandering master in cream gray and muted amber robes, salt-gray hair and beard and restrained narrow blade; (2) elderly traveling scholar in amber brown and faded olive robes and soft hat, holding a small folded fan; (3) charcoal navy armor guard with tan tabard and dark conical helmet, short spearlike blade pointing up; (4) bandit swordsman in umber taupe with tied dark bandana and single saber. Clothing silhouettes must look different for each.",
+    "transparent_background": true,
+    "references": [
+      "art-source/ending.png"
+    ],
+    "raw": "art-source/art-update/heroes.png"
+  },
+  "foes": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "Make an evenly spaced game sprite atlas in 4 columns by 2 rows, 2:1 landscape (four square cells across, two down). EXACTLY eight isolated full-body characters, one per cell, genuine transparent alpha, no background, no checkerboard pixels, no scenery, no cast shadow, no dividers, no frame, no text. Each character centered at cell center, feet aligned at same height within every cell, no effects outside bodies, large air gutters, short equipment kept close to body. Make same silhouette scale for the humans, feet to top occupy about 70% of each square. Angle is 3/4, facing toward screen-right for combat, torso visible; heads readable at 38x48 pixel logical size, hair and clothing have clustered 2–4 shaded colors with cold blue cast shadows and warm deliberate accents. Crisp hand-pixeled modern 16-bit Chinese wuxia sprites, approximately 48 logical pixels high, SNES JRPG silhouettes and nuanced compact lighting. Stylized mature figures with 3.5 heads in height, detailed cloth, bold distinctive hair and stance. Use the ending image as tonal reference only, brighter subjects with clean dark contours so they read on a dark tile map. No 3D or smooth painting. ROW ONE, left to right: (1) burly crimson plum armored guard captain with a tasseled tall helmet, gold leather trim, broad dark sword; (2) a slight masked indigo shadow assassin in dark violet, angular short daggers and narrow hood; (3) hunched dark-purple ninja with silver claw gauntlets, long raised elbow and ragged cape; (4) defiant cinnabar swordsman with short spiky tied hair and a close fiery copper straight sword, red-ochre tunic. ROW TWO: (1) cunning youthful purple-and-black noble with purple long robe and narrow sword at his side; (2) large bald martial warlord in ochre gold and dark armored silk, bare fists, broad shoulders, dark boots; (3) imposing elder Chinese warlord with ornate golden crown, short dark beard, broad wine-red and dark bronze robe, intense gaze and exposed raised fist, iconic boss; (4) flame qilin, a small four-legged dark red-scaled Chinese lion-dragon beast with ember gold mane, pointed snout and forelimbs visible. Make silhouettes very different.",
+    "transparent_background": true,
+    "references": [
+      "art-source/ending.png"
+    ],
+    "raw": "art-source/art-update/foes.png"
+  },
+  "effects": {
+    "tool": "Built-in GPT Image",
+    "model_version": "Not exposed",
+    "prompt": "A technical game VFX sprite atlas for an elegant 16-bit Chinese wuxia JRPG. 4 columns x 2 rows, equal square cells, EXACTLY eight separate centered art assets, independent effects with generous gutters, no cell borders or grid lines, genuine transparent alpha, no colored background or backdrop, no checkerboard pixels, no text. Crisp pixel-art clusters and short angular spark particles, sharp bright cores, restrained soft halo only where needed, sculpted like late 16-bit 2D RPG effects. These will be animated in-engine over a dim background and must have distinct silhouettes. Row 1 left to right: 1 a single ivory curved sword slash rising up to the right with a few light sparks, 2 an aqua teal double circular wind crescent and short streaks, 3 a coral red rolling cloud fist impact with separated orange sparks, 4 an icy blue frost explosion with sharp ice shards. Row 2 left to right: 1 jade green healing wisps in a vertical lotus-shaped spiral, 2 gold shattered shield fragments around a diamond-shaped impact, 3 a major dual teal and amber swirling blade with crossing slashes in the middle, 4 violet magenta dark crescent with jagged black-purple edges and a glowing pale tip. All eight have clean translucent edges and are drawn in compact, readable pixel art, flat two-dimensional with no ground. This is an atlas of building blocks, one effect per cell.",
+    "transparent_background": true,
+    "references": [
+      "art-source/ending.png"
+    ],
+    "raw": "art-source/art-update/effects.png"
+  }
+}
