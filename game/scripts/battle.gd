@@ -2,6 +2,7 @@ extends RefCounted
 
 const Story = preload("res://scripts/story.gd")
 const Martial = preload("res://scripts/martial.gd")
+const Equipment = preload("res://scripts/equipment.gd")
 const INTENTS = {
 	"strike": "快斩 · 单体", "charge": "蓄势 · 重击",
 	"sweep": "横扫 · 全体", "brace": "架势 · 减伤", "signal":"预备鸣哨 · 召援",
@@ -28,7 +29,7 @@ var reinforcement_round := 2
 var combo_uses := 0
 
 func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, chapter: int = 5,
-	sword: Variant = null, prepared: Dictionary = {}, expanded: bool = false) -> void:
+	sword: Variant = null, prepared: Dictionary = {}, expanded: bool = false, gear: Dictionary = {}) -> void:
 	tonics = stock
 	story_mode = easy
 	advanced = expanded
@@ -36,12 +37,16 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 	var sword_ready := chapter >= 3 if sword == null else bool(sword)
 	for id in party:
 		var unit: Dictionary = Story.HEROES[id].duplicate(true)
+		var kit: Dictionary = gear.get(id, {})
+		var stats := Equipment.attributes(id, rank, kit)
 		unit["id"] = id
-		unit["max_hp"] = unit.hp + (rank - 1) * 8
-		unit["max_qi"] = unit.qi + (rank - 1) * 2
+		unit["gear"] = kit
+		unit["technique_bonus"] = (rank - 1) * 2
+		unit["max_hp"] = stats.hp
+		unit["max_qi"] = stats.qi
 		unit["hp"] = unit.max_hp
 		unit["qi"] = unit.max_qi
-		unit["attack"] += (rank - 1) * 2
+		unit["attack"] = stats.attack
 		unit["guard"] = false
 		unit["ward"] = false
 		unit["counter"] = false
@@ -103,7 +108,9 @@ func detail(action: int) -> String:
 		1, 2:
 			var move: Array = allies[actor].moves[action - 1]
 			return "%d 气 · %s" % [move[1], move[5]]
-		3: return "减伤 · 回气 9 · 魔念 −2" if allies[actor].title == "魔刀" else "减伤并回复 9 真气"
+		3:
+			var recovered := _guard_recovery(allies[actor])
+			return "减伤 · 回气 %d · 魔念 −2" % recovered if allies[actor].title == "魔刀" else "减伤并回复 %d 真气" % recovered
 		4: return "治疗队友 58 点 · 可救起倒地"
 		5:
 			if advanced:
@@ -203,7 +210,7 @@ func act(action: int, target: int) -> bool:
 		1, 2:
 			var move: Array = unit.moves[action - 1]
 			unit.qi -= move[1]
-			var power: int = move[3] + int((unit.max_hp - Story.HEROES[unit.id].hp) / 4.0)
+			var power: int = move[3] + unit.technique_bonus
 			_apply_move(unit,move,power,target,action,style)
 			if style == "dark" and corruption == 6:
 				var recoil := mini(18, int(unit.hp) - 1)
@@ -214,7 +221,7 @@ func act(action: int, target: int) -> bool:
 			bond = mini(4, bond + 1)
 		3:
 			unit.guard = true
-			unit.qi = mini(unit.max_qi, unit.qi + 9)
+			unit.qi = mini(unit.max_qi, unit.qi + _guard_recovery(unit))
 			if unit.title == "魔刀":
 				corruption = maxi(0,corruption - 2)
 		4:
@@ -234,6 +241,9 @@ func act(action: int, target: int) -> bool:
 	else:
 		_enemy_turn()
 	return true
+
+func _guard_recovery(unit: Dictionary) -> int:
+	return 9 + int(unit.gear.get("guard_qi", 0))
 
 func _automatic(action: int) -> bool:
 	return action in [1,2] and ("全体" in allies[actor].moves[action - 1][5] or _move_kind(action) == "counter")
@@ -264,7 +274,7 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 					allies[i].ward = true
 					_ally_state(i,"护持")
 		"aid":
-			_heal(target,power)
+			_heal(target,power + int(unit.gear.get("heal", 0)))
 			allies[target].ward = true
 			_ally_state(target,"护持")
 		_:
@@ -275,7 +285,7 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 				corruption = maxi(0,corruption - (4 if kind == "cleanse" else 3))
 				for i in allies.size():
 					if allies[i].hp > 0:
-						_heal(i,power)
+						_heal(i,power + int(unit.gear.get("heal", 0)))
 				return
 			if _automatic(action):
 				for i in foes.size():
@@ -295,6 +305,10 @@ func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: St
 	elif advanced and unit.id == "frost":
 		enemy.frost = mini(2,enemy.frost+1)
 	var pursuit: bool = enemy.broken and (kind == "pursuit" or (advanced and enemy.frost == 2 and unit.id == "wind"))
+	if enemy.broken:
+		power += int(unit.gear.get("broken_damage", 0))
+	if move[2] == enemy.weak:
+		poise += int(unit.gear.get("weakness_poise", 0))
 	_hit_foe(at,power,poise,move[2],style)
 	if pursuit and not followup_used and enemy.hp > 0:
 		followup_used = true
@@ -477,7 +491,7 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int) 
 	if unit.ward:
 		factor *= 0.45
 		unit.ward = false
-	var damage := maxi(1, roundi(points * factor))
+	var damage := maxi(1, roundi(points * factor) - int(unit.gear.get("armor", 0)))
 	unit.hp = maxi(0, unit.hp - damage)
 	_effect("damage", "ally", index, beat, "guard" if unit.guard else style, "−%d" % damage)
 	if unit.hp == 0:

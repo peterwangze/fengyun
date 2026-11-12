@@ -1,0 +1,37 @@
+--------- beginning of main
+V/Godot   ( 4831): Initializing Godot plugin registry
+V/Godot   ( 4831): InitEngine with params: [--xr_mode_regular, --xr-mode, off, --fullscreen, --background_color, #000000]
+V/Godot   ( 4831): Godot native layer initialization completed: true
+V/Godot   ( 4831): Setting up native layer with params: [--xr-mode, off, --fullscreen]
+V/Godot   ( 4831): Godot native layer setup completed
+V/Godot   ( 4831): OnInitRenderView: GodotFragment{5e2ff14} (7cb993ac-8cf0-47f6-823b-38117626cda5 id=0x7f07002c)
+D/Godot   ( 4831): Render view should be transparent: false
+D/Godot   ( 4831): renderingDevice: opengl3 (ProjectSettings)
+D/Godot   ( 4831): 			renderer: gl_compatibility (ProjectSettings)
+V/Godot   ( 4831): OnStart: GodotFragment{5e2ff14} (7cb993ac-8cf0-47f6-823b-38117626cda5 id=0x7f07002c)
+V/Godot   ( 4831): OnResume: GodotFragment{5e2ff14} (7cb993ac-8cf0-47f6-823b-38117626cda5 id=0x7f07002c)
+I/godot   ( 4831): Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+E/godot   ( 4831): WARNING: Failed to load cached shader, recompiling.
+E/godot   ( 4831):    at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+I/godot   ( 4831): OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 595.95) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 5060 Laptop GPU/PCIe/SSE2)
+I/godot   ( 4831):
+V/Godot   ( 4831): OnGodotSetupCompleted
+V/Godot   ( 4831): OnGodotMainLoopStarted
+V/Godot   ( 4985): Initializing Godot plugin registry
+V/Godot   ( 4985): InitEngine with params: [--xr_mode_regular, --xr-mode, off, --fullscreen, --background_color, #000000]
+V/Godot   ( 4985): Godot native layer initialization completed: true
+V/Godot   ( 4985): Setting up native layer with params: [--xr-mode, off, --fullscreen]
+V/Godot   ( 4985): Godot native layer setup completed
+V/Godot   ( 4985): OnInitRenderView: GodotFragment{5e2ff14} (11758a85-fc38-47f0-a886-9b39c9cb5eaf id=0x7f07002c)
+D/Godot   ( 4985): Render view should be transparent: false
+D/Godot   ( 4985): renderingDevice: opengl3 (ProjectSettings)
+D/Godot   ( 4985): 			renderer: gl_compatibility (ProjectSettings)
+V/Godot   ( 4985): OnStart: GodotFragment{5e2ff14} (11758a85-fc38-47f0-a886-9b39c9cb5eaf id=0x7f07002c)
+V/Godot   ( 4985): OnResume: GodotFragment{5e2ff14} (11758a85-fc38-47f0-a886-9b39c9cb5eaf id=0x7f07002c)
+I/godot   ( 4985): Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+E/godot   ( 4985): WARNING: Failed to load cached shader, recompiling.
+E/godot   ( 4985):    at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+I/godot   ( 4985): OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 595.95) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 5060 Laptop GPU/PCIe/SSE2)
+I/godot   ( 4985):
+V/Godot   ( 4985): OnGodotSetupCompleted
+V/Godot   ( 4985): OnGodotMainLoopStarted

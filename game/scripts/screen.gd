@@ -6,6 +6,7 @@ const CampaignArt = preload("res://scripts/campaign_art.gd")
 const Chronicle = preload("res://scripts/chronicle.gd")
 const Martial = preload("res://scripts/martial.gd")
 const SideStories = preload("res://scripts/side_stories.gd")
+const Equipment = preload("res://scripts/equipment.gd")
 const SANS = preload("res://assets/fonts/body.tres")
 const SERIF = preload("res://assets/fonts/display.tres")
 const GOLD := Color("#e8c185")
@@ -177,6 +178,9 @@ func paint() -> void:
 		"martial":
 			_field(false)
 			_martial()
+		"gear":
+			_field(false)
+			_gear()
 		"review":
 			_title(false)
 			_fill(FULL,Color("#0b1120dd"))
@@ -230,12 +234,15 @@ func _title(with_menu: bool = true) -> void:
 
 func _modal(title: String, note: String) -> void:
 	_fill(FULL, Color("#080d1bb5"))
-	_panel(Rect2(142,43,356,275),true)
-	_center(title,320,88,29,CREAM,SERIF)
-	_paragraph(note,170,116,300,14,DIM,19)
 	if g.mode == "pause":
-		_menu(Vector2(174,148),292,28,5)
+		_panel(Rect2(142,23,356,309),true)
+		_center(title,320,67,29,CREAM,SERIF)
+		_paragraph(note,170,94,300,14,DIM,19)
+		_menu(Vector2(174,126),292,29,4)
 	else:
+		_panel(Rect2(142,43,356,275),true)
+		_center(title,320,88,29,CREAM,SERIF)
+		_paragraph(note,170,116,300,14,DIM,19)
 		_menu(Vector2(174,157),292,30,6)
 
 func _field(interactive: bool = true) -> void:
@@ -613,6 +620,50 @@ func _martial() -> void:
 	else:
 		_hit(Rect2(486,290,70,29),"cancel")
 	_text(hint,91,312,12,DIM)
+
+func _gear() -> void:
+	_fill(FULL,Color("#0b1120ce"))
+	_panel(Rect2(58,23,524,309),true)
+	_text("行装与境界",80,64,26,CREAM,SERIF)
+	for i in g.stage.party.size():
+		var hero_name: String = Story.HEROES[g.stage.party[i]].name
+		_gear_tab(Rect2(344 + 107*i,38,101,31),hero_name,g.gear_hero == i,"gear_hero",i)
+	var hero: String = g.stage.party[g.gear_hero]
+	var rank: int = g.rank()
+	var stats := Equipment.attributes(hero, rank, Equipment.modifiers(g.slot, hero))
+	var progress := "历练 %d / %d" % [g.slot.merit, rank * 4]
+	if g.afterstory.active or g.slot.finished:
+		progress = "历练 %d" % g.slot.merit
+	_text("境界 %d    ·    %s" % [rank, progress],81,87,13,GOLD)
+	_right("气血 %d    真气 %d    攻击 %d" % [stats.hp, stats.qi, stats.attack],550,87,13,TEAL)
+	for kind in Equipment.CATEGORIES.size():
+		var id := Equipment.equipped(g.slot, hero, kind)
+		var item_name: String = "未装配" if id.is_empty() else Equipment.CATALOG[id].name
+		_gear_tab(Rect2(81 + kind*238,96,231,31),"%s · %s" % [Equipment.CATEGORIES[kind],item_name],g.gear_kind == kind,"gear_kind",kind)
+	var ids := Equipment.options(g.gear_kind)
+	for i in ids.size():
+		var item := ids[i]
+		var ready := item.is_empty() or Equipment.unlocked(g.slot,item)
+		var box := Rect2(81,134+i*27,150,25)
+		_button("卸下" if item.is_empty() else Equipment.CATALOG[item].name,box,i,ready)
+		if item.is_empty():
+			_text("恢复此栏基础属性",244,box.position.y+17,12,DIM)
+		elif ready:
+			_text(Equipment.describe(item),244,box.position.y+17,12,CREAM)
+			var holder := Equipment.owner(g.slot,item)
+			if not holder.is_empty():
+				_right("已装备" if holder == hero else "转交自%s" % Story.HEROES[holder].name,551,box.position.y+17,11,GOLD)
+		else:
+			_text(Equipment.CATALOG[item].source,244,box.position.y+17,12,DIM)
+	var hint := "点按队员、栏位和行装" if g.touch_ui() else (
+		"← → 换人   X 换栏位   A 装备   B 返回" if g.using_joypad else "← → 换人   Tab 换栏位   Enter 装备   Esc 返回")
+	_text(g.gear_message if not g.gear_message.is_empty() else hint,81,317,12,GOLD if not g.gear_message.is_empty() else DIM)
+
+func _gear_tab(box: Rect2, label: String, active: bool, kind: String, index: int) -> void:
+	_fill(box,Color("#353141") if active else INK)
+	_stroke(box,GOLD if active else LINE)
+	_center(label,box.get_center().x,box.get_center().y+5,14,CREAM)
+	_hit(box,kind,index)
 
 func _battle() -> void:
 	var battle: RefCounted = g.encounter

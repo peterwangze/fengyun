@@ -3,6 +3,7 @@ extends RefCounted
 const Chronicle = preload("res://scripts/chronicle.gd")
 const SideStories = preload("res://scripts/side_stories.gd")
 const Martial = preload("res://scripts/martial.gd")
+const Equipment = preload("res://scripts/equipment.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
 const FILE := "user://jianghu.json"
 const SETTINGS := "user://settings.json"
@@ -18,7 +19,7 @@ func _init(suffix: String = "") -> void:
 func fresh(easy: bool) -> Dictionary:
 	var slot := {"version":VERSION, "chapter":0, "tonics":3, "merit":0,
 		"cleared":[], "chest":false, "finished":false, "intro_seen":false, "easy":easy,
-		"hall":_initial_hall()}
+		"hall":_initial_hall(), "gear":{}}
 	slot["campaign"] = _initial_campaign(slot)
 	slot["chronicle"] = _initial_chronicle(0)
 	return slot
@@ -59,6 +60,7 @@ func read() -> Dictionary:
 			slot.hall = slot.get("hall", _initial_hall())
 			slot.campaign = slot.get("campaign", _initial_campaign(slot))
 			slot.chronicle = slot.get("chronicle",_initial_chronicle(slot.chapter + 1))
+			slot.gear = Equipment.clean_loadouts(slot, slot.get("gear", {}))
 			return slot
 	return {}
 

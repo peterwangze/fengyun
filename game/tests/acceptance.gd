@@ -1,6 +1,7 @@
 extends SceneTree
 
 const MAIN = preload("res://main.tscn")
+const Equipment = preload("res://scripts/equipment.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 var game
 var failures := 0
@@ -37,6 +38,7 @@ func _run() -> void:
 	game = MAIN.instantiate()
 	root.add_child(game)
 	var easy := "--all-encounters" in OS.get_cmdline_user_args()
+	var gear_route := "--gear-route" in OS.get_cmdline_user_args()
 	boat_route = "--boat" in OS.get_cmdline_user_args()
 	bridge_then_boat = "--bridge-then-boat" in OS.get_cmdline_user_args()
 	reduced_ferry = "--reduced-ferry" in OS.get_cmdline_user_args()
@@ -106,6 +108,8 @@ func _run() -> void:
 	await _capture("02-first-field")
 	for chapter in 6:
 		_check(int(game.slot.chapter) == chapter and game.mode == "field","chapter %d opens" % (chapter+1))
+		if gear_route:
+			_equip_route()
 		if chapter == 5:
 			await _special("relic","cavern_guard")
 			_do_point("lost_relic")
@@ -341,10 +345,12 @@ func _run() -> void:
 		_drain_dialogue()
 		_check(game.mode == "ending","epilogue replay returns to ending screen")
 	if quests:
-		var q: Dictionary = game.storage.read().chronicle.quests
+		var completed_slot: Dictionary = game.storage.read()
+		var q: Dictionary = completed_slot.chronicle.quests
 		_check(q.size() == 8 and q.values().all(func(value): return String(value).begins_with("done_")),
 			"all eight quests finished and persisted")
 		print("Quest outcomes: ",q)
+		_check(Equipment.owned(completed_slot).size() == 10,"all ten rewards available after clearing the campaign and quests")
 	if tidal and game.mode == "ending":
 		await _verify_afterstory()
 	_verify_replay()
@@ -364,6 +370,20 @@ func _run() -> void:
 	await process_frame
 	print("RESULT wins=%d combos=%d failures=%d actions=%s" % [wins,combo_count,failures,str(used_actions)])
 	quit(1 if failures else 0)
+
+func _equip_route() -> void:
+	var first: String = game.stage.party[0]
+	var second: String = game.stage.party[1]
+	var coat := "forge_apron" if Equipment.unlocked(game.slot,"forge_apron") else "travel_coat"
+	_check(Equipment.assign(game.slot,first,0,coat),"equip the first party member")
+	if Equipment.unlocked(game.slot,"scale_vest"):
+		_check(Equipment.assign(game.slot,second,0,"scale_vest"),"equip the second party member")
+	if Equipment.unlocked(game.slot,"courier_badge"):
+		_check(Equipment.assign(game.slot,first,1,"courier_badge"),"equip stagger specialization")
+	if Equipment.unlocked(game.slot,"qi_ring"):
+		_check(Equipment.assign(game.slot,second,1,"qi_ring"),"equip the second member for sustained techniques")
+	game._commit()
+	print("Route loadout chapter %d: %s %s, %s %s" % [game.slot.chapter + 1, first, game.slot.gear[first], second, game.slot.gear.get(second,[])])
 
 func _resume() -> void:
 	_key(KEY_ESCAPE)

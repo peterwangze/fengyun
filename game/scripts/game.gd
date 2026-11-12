@@ -10,6 +10,7 @@ const Chronicle = preload("res://scripts/chronicle.gd")
 const Martial = preload("res://scripts/martial.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
 const MobileControls = preload("res://scripts/mobile_controls.gd")
+const Equipment = preload("res://scripts/equipment.gd")
 const FOLLOW_GAP := 32.0
 const MENU_STICK_PRESS := 0.65
 const MENU_STICK_RELEASE := 0.30
@@ -68,6 +69,11 @@ var battle_reward := 0
 var chosen_easy := false
 var using_joypad := false
 var touch_controls: MobileControls
+var gear_hero := 0
+var gear_kind := 0
+var gear_message := ""
+var known_gear: Array[String] = []
+var gear_rewards: Array[String] = []
 var active_pad := -1
 var menu_sticks: Dictionary[int, Vector2] = {}
 var held_menu_sticks: Dictionary[int, bool] = {}
@@ -87,6 +93,7 @@ func _ready() -> void:
 	effects.volume_db = -7
 	_apply_settings()
 	slot = storage.read()
+	_reset_gear_rewards()
 	first = FirstChapter.new(self)
 	campaign = Campaign.new(self)
 	chronicle = Chronicle.new(self)
@@ -106,6 +113,8 @@ func _process(delta: float) -> void:
 		_finish_result_audio()
 	toast_time = maxf(0.0, toast_time - delta)
 	if mode == "field":
+		if toast_time == 0.0 and not gear_rewards.is_empty():
+			_notice("获得行装 · " + gear_rewards.pop_front())
 		_update_walk(delta)
 		if first.active():
 			first.update(delta)
@@ -192,8 +201,14 @@ func menu_items() -> Array:
 		"overwrite":
 			return [["开启并覆盖旧档", true], ["保留旧档", true]]
 		"pause":
-			return [["回到旅程", true], ["江湖手记", true], ["设置", true], ["准备武学",true],["回到标题", true]]
+			return [["回到旅程", true], ["江湖手记", true], ["设置", true], ["准备武学",true],
+				["行装与境界", true], ["回到标题", true]]
 		"martial": return chronicle.martial_items()
+		"gear":
+			var items := [["卸下", true]]
+			for id in Equipment.options(gear_kind).slice(1):
+				items.append([Equipment.CATALOG[id].name, Equipment.unlocked(slot, id)])
+			return items
 		"choice": return chronicle.options.map(func(option): return [option[0],true])
 		"review":
 			var chapters := []
@@ -230,6 +245,7 @@ func _title() -> void:
 	chronicle.special = ""
 	afterstory.reset()
 	slot = storage.read()
+	_reset_gear_rewards()
 	_set_mode("title", 1 if slot.is_empty() else 0)
 	_play_music("title")
 
@@ -280,8 +296,10 @@ func menu_confirm(index: int) -> void:
 					back_mode = "pause"
 					_set_mode("settings")
 				3: _open_martial("pause")
-				4: _title()
+				4: _open_gear("pause")
+				5: _title()
 		"martial": chronicle.equip(index)
+		"gear": _equip_gear(index)
 		"choice": chronicle.select_choice(index)
 		"review":
 			_start_review(index,slot.easy)
@@ -314,11 +332,13 @@ func menu_confirm(index: int) -> void:
 
 func _new_game(easy: bool) -> void:
 	slot = storage.fresh(easy)
+	_reset_gear_rewards()
 	_commit()
 	_enter_chapter(true)
 
 func _start_review(chapter: int, easy: bool) -> void:
 	slot = storage.replay(chapter,easy)
+	_reset_gear_rewards()
 	chronicle.review = true
 	_enter_chapter(true)
 
@@ -369,11 +389,20 @@ func _finish_intro() -> void:
 	_commit()
 	_return_to_field()
 
-func _commit() -> void:
-	if chronicle.review:
-		return
-	if not storage.write(slot):
+func _commit() -> bool:
+	if not chronicle.review and not storage.write(slot):
 		_notice("存档写入失败。请确认本机存储空间。")
+		return false
+	var available := Equipment.owned(slot)
+	for id in available:
+		if id not in known_gear:
+			gear_rewards.append(Equipment.CATALOG[id].name)
+	known_gear = available
+	return true
+
+func _reset_gear_rewards() -> void:
+	known_gear = Equipment.owned(slot)
+	gear_rewards.clear()
 
 func position_of(key: String, index: int = 0) -> Vector2:
 	var cell: Array = map.fights[index] if key == "fights" else map[key]
@@ -643,11 +672,13 @@ func _approach_battle(index: int) -> void:
 func _start_battle() -> void:
 	toast_time = 0
 	var prepared := {}
+	var gear := {}
 	for id in stage.party:
 		prepared[id] = Martial.prepared(slot,id)
+		gear[id] = Equipment.modifiers(slot,id)
 	var stock: int = afterstory.state().tonics if afterstory.active else slot.tonics
 	encounter = Battle.new(stage.party, battle_info()[1], rank(),
-		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled())
+		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear)
 	pending_action = -1
 	effect_duration = 0.0
 	target = 0
@@ -733,7 +764,7 @@ func cancel() -> void:
 		"battle":
 			if pending_action >= 0:
 				pending_action = -1
-		"settings", "journal", "martial": _set_mode(back_mode)
+		"settings", "journal", "martial", "gear": _set_mode(back_mode)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
 		"new": _title()
@@ -754,6 +785,9 @@ func _confirm() -> void:
 		_: menu_confirm(selected)
 
 func _navigate(dx: int, dy: int) -> void:
+	if mode == "gear" and dx != 0:
+		_select_gear_tab(posmod(gear_hero + dx, stage.party.size()), gear_kind)
+		return
 	if mode == "martial" and dx != 0:
 		chronicle.martial_hero = posmod(chronicle.martial_hero + dx,stage.party.size())
 		selected = 0
@@ -799,6 +833,8 @@ func click(kind: String, index: int) -> void:
 		"martial_hero":
 			chronicle.martial_hero = index
 			selected = 0
+		"gear_kind": _select_gear_tab(gear_hero, index)
+		"gear_hero": _select_gear_tab(index, gear_kind)
 		"confirm": _confirm()
 		"cancel": cancel()
 		"skip": _skip_battle_effect()
@@ -868,8 +904,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			JOY_BUTTON_X:
 				if mode == "martial":
 					chronicle.martial_slot = 1 - chronicle.martial_slot
+				elif mode == "gear":
+					_select_gear_tab(gear_hero, 1 - gear_kind)
 				elif mode == "field":
 					_open_journal()
+			JOY_BUTTON_LEFT_SHOULDER:
+				if mode == "field":
+					_open_gear("field")
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -895,9 +936,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				_open_martial("field")
 			elif mode == "martial":
 				cancel()
+		KEY_I:
+			if mode == "field":
+				_open_gear("field")
+			elif mode == "gear":
+				cancel()
 		KEY_TAB:
 			if mode == "martial":
 				chronicle.martial_slot = 1 - chronicle.martial_slot
+			elif mode == "gear":
+				_select_gear_tab(gear_hero, 1 - gear_kind)
 		KEY_UP, KEY_W: _navigate(0, -1)
 		KEY_DOWN, KEY_S: _navigate(0, 1)
 		KEY_LEFT, KEY_A: _navigate(-1, 0)
@@ -939,4 +987,27 @@ func _open_martial(parent_mode: String) -> void:
 	chronicle.martial_hero = 0
 	chronicle.martial_slot = 0
 	_set_mode("martial")
+
+func _open_gear(parent_mode: String) -> void:
+	back_mode = parent_mode
+	_set_mode("gear")
+	_select_gear_tab(0, 0)
+
+func _select_gear_tab(hero: int, kind: int) -> void:
+	gear_hero = hero
+	gear_kind = kind
+	gear_message = ""
+	selected = Equipment.options(kind).find(Equipment.equipped(slot, stage.party[hero], kind))
+
+func _equip_gear(index: int) -> void:
+	var hero: String = stage.party[gear_hero]
+	var item := Equipment.options(gear_kind)[index]
+	var previous: Dictionary = slot.gear.duplicate(true)
+	if Equipment.equipped(slot, hero, gear_kind) == item or not Equipment.assign(slot, hero, gear_kind, item):
+		return
+	if not _commit():
+		slot.gear = previous
+		gear_message = "存档失败，已恢复原行装。"
+		return
+	gear_message = "已卸下%s" % Equipment.CATEGORIES[gear_kind] if item.is_empty() else "已装备%s" % Equipment.CATALOG[item].name
 

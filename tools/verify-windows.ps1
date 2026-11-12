@@ -3,7 +3,8 @@ param(
     [string]$ReportDirectory = (Join-Path $PSScriptRoot '../verification'),
     [switch]$LaterChapters,
     [switch]$Expansion,
-    [switch]$Tidal
+    [switch]$Tidal,
+    [switch]$Equipment
 )
 $ErrorActionPreference = 'Stop'
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
@@ -174,6 +175,21 @@ try {
     for ($i = 0; $i -lt 3; $i++) { Press-Key 0x0D }
     $slot = Get-Content -Raw -LiteralPath $savePath | ConvertFrom-Json
     if (-not $slot.intro_seen -or $slot.chapter -ne 0) { throw 'Starting a campaign did not save chapter one.' }
+
+    if ($Equipment) {
+        Press-Key 0x49
+        Press-Key 0x28
+        Press-Key 0x0D
+        if ((Read-Slot).gear.cloud[0] -ne 'travel_coat') { throw 'The game did not save equipped armor.' }
+        Save-Screenshot '29-windows-equipment' -Direct
+        Press-Key 0x09
+        Save-Screenshot '30-windows-accessories' -Direct
+        Press-Key 0x09
+        Press-Key 0x26
+        Press-Key 0x0D
+        if ((Read-Slot).gear.cloud[0] -ne '') { throw 'The game did not save unequipping armor.' }
+        Press-Key 0x49
+    }
 
     if ($Expansion) {
         Press-Key 0x44 355
@@ -496,6 +512,7 @@ try {
         Mouse = [bool]$LaterChapters
         ExpandedOpening = [bool]$Expansion
         IsolatedFengxiTrial = [bool]$Expansion
+        Equipment = [bool]$Equipment
         LaterChapters = $later
         Merit = $slot.merit
         Cleared = $slot.cleared
