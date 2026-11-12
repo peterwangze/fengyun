@@ -4,9 +4,11 @@
 
 ## 开始游戏
 
-**Android** 下载并打开 [2.1.1 APK](https://github.com/peterwangze/fengyun/releases/download/v2.1.1-android/Fengyun-2.1.1-android.apk)。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。查看 [发布说明与校验文件](https://github.com/peterwangze/fengyun/releases/tag/v2.1.1-android)。
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 2.1.1 APK](https://github.com/peterwangze/fengyun/releases/download/v2.1.1/Fengyun-2.1.1-android.apk)
 
-**Windows** 用下文的 Windows Desktop 预设导出后，双击 **Windows/Fengyun.exe**。游戏资源内嵌。[第三方许可](Windows/Licenses) 收录 Godot 和开源字体许可。
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 2.1.1 安装程序](https://github.com/peterwangze/fengyun/releases/download/v2.1.1/Fengyun-2.1.1-windows-x64-setup.exe)
+
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v2.1.1) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
@@ -79,6 +81,8 @@ $godot = 'D:/AI/dev_toolchain/godot_tool_list/app/Godot_v4.7.2-stable_win64_cons
 & $godot --headless --path game --export-release 'Windows Desktop' (Join-Path $PWD 'Windows/Fengyun.exe')
 ```
 
+Windows 安装程序使用 Inno Setup 6.5.4 构建。完成 Windows 导出后，用已安装的 `ISCC.exe` 编译 `Windows/Fengyun.iss`，生成 `Windows/Fengyun-2.1.1-windows-x64-setup.exe`。[Inno Setup](https://jrsoftware.org/isinfo.php)
+
 Android 使用 `Android` 导出预设。安装 OpenJDK 17、Android SDK 和匹配的 Godot 4.7.2 Android 模板，并在编辑器的 Android 设置里填入 JDK 和 SDK 路径。发布导出从环境变量 `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`、`GODOT_ANDROID_KEYSTORE_RELEASE_USER` 与 `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` 读取签名配置。覆盖安装时需保持相同包名和签名证书。[Godot Android 导出文档](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html)
 
 ```powershell
@@ -86,5 +90,5 @@ New-Item -ItemType Directory -Force Android
 & $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.1.1-android.apk')
 ```
 
-查看 [游戏设计与体量审视](DESIGN.md)、[素材记录](ASSETS.md)、[2.1 验收记录](verification/tidal/README.md) 与 [Android 2.1.1 触屏验收](verification/android-touch/README.md)。
+查看 [游戏设计与体量审视](DESIGN.md)、[素材记录](ASSETS.md)、[Windows 2.1.1 安装验收](verification/installers/README.md) 与 [Android 2.1.1 触屏验收](verification/android-touch/README.md)。
 

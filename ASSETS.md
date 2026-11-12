@@ -12,6 +12,7 @@
 | `game/assets/fonts/NotoSansSC.ttf` | [Google Fonts 上游](https://github.com/google/fonts/tree/main/ofl/notosanssc) | SIL OFL 1.1。字体文件保持原样，游戏选用 420 字重 |
 | `game/assets/fonts/NotoSerifSC.ttf` | [Google Fonts 上游](https://github.com/google/fonts/tree/main/ofl/notoserifsc) | SIL OFL 1.1。字体文件保持原样，游戏选用 550 字重 |
 | `Windows/Fengyun.exe` 的引擎部分 | [Godot 4.7.2 官方发布](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable) | 使用本机标准版 Godot 和匹配的 Windows x64 模板。MIT 许可和第三方归属收录于 `Windows/Licenses/` |
+| Windows 安装向导 | [Inno Setup 6.5.4](https://github.com/jrsoftware/issrc/releases/tag/is-6_5_4) · [简体中文翻译](https://github.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/tree/6.5.0%2B) | 安装器图标由项目的 `game/assets/icon.png` 转换。安装器许可见 [InnoSetup-LICENSE.txt](Windows/Licenses/InnoSetup-LICENSE.txt) |
 | Android APK 的引擎部分 | [Godot 4.7.2 官方发布](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable) | 使用匹配的 Android Release 模板。引擎、依赖和字体许可见 [第三方许可](Windows/Licenses) |
 
 《风云》人物、设定与改编依据归各自权利人。本作是同人改编。《时空之轮》作为视觉参照。内置艺术素材未使用电视剧画面、演员照片、漫画图稿或原声。
