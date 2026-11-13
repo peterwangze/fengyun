@@ -7,6 +7,7 @@ const Chronicle = preload("res://scripts/chronicle.gd")
 const Martial = preload("res://scripts/martial.gd")
 const SideStories = preload("res://scripts/side_stories.gd")
 const Equipment = preload("res://scripts/equipment.gd")
+const TrailGuide = preload("res://scripts/trail_guide.gd")
 const SANS = preload("res://assets/fonts/body.tres")
 const SERIF = preload("res://assets/fonts/display.tres")
 const GOLD := Color("#e8c185")
@@ -270,6 +271,8 @@ func _field(interactive: bool = true) -> void:
 		_picture("field/%s_canopy" % g.field_key)
 	if g.first.wedding_playing:
 		_wedding_impact()
+	if interactive:
+		_field_guidance(marks)
 	for mark in marks:
 		_marker(mark.point, mark.color, mark.get("symbol",""))
 	_fill(Rect2(0,0,640,52),Color("#12192bf8"))
@@ -288,9 +291,7 @@ func _field(interactive: bool = true) -> void:
 	if g.afterstory.active:
 		status = "已结案" if g.afterstory.state().resolution != "" else "粮账待查"
 	_right("%s    ·    境界  %d" % [status,g.rank()],620,24,13,GOLD)
-	var objective: String = g.afterstory.objective() if g.afterstory.active else g.chronicle.objective()
-	if objective.is_empty():
-		objective = g.first.objective() if g.first.active() else g.campaign.objective()
+	var objective := TrailGuide.objective(g)
 	_right(objective,620,43,13,DIM)
 	var footer_top: float = g.touch_controls.FOOTER_TOP if touch_field else 321.0
 	_fill(Rect2(0,footer_top,640,360-footer_top),Color("#12192b") if touch_field else Color("#12192bf8"))
@@ -317,6 +318,32 @@ func _field(interactive: bool = true) -> void:
 			_fill(Rect2(201,329,239,24),Color("#333047"))
 			_center(interact_key + "   " + spot.name,320,346,14,GOLD)
 			_hit(Rect2(201,325,239,31),"confirm")
+
+func _field_guidance(marks: Array[Dictionary]) -> void:
+	var points: Array = g.field_points()
+	var main := TrailGuide.main_point(g, points)
+	if not main.is_empty():
+		_guidance_marker(marks, main.pos, TEAL, "主")
+	if not g.afterstory.active and not g.tracked_quest.is_empty():
+		var entry: Dictionary = g.chronicle.side.journal_entry(g.tracked_quest)
+		if entry.has("point"):
+			_guidance_marker(marks, entry.point, GOLD, "支")
+	for point in points:
+		if point.id == "cache":
+			_map_prop(point.pos,"chest")
+			marks.append({"point":point.pos - Vector2(0,36),"color":GOLD,"symbol":"·"})
+		elif point.id == "seal_chase":
+			_sprite("shade",point.pos)
+			_guidance_marker(marks,point.pos,GOLD,"战")
+
+func _guidance_marker(marks: Array[Dictionary], at: Vector2, color: Color, symbol: String) -> void:
+	var point := Vector2(at.x, maxf(67.0, at.y - 64.0))
+	for mark in marks:
+		if absf(mark.point.x - at.x) <= 4 and absf(mark.point.y - at.y) <= 70:
+			mark.color = color
+			mark.symbol = symbol
+			return
+	marks.append({"point":point,"color":color,"symbol":symbol})
 
 func _afterstory_field(units: Array, marks: Array[Dictionary]) -> void:
 	var flags: Dictionary = g.afterstory.state()
@@ -565,19 +592,39 @@ func _journal() -> void:
 			row += 26
 		_journal_back()
 		return
-	_text("主线",69,100,15,GOLD)
-	_text("支线",270,100,15,GOLD)
-	_line(Vector2(68,110),Vector2(573,110),LINE)
-	for i in Story.CHAPTERS.size():
-		var chapter: Dictionary = Story.CHAPTERS[i]
-		var status := "已过" if i < g.slot.chapter else ("当前" if i == g.slot.chapter else "待访")
-		_text("%s  %s" % [chapter.num,chapter.title],69,136+i*24,14,CREAM if i <= g.slot.chapter else FAINT)
-		_right(status,223,136+i*24,12,GOLD if i == g.slot.chapter else DIM)
-	var y := 131
-	for id in SideStories.TASKS:
-		_text(SideStories.TASKS[id].title,270,y,12,CREAM)
-		_text(g.chronicle.side.note(id),380,y,11,DIM)
-		y += 23
+	var ids := SideStories.TASKS.keys()
+	for i in ids.size() + 1:
+		var box := Rect2(63,82+i*24,207,23)
+		var active: bool = i == g.journal_index
+		_fill(box,Color("#363243") if active else Color("#161e30"))
+		if active:
+			_stroke(box,GOLD)
+		var label: String = "主线 · " + String(g.stage.title) if i == 0 else SideStories.TASKS[ids[i-1]].title
+		_text(label,box.position.x+8,box.position.y+16,13,CREAM)
+		if i > 0:
+			_right(g.chronicle.side.note(ids[i-1]),box.end.x-6,box.position.y+16,11,DIM)
+		_hit(box,"journal_row",i)
+	var chosen: String = g.journal_quest_id()
+	var detail := Rect2(283,82,295,221)
+	_fill(detail,Color("#151d30"))
+	_stroke(detail,LINE)
+	if chosen.is_empty():
+		_text("第%s章  %s" % [g.stage.num,g.stage.title],300,111,17,GOLD)
+		_paragraph(TrailGuide.objective(g),300,142,258,15,CREAM,21)
+		var point := TrailGuide.main_point(g,g.field_points())
+		if not point.is_empty():
+			_text("地图标记 · " + String(point.name),300,196,13,TEAL)
+	else:
+		var entry: Dictionary = g.chronicle.side.journal_entry(chosen)
+		_text(SideStories.TASKS[chosen].title,300,110,17,GOLD)
+		_paragraph(entry.action,300,138,257,14,CREAM,19)
+		if not entry.place.is_empty():
+			_text(entry.place + ("  ·  " + entry.deadline if not entry.deadline.is_empty() else ""),300,181,11,TEAL)
+		_paragraph(entry.payoff,300,204,257,12,DIM,17)
+		_paragraph(entry.get("reward", ""),300,240,257,11,GOLD,16)
+	var track := Rect2(424,268,143,29)
+	var track_label := "返回" if not g.can_track_quest(chosen) else ("追踪此事" if not chosen.is_empty() else ("取消支线追踪" if not g.tracked_quest.is_empty() else "返回"))
+	_touch_battle_button(track,track_label,"journal_track")
 	_journal_back()
 
 func _journal_back() -> void:
@@ -701,16 +748,22 @@ func _battle() -> void:
 			description += ("   ·   摇杆或方向键切换 / A 确定 / B 取消" if g.using_joypad
 				else "   ·   方向键切换 / Enter 确定 / Esc 取消")
 	elif g.mode == "battle":
-		if combat_art.active() and g.settings.motion:
+		if g.bag_open:
+			description = battle.detail(battle.bag_actions()[g.bag_index])
+		elif combat_art.active() and g.settings.motion:
 			description = "" if g.touch_ui() else ("Y  跳过演出" if g.using_joypad else "空格  跳过演出")
 		else:
-			description = battle.detail(g.selected)
+			description = ("选择战斗道具   ·   B 药囊 / 5 金创药" if not g.touch_ui() and not g.using_joypad else "选择战斗道具") if g.selected == 4 else battle.detail(g.selected)
 	else:
 		description = ""
 	_text(description,22,270,13,GOLD)
-	if g.pending_action < 0 and g.mode == "battle":
+	if g.pending_action >= 0:
+		_right(battle.poise_preview(g.pending_action,g.target),618,270,12,TEAL)
+	if g.pending_action < 0 and g.mode == "battle" and not g.bag_open:
 		_right(battle.log[-1],618,270,12,DIM)
-	if g.touch_ui() and g.settings.motion and combat_art.active():
+	if g.bag_open:
+		_battle_bag(battle)
+	elif g.touch_ui() and g.settings.motion and combat_art.active():
 		_touch_battle_button(Rect2(462,289,156,49),"跳过演出","skip")
 	elif g.touch_ui() and g.pending_action >= 0:
 		_battle_touch_targets(battle)
@@ -730,10 +783,21 @@ func _battle_touch_targets(battle: RefCounted) -> void:
 	var units: Array = battle.allies if friendly else battle.foes
 	for i in units.size():
 		var unit: Dictionary = units[i]
-		if not unit.get("dormant", false) and (unit.hp > 0 or g.pending_action == 4):
+		if battle.valid_target(g.pending_action, i):
 			var box := Rect2(21 + (i % 2) * 202, 278 + floori(i / 2.0) * 38, 196, 34)
 			_touch_battle_button(box, unit.name, "ally" if friendly else "foe", i)
 	_touch_battle_button(Rect2(425,278,196,72),"取消选招","cancel")
+
+func _battle_bag(battle: RefCounted) -> void:
+	var actions: Array[int] = battle.bag_actions()
+	for i in actions.size():
+		var box := Rect2(21 + (i % 2)*202,278 + floori(i/2.0)*38,196,34)
+		var enabled: bool = battle.available(actions[i])
+		_fill(box,Color("#393343") if i == g.bag_index else Color("#1c2437"))
+		_stroke(box,GOLD if i == g.bag_index else LINE)
+		_center(battle.label(actions[i]),box.get_center().x,box.get_center().y+5,15,CREAM if enabled else FAINT)
+		_hit(box,"supply",i)
+	_touch_battle_button(Rect2(425,278,196,72),"返回招式","cancel")
 
 func _touch_battle_button(box: Rect2, label: String, kind: String, index: int = 0) -> void:
 	_fill(box, Color("#1c2437"))
@@ -756,6 +820,8 @@ func _first_fight_tip(view: Dictionary) -> void:
 
 func _special_battle_tip(view: Dictionary) -> void:
 	var tip := ""
+	if g.encounter.seal_chase and view.foe[0].hp > 0:
+		tip = "密探第二回合起会携印逃走，可用破势拖住"
 	match g.encounter.foes[0].id:
 		"paper":
 			match g.encounter.signal_state:
@@ -858,13 +924,13 @@ func _battle_status(index: int, stats: Dictionary, current: bool) -> void:
 func _battle_action(index: int) -> void:
 	var battle: RefCounted = g.encounter
 	var box := Rect2(21 + (index%3)*202,278 + floori(index / 3.0)*(38 if g.touch_ui() else 34),196,34 if g.touch_ui() else 29)
-	var enabled: bool = battle.available(index)
+	var enabled: bool = g.mode == "battle" and (index == 4 or battle.available(index))
 	var focus: bool = (index == g.selected or box.has_point(g.get_global_mouse_position())) and enabled
 	_fill(box,Color("#393343") if focus else Color("#1c2437"))
 	_stroke(box,GOLD if focus else LINE)
 	if not g.touch_ui():
 		_text(str(index+1),box.position.x+9,box.position.y+20,13,GOLD if enabled else FAINT)
-	_text(battle.label(index),box.position.x+(12 if g.touch_ui() else 31),box.get_center().y+6,16,CREAM if enabled else FAINT)
+	_text("药囊 · 金创药 %d" % battle.tonics if index == 4 else battle.label(index),box.position.x+(12 if g.touch_ui() else 31),box.get_center().y+6,16,CREAM if enabled else FAINT)
 	if enabled:
 		_hit(box,"action",index)
 

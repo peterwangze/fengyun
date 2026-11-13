@@ -4,6 +4,7 @@ const Chronicle = preload("res://scripts/chronicle.gd")
 const SideStories = preload("res://scripts/side_stories.gd")
 const Martial = preload("res://scripts/martial.gd")
 const Equipment = preload("res://scripts/equipment.gd")
+const Items = preload("res://scripts/items.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
 const FILE := "user://jianghu.json"
 const SETTINGS := "user://settings.json"
@@ -22,6 +23,8 @@ func fresh(easy: bool) -> Dictionary:
 		"hall":_initial_hall(), "gear":{}}
 	slot["campaign"] = _initial_campaign(slot)
 	slot["chronicle"] = _initial_chronicle(0)
+	slot["supplies"] = Items.fresh()
+	slot["supply_claims"] = {}
 	return slot
 
 func _initial_chronicle(from_chapter: int) -> Dictionary:
@@ -32,6 +35,7 @@ func replay(chapter: int, easy: bool) -> Dictionary:
 	slot.chapter = chapter
 	slot.merit = chapter * 4
 	slot.tonics = 6
+	slot.supplies = Items.fresh(chapter)
 	slot.campaign = _initial_campaign(slot)
 	return slot
 
@@ -61,6 +65,8 @@ func read() -> Dictionary:
 			slot.campaign = slot.get("campaign", _initial_campaign(slot))
 			slot.chronicle = slot.get("chronicle",_initial_chronicle(slot.chapter + 1))
 			slot.gear = Equipment.clean_loadouts(slot, slot.get("gear", {}))
+			slot.supplies = Items.clean(slot.get("supplies", Items.fresh(int(slot.chapter))))
+			slot.supply_claims = Items.clean_claims(slot.get("supply_claims", {}))
 			return slot
 	return {}
 

@@ -1,0 +1,38 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS bag keeps tonic and the three field supplies in order
+PASS qi pill is unavailable at full qi
+PASS qi pill rejects a full or out-of-range target
+PASS invalid targets do not consume stock or advance the turn
+PASS qi pill restores 18 to a living ally and spends a turn
+PASS combat stock is isolated from its source dictionary
+PASS qi pill caps recovery at maximum qi
+PASS ward cannot be spent on a fallen ally
+PASS ward protects the chosen ally
+PASS ward cannot be stacked or consumed twice
+PASS ward reduces one hit by 55 percent and is consumed
+PASS subsequent hits use their ordinary damage
+PASS needle cannot target dormant reinforcements
+PASS wind technique leaves exactly two poise on the signaler
+PASS needle interrupts the signal without dealing damage or waking reinforcements
+PASS needle respects boss resolve
+PASS needle cannot be wasted on resolve-protected last poise
+PASS needle breaks the last shield crack through the ordinary break rule
+PASS malformed stock is sanitized and stacks are capped
+PASS malformed claims are sanitized
+PASS quest milestones and resolved routes grant their intended supplies
+PASS repeated quest reconciliation grants no duplicates
+PASS a full stack does not block the other discovery reward
+PASS main scene loads the game script
+PASS opening an exploration chest gives one persisted supply reward
+PASS battle action opens the bag without spending a turn
+PASS bag skips a full-qi target
+PASS canceling item targeting keeps stock
+PASS using a supply does not spend it from the save before victory
+PASS both low-health allies fall to the opening encounter
+PASS retry restores pre-battle supplies
+PASS victory commits exactly the supplies spent
+PASS old saves receive starting supplies
+PASS old Tidegate checkpoint receives independent starting supplies
+PASS Tidegate victory spends only its own supply stock
+Supplies: 0 failures

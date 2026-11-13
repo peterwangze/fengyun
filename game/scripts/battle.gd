@@ -3,10 +3,12 @@ extends RefCounted
 const Story = preload("res://scripts/story.gd")
 const Martial = preload("res://scripts/martial.gd")
 const Equipment = preload("res://scripts/equipment.gd")
+const Items = preload("res://scripts/items.gd")
+const FIRST_SUPPLY := 6
 const INTENTS = {
 	"strike": "快斩 · 单体", "charge": "蓄势 · 重击",
 	"sweep": "横扫 · 全体", "brace": "架势 · 减伤", "signal":"预备鸣哨 · 召援",
-	"rally":"擂鼓 · 护韩朔"
+	"rally":"擂鼓 · 护韩朔", "escape":"携印逃走 · 可破势打断"
 }
 
 var allies: Array[Dictionary] = []
@@ -17,6 +19,7 @@ var round_no := 1
 var actor := 0
 var bond := 0
 var tonics := 0
+var supplies := {}
 var result := ""
 var story_mode := false
 var signal_state := ""
@@ -27,10 +30,13 @@ var pair := ""
 var followup_used := false
 var reinforcement_round := 2
 var combo_uses := 0
+var seal_chase := false
+var escaped := false
 
 func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, chapter: int = 5,
-	sword: Variant = null, prepared: Dictionary = {}, expanded: bool = false, gear: Dictionary = {}) -> void:
+	sword: Variant = null, prepared: Dictionary = {}, expanded: bool = false, gear: Dictionary = {}, stock_items: Dictionary = {}) -> void:
 	tonics = stock
+	supplies = Items.clean(stock_items)
 	story_mode = easy
 	advanced = expanded
 	pair = Martial.pair_id(party)
@@ -79,8 +85,11 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 	_note("先观察敌人的招式，再决定如何出手。")
 
 func available(action: int) -> bool:
-	if not result.is_empty() or actor >= allies.size() or action < 0 or action > 5:
+	if not result.is_empty() or actor >= allies.size() or action < 0 or action >= FIRST_SUPPLY + Items.ORDER.size():
 		return false
+	if action >= FIRST_SUPPLY:
+		var units := allies if targets_ally(action) else foes
+		return supplies.get(_supply(action), 0) > 0 and units.any(func(unit: Dictionary): return _supply_target(action, unit))
 	match action:
 		1, 2:
 			return allies[actor].qi >= allies[actor].moves[action - 1][1]
@@ -91,6 +100,9 @@ func available(action: int) -> bool:
 	return true
 
 func label(action: int) -> String:
+	if action >= FIRST_SUPPLY:
+		var id := _supply(action)
+		return "%s ×%d" % [Items.CATALOG[id].name, supplies.get(id, 0)]
 	match action:
 		0: return "普攻"
 		1, 2: return str(allies[actor].moves[action - 1][0])
@@ -103,6 +115,8 @@ func label(action: int) -> String:
 	return ""
 
 func detail(action: int) -> String:
+	if action >= FIRST_SUPPLY:
+		return Items.CATALOG[_supply(action)].detail
 	match action:
 		0: return "单体 · 回复 6 真气"
 		1, 2:
@@ -135,6 +149,8 @@ func _threat_target(enemy: Dictionary) -> int:
 	return target if allies[target].hp > 0 else 1 - target
 
 func _pattern(enemy: Dictionary) -> String:
+	if seal_chase and enemy.id == "shade" and round_no >= 2:
+		return "escape"
 	if enemy.id == "paper" and signal_state == "ready":
 		return "signal"
 	if enemy.id == "tidal_drum":
@@ -185,6 +201,8 @@ func act(action: int, target: int) -> bool:
 	if targets_ally(action):
 		if target < 0 or target >= allies.size() or (action != 4 and allies[target].hp == 0):
 			return false
+	if action >= FIRST_SUPPLY and not valid_target(action, target):
+		return false
 	events.clear()
 	var unit := allies[actor]
 	var action_name := label(action)
@@ -201,6 +219,7 @@ func act(action: int, target: int) -> bool:
 		3: style = "guard"
 		4: style = "heal"
 		5: style = "combo"
+		_: style = "break" if action >= FIRST_SUPPLY and not targets_ally(action) else "heal"
 	_effect("cast", "ally", actor, 0, style, action_name)
 	match action:
 		0:
@@ -231,6 +250,7 @@ func act(action: int, target: int) -> bool:
 			bond = 0
 			combo_uses += 1
 			_apply_combo(unit)
+		_: _use_supply(action, target)
 	events[0]["stats"] = {"qi":unit.qi}
 	events[0]["corruption"] = corruption
 	if living_foe() < 0:
@@ -249,7 +269,69 @@ func _automatic(action: int) -> bool:
 	return action in [1,2] and ("全体" in allies[actor].moves[action - 1][5] or _move_kind(action) == "counter")
 
 func targets_ally(action: int) -> bool:
+	if action >= FIRST_SUPPLY:
+		return Items.CATALOG[_supply(action)].target == "ally"
 	return action == 4 or _move_kind(action) in ["cover","aid"]
+
+func valid_target(action: int, target: int) -> bool:
+	var friendly := targets_ally(action)
+	var units := allies if friendly else foes
+	if target < 0 or target >= units.size():
+		return false
+	if action >= FIRST_SUPPLY:
+		return _supply_target(action, units[target])
+	return action == 4 or units[target].hp > 0
+
+func poise_preview(action: int, at: int) -> String:
+	if targets_ally(action) or not valid_target(action, at):
+		return ""
+	var enemy := foes[at]
+	if enemy.broken:
+		return "已破势 · 此回合跳过行动"
+	var amount := 1
+	if action >= FIRST_SUPPLY:
+		amount = Items.CATALOG[_supply(action)].amount
+	elif action in [1, 2]:
+		var unit := allies[actor]
+		var move: Array = unit.moves[action - 1]
+		amount = move[4]
+		if _move_kind(action) == "shatter":
+			amount += enemy.frost
+		if move[2] == enemy.weak:
+			amount += 1 + int(unit.gear.get("weakness_poise", 0))
+	var next := maxi(int(enemy.resolve), enemy.poise - amount)
+	return "可破势 · 打断本回合" if next == 0 else "势 %d → %d" % [enemy.poise, next]
+
+func _supply(action: int) -> String:
+	return Items.ORDER[action - FIRST_SUPPLY]
+
+func _supply_target(action: int, unit: Dictionary) -> bool:
+	return Items.can_target(_supply(action), unit)
+
+func bag_actions() -> Array[int]:
+	var actions: Array[int] = [4]
+	for i in Items.ORDER.size():
+		actions.append(FIRST_SUPPLY + i)
+	return actions
+
+func _use_supply(action: int, target: int) -> void:
+	var id := _supply(action)
+	var amount: int = Items.CATALOG[id].amount
+	supplies[id] -= 1
+	match id:
+		"breath_pill":
+			var unit := allies[target]
+			var gain := mini(amount, unit.max_qi - unit.qi)
+			unit.qi += gain
+			_ally_state(target, "回气 +%d" % gain)
+			events.back().stats.qi = unit.qi
+		"guard_powder":
+			allies[target].ward = true
+			_ally_state(target, "护持")
+		"stagger_needle":
+			var before: int = foes[target].poise
+			_reduce_poise(target, amount, 0)
+			_effect("stance", "foe", target, 0, "break", "削势 %d" % (before - foes[target].poise))
 
 func _move_kind(action: int) -> String:
 	if action not in [1,2]:
@@ -372,21 +454,7 @@ func _hit_foe(index: int, base: int, break_power: int, element: String, style: S
 		damage *= 0.45
 		enemy.rallied = false
 		_note("鼓阵抵消了这一击的部分伤害。")
-	if not enemy.broken:
-		enemy.poise = maxi(1 if enemy.resolve else 0, enemy.poise - break_power)
-		if enemy.poise == 0:
-			enemy.broken = true
-			if enemy.id == "paper" and signal_state == "ready":
-				signal_state = "blocked"
-				_note("哨声被打断，援兵没有发现渡口。")
-			_effect("break", "foe", index, beat, "break", "破势")
-			_note("%s被破势！" % enemy.name)
-			if enemy.shield and enemy.id != "first_tyrant":
-				enemy.cracks += 1
-				if enemy.cracks >= 2:
-					enemy.shield = false
-					shield_resolution = "poise"
-					_note("护气散尽。")
+	_reduce_poise(index, break_power, beat)
 	var points := maxi(1, roundi(damage))
 	var previous_hp: int = enemy.hp
 	var first_clash: bool = enemy.id == "first_tyrant"
@@ -408,6 +476,26 @@ func _hit_foe(index: int, base: int, break_power: int, element: String, style: S
 		enemy.cycle = ["charge","strike","sweep"] if advanced else ["charge","sweep"]
 		_effect("stance","foe",index,beat,"guard","三分归元气" if advanced else "龙脉护气")
 		_note("雄霸以护气挡住要害，合璧可破！")
+
+func _reduce_poise(index: int, points: int, beat: int) -> void:
+	var enemy := foes[index]
+	if enemy.broken:
+		return
+	enemy.poise = maxi(1 if enemy.resolve else 0, enemy.poise - points)
+	if enemy.poise > 0:
+		return
+	enemy.broken = true
+	if enemy.id == "paper" and signal_state == "ready":
+		signal_state = "blocked"
+		_note("哨声被打断，援兵没有发现渡口。")
+	_effect("break", "foe", index, beat, "break", "破势")
+	_note("%s被破势！" % enemy.name)
+	if enemy.shield and enemy.id != "first_tyrant":
+		enemy.cracks += 1
+		if enemy.cracks >= 2:
+			enemy.shield = false
+			shield_resolution = "poise"
+			_note("护气散尽。")
 
 func _heal(index: int, points: int) -> void:
 	var unit := allies[index]
@@ -432,6 +520,12 @@ func _enemy_turn() -> void:
 		var attack := _pattern(enemy)
 		enemy.resolve = false
 		beat += 1
+		if attack == "escape":
+			escaped = true
+			_effect("stance","foe",index,beat,"guard","脱逃")
+			_note("密探带走了假印。")
+			result = "defeat"
+			return
 		if attack == "rally":
 			foes[0].rallied = true
 			_effect("cast","foe",index,beat,"guard","擂鼓")

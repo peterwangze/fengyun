@@ -4,7 +4,8 @@ param(
     [switch]$LaterChapters,
     [switch]$Expansion,
     [switch]$Tidal,
-    [switch]$Equipment
+    [switch]$Equipment,
+    [switch]$PlaySystems
 )
 $ErrorActionPreference = 'Stop'
 $Executable = (Resolve-Path -LiteralPath $Executable).Path
@@ -23,6 +24,8 @@ public static class FengyunTestKeyboard {
     [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out Rect rect);
     [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr window, out Rect rect);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr window);
+    [DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr window, int command);
     [DllImport("user32.dll")] public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr window, IntPtr target, uint flags);
     [DllImport("user32.dll")] public static extern uint MapVirtualKey(uint key, uint mode);
@@ -69,6 +72,9 @@ function Open-Game([string]$LogPath) {
             if ($process.MainWindowHandle -ne 0) { break }
         }
         if ($process.MainWindowHandle -eq 0) { throw 'No game window appeared.' }
+        if ([FengyunTestKeyboard]::IsIconic($process.MainWindowHandle)) {
+            [void][FengyunTestKeyboard]::ShowWindowAsync($process.MainWindowHandle, 9)
+        }
         for ($i = 0; $i -lt 30; $i++) {
             if ((Test-Path -LiteralPath $LogPath) -and (Get-Item -LiteralPath $LogPath).Length -gt 50) { break }
             Start-Sleep -Milliseconds 250
@@ -190,6 +196,12 @@ try {
         if ((Read-Slot).gear.cloud[0] -ne '') { throw 'The game did not save unequipping armor.' }
         Press-Key 0x49
     }
+    if ($PlaySystems) {
+        Press-Key 0x4A
+        Press-Key 0x28
+        Save-Screenshot '31-windows-journal' -Direct
+        Press-Key 0x0D
+    }
 
     if ($Expansion) {
         Press-Key 0x44 355
@@ -211,6 +223,14 @@ try {
     Press-Key 0x0D
     Press-Key 0x0D
     Save-Screenshot '08-windows-battle'
+    if ($PlaySystems) {
+        Press-Key 0x42
+        Save-Screenshot '32-windows-bag' -Direct
+        Press-Key 0x1B
+        Press-Key 0x32
+        Save-Screenshot '33-windows-poise-preview' -Direct
+        Press-Key 0x1B
+    }
     Press-Key 0x32
     Press-Key 0x0D
     Save-Screenshot '08a-windows-effect' -Direct
@@ -513,6 +533,7 @@ try {
         ExpandedOpening = [bool]$Expansion
         IsolatedFengxiTrial = [bool]$Expansion
         Equipment = [bool]$Equipment
+        PlaySystems = [bool]$PlaySystems
         LaterChapters = $later
         Merit = $slot.merit
         Cleared = $slot.cleared

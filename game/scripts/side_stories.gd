@@ -1,8 +1,11 @@
 extends RefCounted
 
+const Equipment = preload("res://scripts/equipment.gd")
+const Items = preload("res://scripts/items.gd")
+
 const TASKS := {
 	"seals": {
-		"title":"旧账新印","chapters":[0],"summary":"核对押粮清单与封门口供。",
+		"title":"旧账新印",
 		"steps":{
 			"start":["hall",142,222,"查看押粮清单","","押粮簿中有两班守卫，盖章却出自同一只手。先问送饭的仆役。","witness"],
 			"witness":["banquet",190,177,"询问送饭仆役","servant","我亲眼看见执事在宴前换了印。柜底还有一张旧单。","proof"],
@@ -10,7 +13,7 @@ const TASKS := {
 			"decision":["banquet",248,247,"安置证人","maid","撤离的路你们熟。要我带路，还是留下把口供写全？",[
 				["先带证人走","done_guide"],["留下写完口供","done_proof"]]]}},
 	"lamps": {
-		"title":"一盏灯，两条船","chapters":[1,5],"summary":"循船灯救援渡客，日后回访凤溪。",
+		"title":"一盏灯，两条船",
 		"steps":{
 			"start":["inn",182,202,"向渡工问灯","boatman_front","三短一长是渡客求救。西岸浅滩还亮着一盏，去看看。","shore"],
 			"shore":["village",144,265,"辨认浅滩灯号","","浅滩有人招手。缆绳够拖人，还能救起船或那箱过冬的货。","decision"],
@@ -19,21 +22,21 @@ const TASKS := {
 			"wait_boat":["dawn",208,254,"回访修好的船","boatman_front","船肋换好了。多亏你留住船身，眼下每天都能开两趟。","done_boat"],
 			"wait_goods":["dawn",208,254,"探望渡口新人","boatman_front","乡亲有粮过冬。丢掉的船暂时由邻村渡工补上，我能歇几天。","done_goods"]}},
 	"courier": {
-		"title":"雨夜押书","chapters":[1],"summary":"分辨真假路标，护送信使。",
+		"title":"雨夜押书",
 		"steps":{
 			"start":["village",76,233,"查看雨中脚印","","脚尖都向北，路牌却指向南。新钉的那块路牌是假的。","watch"],
 			"watch":["village",174,155,"听竹林的哨声","","两急一缓从河边传来。沿背风墙走可以避开巡哨。","decision"],
 			"decision":["inn",431,210,"接应信使","servant","沿背风墙可把信送出去。正门那名探子认识我，但现在截住他能问出口令。",[
 				["沿背风墙护送","done_quiet"],["截住正门探子","fight"]]]}},
 	"forgework": {
-		"title":"炉火借一更","chapters":[2],"summary":"先引旁槽，再开主闸。",
+		"title":"炉火借一更",
 		"steps":{
 			"start":["forge",153,169,"询问熔沟工匠","guide","主渠水压太高。先开旁槽放掉压力，再去拉第二道闸。","sluice"],
 			"sluice":["forge",187,132,"打开泄压旁槽","","水面往下落了一尺，第二道闸的铜柄已经能动。","gate"],
 			"gate":["forge",228,239,"放下第二道闸","","熔沟的火退开了。工匠把修好的剑架送往剑庐。","rack"],
 			"rack":["swordhall",431,209,"检查修好的剑架","guide","试试用掌心卸力，接着翻腕还手。这是剑庄守门人的路数。","done_rack"]}},
 	"swordstory": {
-		"title":"一柄未开锋的剑","chapters":[2,4,5],"summary":"查明旧剑折断的缘由，决定由谁保管。",
+		"title":"一柄未开锋的剑",
 		"steps":{
 			"start":["swordhall",182,231,"询问于楚楚","chuchu","剑没有开锋，断口却被反复锉过。屋里那本修剑簿也许记了缘由。","ledger"],
 			"ledger":["swordhall",459,258,"核对修剑簿","","守剑人故意挫断旧剑，瞒过盘查，好让工匠有机会从炉后逃走。","wait_palace"],
@@ -42,21 +45,21 @@ const TASKS := {
 			"wait_sage":["peak",178,240,"收下无名留下的信","sage","那柄旧剑送到了。雄霸护体时仍要换气。被点中的人守住，余下一人找空隙。","done_sage"],
 			"wait_guard":["peak",178,240,"与引路的守军会合","guard","见剑认人。我给受困者留了条小路，你们从石阶上去。","done_guard"]}},
 	"remedy": {
-		"title":"药庐三问","chapters":[3],"summary":"看脉象、问病史、试护持。",
+		"title":"药庐三问",
 		"steps":{
 			"start":["apothecary",175,192,"询问药庐病人","servant","我一使劲就喘，药也吃了好些。桌上放着药渣，先生说先看那个。","sample"],
 			"sample":["apothecary",468,206,"辨认温凉药渣","","手心发热，药渣却全是温补药。先护住心脉，再缓解燥热。","decision"],
 			"decision":["apothecary",178,251,"请第二梦校验药方","dream","你会先稳心脉，还是先强行压住热气？",[
 				["先护住心脉","done_aid"],["先强压热气","recheck"]]]}},
 	"shift": {
-		"title":"换岗的灯","chapters":[4],"summary":"借换岗暗号，救出知道侧门的狱卒。",
+		"title":"换岗的灯",
 		"steps":{
 			"start":["jail",148,248,"读狱门值更簿","","末班狱卒被关在侧廊。两盏灯都向内，才是换岗信号。","lamp"],
 			"lamp":["jail",427,220,"拨转换岗灯","","灯罩转向内侧。右侧守卫正在交班，可以从茶房绕过去。","decision"],
 			"decision":["tearoom",482,253,"接应被关的狱卒","guard","门外还有人。我知道侧廊便门的栓在哪里，你们打算怎么带我走？",[
 				["趁换岗潜行","done_stealth"],["迎面引开守卫","fight"]]]}},
 	"stairs": {
-		"title":"石阶上的人","chapters":[5],"summary":"从山道送走受困者。",
+		"title":"石阶上的人",
 		"steps":{
 			"start":["peak",151,192,"安抚受困村民","servant","石阶被堵住了，有几个老人走不快。右侧裂石后有藏身处。","trail"],
 			"trail":["peak",398,230,"寻找撤离小径","","小径能通山脚。可先藏好村民，或由另一人把追兵引开。","decision"],
@@ -77,6 +80,34 @@ const RESULT := {
 	"done_escort":"村民沿小径平安下山。","done_decoy":"追兵离开，村民已经下山。"
 }
 
+const ROOMS := {
+	"hall":[0,"飞云堂庭院"], "banquet":[0,"天下会喜堂"],
+	"village":[1,"凤溪西岸"], "inn":[1,"凤溪西岸客栈"],
+	"forge":[2,"拜剑山庄剑池"], "swordhall":[2,"拜剑山庄剑庐"],
+	"apothecary":[3,"生死门药庐"], "jail":[4,"绝宫天牢"], "tearoom":[4,"绝宫茶房侧廊"],
+	"peak":[5,"凌云山石阶"], "dawn":[5,"清晨凤溪"],
+}
+const CHAPTERS := ["第一章", "第二章", "第三章", "第四章", "第五章", "第六章"]
+const DECISIONS := {
+	"seals":"请证人带路可缩短竹径守卫的视线。留下口供可帮秦霜核对调令。",
+	"lamps":"人已经救起。拖船能恢复渡运，救货能保住过冬粮。清晨可回来看结果。",
+	"courier":"沿墙护送可避战。截住探子要交手，胜后能问出口令。",
+	"swordstory":"无名会留下破敌情报。守军可以指一条上山近路。",
+	"remedy":"结合脉象和温补药渣，判断哪件事更紧急。",
+	"shift":"两条路都能打开便门。趁换岗走可避战，迎面引开守卫会交手。",
+	"stairs":"守住小径需等到最后一人下山。把追兵引开要打一场。",
+}
+const CONSEQUENCES := {
+	"seals":"竹径撤离或凤溪取证会有后续",
+	"lamps":"选择会改变清晨凤溪的回访结果",
+	"courier":"护送与截击走不同路线",
+	"forgework":"学会翻云守势，固守后可反击",
+	"swordstory":"凌云山可获得破敌情报或撤离近路",
+	"remedy":"学会护心针，可治疗并护持队友",
+	"shift":"打开茶房右侧的撤离便门",
+	"stairs":"村民在尾声回到凤溪",
+}
+
 var g
 
 func _init(game: Node2D) -> void:
@@ -89,11 +120,11 @@ func points() -> Array:
 	var result := []
 	for id in TASKS:
 		var task: Dictionary = TASKS[id]
-		if int(g.slot.chapter) not in task.chapters:
-			continue
 		var step: String = state().get(id,"start")
 		var node: Array = task.steps.get(step,[])
-		if not node.is_empty() and node[0] == g.field_key:
+		if node.is_empty() or not _reachable(node[0]):
+			continue
+		if node[0] == g.field_key:
 			result.append({"id":"side_"+id,"name":node[3],"pos":Vector2(node[1],node[2]),"index":-1,
 				"sprite":node[4],"optional":true})
 		if id == "forgework" and step == "sluice" and g.field_key == "forge":
@@ -115,7 +146,7 @@ func handle(id: String) -> bool:
 	var speaker: String = "手记" if node[4].is_empty() else String(node[3]).substr(0,8)
 	g.chronicle.speak([[speaker,node[5]]],func():
 		if node[6] is Array:
-			g.chronicle.choose(task.title,node[6],func(outcome): _finish(key,outcome))
+			g.chronicle.choose(task.title,node[6],func(outcome): _finish(key,outcome),DECISIONS[key])
 		else:
 			_finish(key,node[6]))
 	return true
@@ -137,26 +168,86 @@ func finish(key: String, step: String) -> void:
 	state()[key] = step
 	g._commit()
 	g._return_to_field()
-	g._notice(RESULT.get(step,"已更新《江湖手记》。"))
+	g._notice(_result_line(key,step))
 
 func note(key: String) -> String:
+	return journal_entry(key).status
+
+func journal_entry(key: String) -> Dictionary:
 	var task: Dictionary = TASKS[key]
 	var step: String = state().get(key,"start")
-	if RESULT.has(step):
-		return RESULT[step]
-	if int(g.slot.chapter) > int(task.chapters.back()):
-		return "已离章。可在章节回看中重访。"
-	return task.summary if step == "start" else "下一步 · " + String(task.steps[step][3])
+	var reward := Items.reward_label("quest:" + key)
+	var item := Equipment.quest_reward(key)
+	if not item.is_empty():
+		reward = item + "、" + reward
+	var entry := {"status":"已完成", "action":"", "place":"", "deadline":"", "payoff":CONSEQUENCES[key], "reward":reward}
+	if step.begins_with("done_"):
+		entry.action = _result_line(key,step)
+		return entry
+	var node: Array = task.steps[step]
+	var room: String = node[0]
+	var chapter: int = ROOMS[room][0]
+	entry.action = node[3]
+	entry.place = ROOMS[room][1]
+	entry.deadline = _deadline(room)
+	if _missed(room):
+		entry.status = "已错过"
+		entry.deadline = "可在章节回看中重访"
+		return entry
+	if int(g.slot.chapter) < chapter:
+		entry.status = "后续章节" if step == "start" else "待回访"
+		entry.place = CHAPTERS[chapter] + " · " + String(entry.place)
+		if g.chronicle.review:
+			entry.deadline = "正式旅程才能跨章回访"
+		return entry
+	if room == "dawn" and g.field_key != "dawn":
+		entry.status = "待回访"
+		return entry
+	if step == "start":
+		entry.status = "可接取"
+	elif node[6] is Array:
+		entry.status = "待抉择"
+	elif String(node[6]).begins_with("done_"):
+		entry.status = "待交付"
+	else:
+		entry.status = "进行中"
+	if _behind_crossing(room):
+		entry.place += "（需先过河）"
+	elif room == g.field_key and _reachable(room):
+		entry.point = Vector2(node[1],node[2])
+	return entry
+
+func _result_line(key: String, step: String) -> String:
+	if key == "shift" and step == "done_fight":
+		return "守卫退去，狱卒打开侧廊便门。"
+	return RESULT.get(step,"已更新《江湖手记》。")
+
+func _behind_crossing(room: String) -> bool:
+	return room in ["village","inn"] and g.slot.campaign.crossing.is_empty()
+
+func _reachable(room: String) -> bool:
+	return int(g.slot.chapter) == int(ROOMS[room][0]) and not _missed(room) and not _behind_crossing(room)
+
+func _missed(room: String) -> bool:
+	var chapter: int = ROOMS[room][0]
+	return g.slot.finished or int(g.slot.chapter) > chapter or (int(g.slot.chapter) == chapter and (
+		int(g.slot.chronicle.from_chapter) > chapter or (g.field_key == "dawn" and room == "peak")))
+
+func _deadline(room: String) -> String:
+	match room:
+		"peak": return "从凌云山下山前"
+		"dawn": return "与步惊云离开前"
+	return CHAPTERS[ROOMS[room][0]] + "结束前"
 
 func expiring(allowed_at_destination: String = "") -> Array[String]:
 	var result: Array[String] = []
 	for key in state():
 		var task: Dictionary = TASKS[key]
-		if int(g.slot.chapter) != int(task.chapters.back()):
+		var node: Array = task.steps.get(state()[key],[])
+		if node.is_empty() or key == allowed_at_destination:
 			continue
-		if key == allowed_at_destination:
-			continue
-		if not String(state()[key]).begins_with("done_"):
+		var room: String = node[0]
+		if int(g.slot.chapter) == int(ROOMS[room][0]) and not _missed(room):
 			result.append(task.title)
 	return result
 

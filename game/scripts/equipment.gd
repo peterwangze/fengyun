@@ -5,13 +5,13 @@ const CATEGORIES := ["护具", "佩物"]
 const CATALOG := {
 	"travel_coat": {"kind":0,"name":"行旅布衣","source":"开篇自带","mods":{"hp":8,"attack":-2}},
 	"scale_vest": {"kind":0,"name":"鳞纹背心","source":"达到境界 2","merit":4,"mods":{"hp":14,"qi":-4}},
-	"witness_cape": {"kind":0,"name":"护证短披","source":"完成旧账新印","quest":"seals","mods":{"armor":2,"hp":-6}},
+	"witness_cape": {"kind":0,"name":"护证短披","source":"完成旧账新印","quest":"seals","mods":{"armor":3,"hp":-8}},
 	"forge_apron": {"kind":0,"name":"剑庐护腕","source":"完成炉火借一更","quest":"forgework","mods":{"guard_qi":4,"attack":-2}},
-	"palace_mail": {"kind":0,"name":"绝宫轻甲","source":"抵达无神绝宫","chapter":4,"mods":{"hp":18,"attack":-3}},
+	"palace_mail": {"kind":0,"name":"绝宫轻甲","source":"抵达无神绝宫","chapter":4,"mods":{"armor":2,"hp":6,"attack":-3}},
 	"qi_ring": {"kind":1,"name":"纳气玉扣","source":"达到境界 2","merit":4,"mods":{"qi":6,"hp":-8}},
 	"ferry_knot": {"kind":1,"name":"渡口缆结","source":"抵达剑池初鸣","chapter":2,"mods":{"broken_damage":6,"qi":-4}},
 	"courier_badge": {"kind":1,"name":"信使铜牌","source":"完成雨夜押书","quest":"courier","mods":{"weakness_poise":1,"hp":-8}},
-	"needle_case": {"kind":1,"name":"药庐针匣","source":"完成药庐三问","quest":"remedy","mods":{"heal":5,"attack":-2}},
+	"needle_case": {"kind":1,"name":"药庐针匣","source":"完成药庐三问","quest":"remedy","mods":{"heal":8,"attack":-2}},
 	"peak_token": {"kind":1,"name":"石阶平安结","source":"完成石阶上的人","quest":"stairs","mods":{"armor":2,"qi":-4}},
 }
 const EFFECTS := {
@@ -102,3 +102,9 @@ static func describe(id: String) -> String:
 	for effect in mods:
 		parts.append("%s %+d" % [EFFECTS[effect], mods[effect]])
 	return "  ·  ".join(parts)
+
+static func quest_reward(quest: String) -> String:
+	for id in CATALOG:
+		if CATALOG[id].get("quest", "") == quest:
+			return CATALOG[id].name
+	return ""

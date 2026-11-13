@@ -1,0 +1,19 @@
+--------- beginning of main
+V/Godot   (12171): Initializing Godot plugin registry
+V/Godot   (12171): InitEngine with params: [--xr_mode_regular, --xr-mode, off, --fullscreen, --background_color, #000000]
+V/Godot   (12171): Godot native layer initialization completed: true
+V/Godot   (12171): Setting up native layer with params: [--xr-mode, off, --fullscreen]
+V/Godot   (12171): Godot native layer setup completed
+V/Godot   (12171): OnInitRenderView: GodotFragment{5e2ff14} (0d471385-011f-4a28-bb87-d2bdd33f3f45 id=0x7f07002c)
+D/Godot   (12171): Render view should be transparent: false
+D/Godot   (12171): renderingDevice: opengl3 (ProjectSettings)
+D/Godot   (12171): 			renderer: gl_compatibility (ProjectSettings)
+V/Godot   (12171): OnStart: GodotFragment{5e2ff14} (0d471385-011f-4a28-bb87-d2bdd33f3f45 id=0x7f07002c)
+V/Godot   (12171): OnResume: GodotFragment{5e2ff14} (0d471385-011f-4a28-bb87-d2bdd33f3f45 id=0x7f07002c)
+I/godot   (12171): Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+E/godot   (12171): WARNING: Failed to load cached shader, recompiling.
+E/godot   (12171):    at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+I/godot   (12171): OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 595.95) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 5060 Laptop GPU/PCIe/SSE2)
+I/godot   (12171):
+V/Godot   (12171): OnGodotSetupCompleted
+V/Godot   (12171): OnGodotMainLoopStarted

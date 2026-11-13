@@ -1,5 +1,7 @@
 extends RefCounted
 
+const Items = preload("res://scripts/items.gd")
+
 const STAGE := {"num":"外","title":"潮关余事","party":["wind","cloud"]}
 const ENCOUNTERS := {
 	"gate":["潮关守卒",["tidal_guard","tidal_runner"],[
@@ -23,7 +25,7 @@ func _init(game: Node2D) -> void:
 	g = game
 
 static func initial() -> Dictionary:
-	return {"room":"tidal_ford","route":"","tonics":3,"brief":false,
+	return {"room":"tidal_ford","route":"","tonics":3,"supplies":Items.fresh(2),"brief":false,
 		"register":false,"seal":false,"sluice":false,"gate":false,"aid":false,
 		"chief":false,"ledger":false,"resolution":""}
 
@@ -71,6 +73,7 @@ func resume() -> void:
 	g.stage = STAGE
 	if not g.slot.has("afterstory"):
 		g.slot["afterstory"] = initial()
+	state().supplies = Items.clean(state().get("supplies", Items.fresh(2)))
 	_enter(state().room)
 
 func reset() -> void:

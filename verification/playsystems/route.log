@@ -1,0 +1,26 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS main marker guides first-time players to Qin Shuang
+PASS journal tracking identifies the selected nearby side quest
+PASS tracking main clears the previous side marker
+PASS winning the practice duel moves the main marker to the gate guard
+PASS back gate leads to the bamboo path
+PASS cache is on walkable ground in garden
+PASS interacting claims supplies in garden
+PASS cache is one-time and persists in garden
+PASS the inn and its optional encounter wait until crossing the river
+PASS seal chase waits for investigation at the inn
+PASS cache is on walkable ground in inn
+PASS interacting claims supplies in inn
+PASS cache is one-time and persists in inn
+PASS investigating the ferry orders unlocks the optional encounter
+PASS interacting at the inn window starts the real seal chase
+PASS second round warns that the spy will flee
+PASS a free second-round action lets the spy escape without rewards
+PASS retry restores the original encounter
+PASS chipping away at the stance then using a weakness hit delays escape
+PASS focus the spy, then defeat the remaining swordsman
+PASS victory grants the one-time needle reward
+PASS optional win leaves main progression unchanged
+PASS the won encounter cannot be repeated after reload
+Route and exploration: 0 failures
