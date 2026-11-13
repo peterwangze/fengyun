@@ -218,9 +218,17 @@ func handle(id: String) -> bool:
 		"altar":
 			var speech := ALTAR
 			if g.chronicle.enabled():
+				var threat := "龙脉碎了，我还有三分归元气。石阶上这些人能不能下山，仍由我说了算。"
+				var answer := "喜堂那回我只顾着出掌。风师弟，这回你护住石阶，我来截他的招。"
+				match g.chronicle.side.state().get("swordstory",""):
+					"done_sage":
+						answer = "风师弟，按无名教的起手来。他抬掌换气时，你我一起踏进去。"
+					"done_guard":
+						threat = "人都从侧坡撤走了？龙脉碎了，我还有三分归元气。你们两个休想下山。"
+						answer = "守军已护送百姓离开。风师弟，等侧坡箭响，你我一起上。"
 				speech = [
-					["雄霸","龙脉碎了，我还有三分归元气。石阶上这些人能不能下山，仍由我说了算。"],
-					["步惊云","喜堂那回我只顾着出掌。风师弟，这回你护住石阶，我来截他的招。"],
+					["雄霸",threat],
+					["步惊云",answer],
 					["聂风","我看着你。他护气一变就会换目标，合璧能破开，两次破势也行。"]]
 			_play("altar",speech,func(): _set_flag("altar"))
 		"exit":

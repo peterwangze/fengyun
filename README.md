@@ -1,14 +1,14 @@
 # 风云：山河劫
 
-简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。当前为 2.3.0，包含六章、潮关外篇、境界成长与行装。
+简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。当前为 2.4.0，包含六章、潮关外篇、境界成长和武学行装搭配。
 
 ## 开始游戏
 
-**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 2.3.0 APK](https://github.com/peterwangze/fengyun/releases/download/v2.3.0/Fengyun-2.3.0-android.apk)
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 2.4.0 APK](https://github.com/peterwangze/fengyun/releases/download/v2.4.0/Fengyun-2.4.0-android.apk)
 
-**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 2.3.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v2.3.0/Fengyun-2.3.0-windows-x64-setup.exe)
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 2.4.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v2.4.0/Fengyun-2.4.0-windows-x64-setup.exe)
 
-[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v2.3.0) · [第三方许可](Windows/Licenses)
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v2.4.0) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
@@ -26,7 +26,7 @@
 | 调查、对话、确认 | 靠近目标后点底栏出现的动作按钮，也可直接点对白框或菜单选项 | A 确认，左摇杆或十字键选择 |
 | 战斗 | 点按招式及目标，使用「取消选招」或「跳过演出」 | 方向选择，A 确认，B 取消，Y 跳过演出 |
 | 手记、武学 | 从底栏「菜单」进入，可点队员及栏位装配 | 探索时 X 打开手记，Y 打开武学。武学里左右换人，X 换栏位 |
-| 行装与境界 | 从底栏「菜单」进入，点队员、栏位和物品 | 探索时 LB 打开行装。左右换人，X 换栏位，A 装备 |
+| 行装与境界 | 从底栏「菜单」进入，点队员、栏位、物品或「打法」 | 探索时 LB 打开行装。左右换人，X 换栏位，A 装备，RB 查看打法 |
 | 暂停、返回 | 底栏「菜单」、「返回」或系统返回键 | Start 暂停，B 返回 |
 
 在 Android 系统连接 USB 或蓝牙手柄，使用手柄后界面切换为手柄提示。再次触屏可恢复触屏布局。手柄按键名称以 Xbox 布局表示。
@@ -40,7 +40,7 @@
 | 暂停或取消 | Esc / X |
 | 江湖手记 | J |
 | 准备武学 | K。左右换人，Tab 换栏位，Enter 装配。暂停菜单也可进入 |
-| 行装与境界 | I。左右换人，Tab 切换护具和佩物，Enter 装备。暂停菜单也可进入 |
+| 行装与境界 | I。左右换人，Tab 切换护具和佩物，Enter 装备，G 查看打法。暂停菜单也可进入 |
 | 全屏切换 | F11 |
 
 Windows 手柄映射与 Android 一致。屏幕提示随键鼠和手柄输入切换。Windows 窗口默认 1280 × 720，最小 640 × 360。
@@ -52,6 +52,8 @@ Windows 手柄映射与 Android 一致。屏幕提示随键鼠和手柄输入切
 - 选中单体攻击时会预览敌人的势条变化。药囊里的聚气丸回真气，护脉散抵挡下一次受击，破势针可打断敌人。核对凤溪调令后可在客栈后窗拦截密探，他从第二回合起会尝试逃走。
 - 青色「主」标记当前主线目标。江湖手记可查看八条支线的下一步、位置、期限和报酬，选择「追踪此事」后在当前场景标出「支」。
 - 主线每累计四点历练提高一重境界。「行装与境界」显示当前属性与下次提升所需历练。护具和佩物各一栏，同一件可在队员间转交。行装来自开篇、境界、主线地点和支线，面板显示未取得行装的来源。
+- 境界 2 开启搭配，境界 4 强化效果。「截势」让单体削势武学在打断时回气，「守反」让护招接住攻击时积攒合击，「乘隙」让重招利用队友打出的破势。行装和武学页面显示已激活的打法，选敌时可预览符合条件的收益。
+- 支线后果会延伸到后续章节。「旧账新印」可改变凤溪鸣哨战，「换岗的灯」改变龙脉战开场，「旧剑不入炉」的交接可影响终战或打开山路。渡口运送和石阶救援会在尾声得到回应。
 - 第一章完成婚宴与撤离目标后可以走正门或竹径。后续章节按上方目标解锁路线、剧情和出口。金色标记表示可选战或支线。手记记录进度，离开章节前会提示进行中的限章任务。
 - 胜利、开箱、石灯、武学装配和关键剧情会写入存档。继续旅程从最近的章节安全点恢复。旧版存档保留进度，新增历史场景可从章节回看体验。败阵可原地重试。
 - 标准与轻松两种难度在开档时选择。声音与动态特效可在设置中切换，Windows 另有窗口模式。
@@ -86,14 +88,14 @@ $godot = 'D:/AI/dev_toolchain/godot_tool_list/app/Godot_v4.7.2-stable_win64_cons
 & $godot --headless --path game --export-release 'Windows Desktop' (Join-Path $PWD 'Windows/Fengyun.exe')
 ```
 
-Windows 安装程序使用 Inno Setup 6.5.4 构建。完成 Windows 导出后，用已安装的 `ISCC.exe` 编译 `Windows/Fengyun.iss`，生成 `Windows/Fengyun-2.3.0-windows-x64-setup.exe`。[Inno Setup](https://jrsoftware.org/isinfo.php)
+Windows 安装程序使用 Inno Setup 6.5.4 构建。完成 Windows 导出后，用已安装的 `ISCC.exe` 编译 `Windows/Fengyun.iss`，生成 `Windows/Fengyun-2.4.0-windows-x64-setup.exe`。[Inno Setup](https://jrsoftware.org/isinfo.php)
 
 Android 使用 `Android` 导出预设。安装 OpenJDK 17、Android SDK 和匹配的 Godot 4.7.2 Android 模板，并在编辑器的 Android 设置里填入 JDK 和 SDK 路径。发布导出从环境变量 `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`、`GODOT_ANDROID_KEYSTORE_RELEASE_USER` 与 `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` 读取签名配置。覆盖安装时需保持相同包名和签名证书。[Godot Android 导出文档](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html)
 
 ```powershell
 New-Item -ItemType Directory -Force Android
-& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.3.0-android.apk')
+& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.4.0-android.apk')
 ```
 
-查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[2.3.0 验收](verification/playsystems/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。
+查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[2.4.0 验收](verification/progression/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。
 

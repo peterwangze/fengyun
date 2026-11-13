@@ -1,0 +1,26 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS pause opens loadout and shows acquisition conditions
+PASS wearing equipment saves it immediately
+PASS transferring the only copy clears the previous wearer
+PASS unequip removes modifiers and persists
+PASS reaching the first rank threshold unlocks both items
+PASS rank two announces the first build tier
+PASS repeated saves do not grant the reward or rank notice again
+PASS completed side tasks grant their equipment
+PASS wrong slots and locked items are rejected
+PASS equip one item in each slot
+PASS weakness loadout charges its HP tradeoff
+PASS weakness gear adds poise damage without buffing skill power
+PASS battle forecast reflects the guard recovery bonus
+PASS gear changes the value of a guard turn
+PASS courier equipment enables a one-action stagger on a live scout
+PASS pursuit item deals extra technique damage to a staggered foe
+PASS armor reduces damage on the wearer
+PASS healing gear boosts a technique cast on the team
+PASS gamepad opens equipment and changes slots
+PASS older save loads with empty equipment slots
+PASS fixture contains recoverable equipment data
+PASS invalid items and locked items are discarded without dropping campaign progress
+PASS duplicate copies in a save normalize to one wearer
+Equipment: 0 failures

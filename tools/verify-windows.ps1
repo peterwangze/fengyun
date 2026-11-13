@@ -184,6 +184,11 @@ try {
 
     if ($Equipment) {
         Press-Key 0x49
+        if ($PlaySystems -and $versionInfo.ProductMinorPart -ge 4) {
+            Press-Key 0x47
+            Save-Screenshot '34-windows-build-guide' -Direct
+            Press-Key 0x1B
+        }
         Press-Key 0x28
         Press-Key 0x0D
         if ((Read-Slot).gear.cloud[0] -ne 'travel_coat') { throw 'The game did not save equipped armor.' }

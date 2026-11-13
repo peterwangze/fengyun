@@ -1,0 +1,48 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS retry reapplies the same opening gap without changing maximum poise
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS a promise requires a mountain handoff to grant combat aid
+PASS journal explains the deadline for final-battle aid
+PASS mountain handoff persists before the duel
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS a promise requires a mountain handoff to grant combat aid
+PASS journal explains the deadline for final-battle aid
+PASS mountain handoff persists before the duel
+PASS the guard route opens a traversable short path
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS late handoff stays available and describes the resolved duel
+PASS late handoff uses dialogue that acknowledges victory
+PASS late handoff can still settle the quest
+PASS mountain rescue changes the farewell before the player leaves Fengxi
+PASS Fengxi ending reflects the river choice without requiring the optional revisit
+PASS unvisited river follow-up warns before ending
+PASS finishing without the optional revisit still records the chosen ending
+PASS mountain rescue changes the farewell before the player leaves Fengxi
+PASS Fengxi ending reflects the river choice without requiring the optional revisit
+PASS unvisited river follow-up warns before ending
+PASS finishing without the optional revisit still records the chosen ending
+PASS quest choice notes fit in the choice panel
+PASS branch result, follow-up and deadline text fit the journal
+Quest branch payoffs: 0 failures

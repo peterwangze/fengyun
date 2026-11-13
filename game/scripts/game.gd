@@ -82,6 +82,8 @@ var gear_kind := 0
 var gear_message := ""
 var known_gear: Array[String] = []
 var gear_rewards: Array[String] = []
+var gear_guide := false
+var known_rank := 1
 var active_pad := -1
 var menu_sticks: Dictionary[int, Vector2] = {}
 var held_menu_sticks: Dictionary[int, bool] = {}
@@ -101,11 +103,11 @@ func _ready() -> void:
 	effects.volume_db = -7
 	_apply_settings()
 	slot = storage.read()
-	_reset_gear_rewards()
 	first = FirstChapter.new(self)
 	campaign = Campaign.new(self)
 	chronicle = Chronicle.new(self)
 	afterstory = Afterstory.new(self)
+	_reset_gear_rewards()
 	screen = Screen.new(self)
 	if OS.has_feature("android") or "--touch-controls" in OS.get_cmdline_user_args():
 		touch_controls = MobileControls.new()
@@ -122,7 +124,7 @@ func _process(delta: float) -> void:
 	toast_time = maxf(0.0, toast_time - delta)
 	if mode == "field":
 		if toast_time == 0.0 and not gear_rewards.is_empty():
-			_notice("获得 · " + gear_rewards.pop_front())
+			_notice(gear_rewards.pop_front())
 		_update_walk(delta)
 		if first.active():
 			first.update(delta)
@@ -399,19 +401,29 @@ func _finish_intro() -> void:
 	_return_to_field()
 
 func _commit() -> bool:
-	gear_rewards.append_array(Items.reconcile_quests(slot, slot.supplies, slot.supply_claims))
+	var supplies := Items.reconcile_quests(slot, slot.supplies, slot.supply_claims)
 	if not chronicle.review and not storage.write(slot):
 		_notice("存档写入失败。请确认本机存储空间。")
 		return false
+	for item in supplies:
+		gear_rewards.append("获得 · " + item)
+	var current_rank := rank()
+	if not afterstory.active:
+		if known_rank < Martial.SYNERGY_TIER and current_rank >= Martial.SYNERGY_TIER:
+			gear_rewards.append("境界 2 · 行装与武学现可搭配")
+		elif known_rank < Martial.SYNERGY_ADVANCED_TIER and current_rank >= Martial.SYNERGY_ADVANCED_TIER:
+			gear_rewards.append("境界 4 · 武学与行装搭配强化")
+		known_rank = current_rank
 	var available := Equipment.owned(slot)
 	for id in available:
 		if id not in known_gear:
-			gear_rewards.append(Equipment.CATALOG[id].name)
+			gear_rewards.append("获得 · " + Equipment.CATALOG[id].name)
 	known_gear = available
 	return true
 
 func _reset_gear_rewards() -> void:
 	known_gear = Equipment.owned(slot)
+	known_rank = rank()
 	gear_rewards.clear()
 	tracked_quest = ""
 
@@ -704,14 +716,18 @@ func _start_battle() -> void:
 	toast_time = 0
 	var prepared := {}
 	var gear := {}
+	var builds := {}
 	for id in stage.party:
 		prepared[id] = Martial.prepared(slot,id)
 		gear[id] = Equipment.modifiers(slot,id)
+		builds[id] = Martial.synergies(slot,id,rank())
 	var stock: int = afterstory.state().tonics if afterstory.active else slot.tonics
 	var supplies: Dictionary = afterstory.state().get("supplies", Items.fresh(2)) if afterstory.active else slot.supplies
 	encounter = Battle.new(stage.party, battle_info()[1], rank(),
-		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies)
+		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies,builds)
 	encounter.seal_chase = seal_chase
+	if not afterstory.active and not seal_chase and chronicle.enabled():
+		encounter.apply_quest_aid(chronicle.side.battle_aid(field_key,active_battle,chronicle.special))
 	pending_action = -1
 	bag_open = false
 	bag_index = 0
@@ -827,7 +843,12 @@ func cancel() -> void:
 				pending_action = -1
 			elif bag_open:
 				bag_open = false
-		"settings", "journal", "martial", "gear": _set_mode(back_mode)
+		"gear":
+			if gear_guide:
+				_toggle_gear_guide()
+			else:
+				_set_mode(back_mode)
+		"settings", "journal", "martial": _set_mode(back_mode)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
 		"new": _title()
@@ -835,6 +856,9 @@ func cancel() -> void:
 		"ending": _title()
 
 func _confirm() -> void:
+	if mode == "gear" and gear_guide:
+		_toggle_gear_guide()
+		return
 	match mode:
 		"field": interact()
 		"ferry": campaign.finish_ferry()
@@ -857,6 +881,8 @@ func _confirm() -> void:
 		_: menu_confirm(selected)
 
 func _navigate(dx: int, dy: int) -> void:
+	if mode == "gear" and gear_guide:
+		return
 	if mode == "journal" and not afterstory.active and dy != 0:
 		journal_index = posmod(journal_index + dy, SideStories.TASKS.size() + 1)
 		return
@@ -918,6 +944,7 @@ func click(kind: String, index: int) -> void:
 			selected = 0
 		"gear_kind": _select_gear_tab(gear_hero, index)
 		"gear_hero": _select_gear_tab(index, gear_kind)
+		"gear_guide": _toggle_gear_guide()
 		"journal_row": journal_index = index
 		"journal_track": _confirm()
 		"confirm": _confirm()
@@ -989,13 +1016,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			JOY_BUTTON_X:
 				if mode == "martial":
 					chronicle.martial_slot = 1 - chronicle.martial_slot
-				elif mode == "gear":
+				elif mode == "gear" and not gear_guide:
 					_select_gear_tab(gear_hero, 1 - gear_kind)
 				elif mode == "field":
 					_open_journal()
 			JOY_BUTTON_LEFT_SHOULDER:
 				if mode == "field":
 					_open_gear("field")
+			JOY_BUTTON_RIGHT_SHOULDER:
+				if mode == "gear":
+					_toggle_gear_guide()
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -1026,10 +1056,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				_open_gear("field")
 			elif mode == "gear":
 				cancel()
+		KEY_G:
+			if mode == "gear":
+				_toggle_gear_guide()
 		KEY_TAB:
 			if mode == "martial":
 				chronicle.martial_slot = 1 - chronicle.martial_slot
-			elif mode == "gear":
+			elif mode == "gear" and not gear_guide:
 				_select_gear_tab(gear_hero, 1 - gear_kind)
 		KEY_B:
 			if mode == "battle" and pending_action < 0:
@@ -1049,7 +1082,8 @@ func _reward_supply(source: String) -> void:
 	if slot.supply_claims.has(source) or not Items.REWARDS.has(source):
 		return
 	slot.supply_claims[source] = true
-	gear_rewards.append_array(Items.reward(slot.supplies, source))
+	for item in Items.reward(slot.supplies, source):
+		gear_rewards.append("获得 · " + item)
 
 func _touch(event: InputEventScreenTouch) -> void:
 	if event.canceled or not event.pressed:
@@ -1097,8 +1131,13 @@ func _open_martial(parent_mode: String) -> void:
 
 func _open_gear(parent_mode: String) -> void:
 	back_mode = parent_mode
+	gear_guide = false
 	_set_mode("gear")
 	_select_gear_tab(0, 0)
+
+func _toggle_gear_guide() -> void:
+	gear_guide = not gear_guide
+	screen.hot.clear()
 
 func _select_gear_tab(hero: int, kind: int) -> void:
 	gear_hero = hero

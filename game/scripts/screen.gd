@@ -321,9 +321,11 @@ func _field(interactive: bool = true) -> void:
 
 func _field_guidance(marks: Array[Dictionary]) -> void:
 	var points: Array = g.field_points()
-	var main := TrailGuide.main_point(g, points)
-	if not main.is_empty():
-		_guidance_marker(marks, main.pos, TEAL, "主")
+	for main in TrailGuide.main_points(g, points):
+		if main.get("ground_marker", false):
+			marks.append({"point":main.pos - Vector2(0,8),"color":TEAL,"symbol":"主"})
+		else:
+			_guidance_marker(marks, main.pos, TEAL, "主")
 	if not g.afterstory.active and not g.tracked_quest.is_empty():
 		var entry: Dictionary = g.chronicle.side.journal_entry(g.tracked_quest)
 		if entry.has("point"):
@@ -611,9 +613,13 @@ func _journal() -> void:
 	if chosen.is_empty():
 		_text("第%s章  %s" % [g.stage.num,g.stage.title],300,111,17,GOLD)
 		_paragraph(TrailGuide.objective(g),300,142,258,15,CREAM,21)
-		var point := TrailGuide.main_point(g,g.field_points())
-		if not point.is_empty():
-			_text("地图标记 · " + String(point.name),300,196,13,TEAL)
+		var point_names := PackedStringArray()
+		for point in TrailGuide.main_points(g,g.field_points()):
+			var label: String = point.get("name","")
+			if not label.is_empty():
+				point_names.append(label)
+		if not point_names.is_empty():
+			_paragraph("地图标记 · " + " / ".join(point_names),300,196,257,13,TEAL,17)
 	else:
 		var entry: Dictionary = g.chronicle.side.journal_entry(chosen)
 		_text(SideStories.TASKS[chosen].title,300,110,17,GOLD)
@@ -659,8 +665,9 @@ func _martial() -> void:
 		_button(learned[i][0],box,i,ready)
 		_text("%d 气 · %s" % [learned[i][1],learned[i][5]] if ready else "随修行或任务解锁",
 			257,box.position.y+20,13,CREAM if ready else FAINT)
+	_text(_build_summary(id,g.rank()),91,280,13,TEAL)
 	if g.slot.chapter == 3 and id == "wind":
-		_text("魔池试炼会把栏位 2 暂时换成魔刀狂斩。",91,285,12,GOLD)
+		_text("魔池试炼会把栏位 2 暂时换成魔刀狂斩。",91,298,12,GOLD)
 	var hint: String = "← → 换人   X 换栏位   A 装配   B 返回" if g.using_joypad else "← → 换人   Tab 换栏位   Enter 装配   Esc 返回"
 	if g.touch_ui():
 		hint = "点按队员和栏位，再点按武学装配"
@@ -671,7 +678,12 @@ func _martial() -> void:
 func _gear() -> void:
 	_fill(FULL,Color("#0b1120ce"))
 	_panel(Rect2(58,23,524,309),true)
+	if g.gear_guide:
+		_build_guide()
+		return
 	_text("行装与境界",80,64,26,CREAM,SERIF)
+	var guide_hint := "打法" if g.touch_ui() else ("RB  打法" if g.using_joypad else "G  打法")
+	_gear_tab(Rect2(239,38,90,31),guide_hint,false,"gear_guide",0)
 	for i in g.stage.party.size():
 		var hero_name: String = Story.HEROES[g.stage.party[i]].name
 		_gear_tab(Rect2(344 + 107*i,38,101,31),hero_name,g.gear_hero == i,"gear_hero",i)
@@ -702,9 +714,41 @@ func _gear() -> void:
 				_right("已装备" if holder == hero else "转交自%s" % Story.HEROES[holder].name,551,box.position.y+17,11,GOLD)
 		else:
 			_text(Equipment.CATALOG[item].source,244,box.position.y+17,12,DIM)
+	_text(_build_summary(hero,rank),81,305,12,TEAL)
 	var hint := "点按队员、栏位和行装" if g.touch_ui() else (
 		"← → 换人   X 换栏位   A 装备   B 返回" if g.using_joypad else "← → 换人   Tab 换栏位   Enter 装备   Esc 返回")
-	_text(g.gear_message if not g.gear_message.is_empty() else hint,81,317,12,GOLD if not g.gear_message.is_empty() else DIM)
+	_text(g.gear_message if not g.gear_message.is_empty() else hint,81,322,12,GOLD if not g.gear_message.is_empty() else DIM)
+
+func _build_guide() -> void:
+	_text("武学与行装搭配",80,62,24,CREAM,SERIF)
+	_gear_tab(Rect2(460,37,95,31),"返回行装",true,"gear_guide",0)
+	var rank: int = g.rank()
+	var hero: String = g.stage.party[g.gear_hero]
+	_text("境界 %d 开启搭配，境界 %d 强化效果。当前境界 %d。" %
+		[Martial.SYNERGY_TIER,Martial.SYNERGY_ADVANCED_TIER,rank],82,88,13,DIM)
+	var cards := [
+		["截势", "纳气玉扣或信使铜牌 ＋ 单体削势至少 2 的武学", "用武学破势后回气。适合打断鸣哨或蓄势。"],
+		["守反", "护具 ＋ 护风步、翻云守势等护持武学", "成功守住一击可积累合击。观察敌方预告再守。"],
+		["乘隙", "渡口缆结 ＋ 傲寒六诀、断浪追斩等重招", "重招命中已破势的目标时追加伤害。让搭档先出手。"],
+	]
+	for i in cards.size():
+		var y := 104 + i * 58
+		_fill(Rect2(81,y,474,49),Color("#1c263b"))
+		_text(cards[i][0],92,y+30,17,GOLD,SERIF)
+		_text(cards[i][1],155,y+18,13,CREAM)
+		_text(cards[i][2],155,y+37,12,DIM)
+	_text("%s  ·  %s" % [Story.HEROES[hero].name,_build_summary(hero,rank)],82,286,13,TEAL)
+	var descriptions := Martial.synergy_descriptions(g.slot,hero,rank)
+	for i in descriptions.size():
+		_text(descriptions[i],82,302+i*14,12,DIM)
+
+func _build_summary(hero: String, rank: int) -> String:
+	var active := Martial.synergy_text(g.slot,hero,rank)
+	if not active.is_empty():
+		return "已激活  ·  " + active
+	if rank < Martial.SYNERGY_TIER:
+		return "境界 %d 开启武学与行装搭配" % Martial.SYNERGY_TIER
+	return "当前武学和行装未激活搭配"
 
 func _gear_tab(box: Rect2, label: String, active: bool, kind: String, index: int) -> void:
 	_fill(box,Color("#353141") if active else INK)
@@ -737,6 +781,7 @@ func _battle() -> void:
 	if battle.foes[0].id == "gate_guard":
 		_first_fight_tip(view)
 	_special_battle_tip(view)
+	_build_battle_feedback(battle, view)
 	_fill(Rect2(0,206,640,154),Color("#101625"))
 	_line(Vector2(0,206),Vector2(640,206),LINE)
 	_battle_status(0,view.ally[0],battle.actor == 0)
@@ -817,6 +862,17 @@ func _first_fight_tip(view: Dictionary) -> void:
 	_line(Vector2(22,59),Vector2(236,59),GOLD)
 	_text("执事蓄势  ›  聂风",30,72,12,GOLD)
 	_text(tip,30,86,11,CREAM)
+
+func _build_battle_feedback(battle: RefCounted, view: Dictionary) -> void:
+	var feedback: String = battle.synergy_feedback
+	if feedback.is_empty() and view.round == 1:
+		feedback = battle.quest_aid_line
+	if feedback.is_empty():
+		return
+	var width := SANS.get_string_size(feedback,HORIZONTAL_ALIGNMENT_LEFT,-1,11).x
+	var wraps := width > 254.0
+	_fill(Rect2(22,92,minf(270.0,width + 16.0),33 if wraps else 21),Color("#111a2beb"))
+	_paragraph(feedback,30,106,254,11,TEAL,13)
 
 func _special_battle_tip(view: Dictionary) -> void:
 	var tip := ""

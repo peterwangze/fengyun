@@ -31,13 +31,17 @@ func _run() -> void:
 	_check(Equipment.modifiers(game.storage.read(), "wind").is_empty(), "unequip removes modifiers and persists")
 	game.slot.merit = 4
 	game._commit()
-	_check(game.gear_rewards == ["鳞纹背心", "纳气玉扣"], "reaching the first rank threshold unlocks both items")
+	_check("获得 · 鳞纹背心" in game.gear_rewards and "获得 · 纳气玉扣" in game.gear_rewards,
+		"reaching the first rank threshold unlocks both items")
+	_check("境界 2 · 行装与武学现可搭配" in game.gear_rewards, "rank two announces the first build tier")
+	var pending_rewards: Array = game.gear_rewards.duplicate()
 	game._commit()
-	_check(game.gear_rewards.size() == 2, "repeated saves do not grant the reward again")
+	_check(game.gear_rewards == pending_rewards, "repeated saves do not grant the reward or rank notice again")
 	game.slot.chronicle.quests.courier = "done_quiet"
 	game.slot.chronicle.quests.forgework = "done_rack"
 	game._commit()
-	_check("信使铜牌" in game.gear_rewards and "剑庐护腕" in game.gear_rewards, "completed side tasks grant their equipment")
+	_check("获得 · 信使铜牌" in game.gear_rewards and "获得 · 剑庐护腕" in game.gear_rewards,
+		"completed side tasks grant their equipment")
 	_check(not Equipment.assign(game.slot,"wind",0,"courier_badge") and not Equipment.assign(game.slot,"wind",0,"palace_mail"), "wrong slots and locked items are rejected")
 	_check(Equipment.assign(game.slot,"wind",0,"forge_apron") and Equipment.assign(game.slot,"wind",1,"courier_badge"), "equip one item in each slot")
 	var modifiers := Equipment.modifiers(game.slot,"wind")

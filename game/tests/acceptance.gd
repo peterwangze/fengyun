@@ -2,6 +2,8 @@ extends SceneTree
 
 const MAIN = preload("res://main.tscn")
 const Equipment = preload("res://scripts/equipment.gd")
+const Martial = preload("res://scripts/martial.gd")
+const TrailGuide = preload("res://scripts/trail_guide.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 var game
 var failures := 0
@@ -24,6 +26,13 @@ var low_motion := false
 var tidal := false
 var tidal_sluice := false
 var used_actions := {"tonics":0,"techniques":0,"guard":0,"combo":0}
+var pacing := false
+var build_route := ""
+var path_length := 0.0
+var chapter_battles: Array[Dictionary] = []
+var build_triggers := {"截势":0,"守反":0,"乘隙":0}
+var measured_encounter: RefCounted
+var battle_metrics := {}
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -35,9 +44,12 @@ func _run() -> void:
 			report_dir = arg.substr(10)
 		if arg.begins_with("--rear-route="):
 			rear_route = arg.get_slice("=",1)
+		if arg.begins_with("--build-route="):
+			build_route = arg.get_slice("=",1)
 	game = MAIN.instantiate()
 	root.add_child(game)
-	var easy := "--all-encounters" in OS.get_cmdline_user_args()
+	var all_encounters := "--all-encounters" in OS.get_cmdline_user_args()
+	var easy := all_encounters and "--standard" not in OS.get_cmdline_user_args()
 	var gear_route := "--gear-route" in OS.get_cmdline_user_args()
 	boat_route = "--boat" in OS.get_cmdline_user_args()
 	bridge_then_boat = "--bridge-then-boat" in OS.get_cmdline_user_args()
@@ -50,6 +62,7 @@ func _run() -> void:
 	low_motion = "--low-motion" in OS.get_cmdline_user_args()
 	tidal = "--tidal" in OS.get_cmdline_user_args()
 	tidal_sluice = "--tidal-sluice" in OS.get_cmdline_user_args()
+	pacing = "--pacing" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
 		quit(1)
@@ -107,9 +120,15 @@ func _run() -> void:
 	_key(KEY_ESCAPE)
 	await _capture("02-first-field")
 	for chapter in 6:
+		path_length = 0
+		chapter_battles.clear()
 		_check(int(game.slot.chapter) == chapter and game.mode == "field","chapter %d opens" % (chapter+1))
+		if pacing:
+			_check(not _main_targets().is_empty(), "chapter starts with a main marker %d" % (chapter + 1))
 		if gear_route:
 			_equip_route()
+		elif not build_route.is_empty():
+			_equip_playtest_build(chapter)
 		if chapter == 5:
 			await _special("relic","cavern_guard")
 			_do_point("lost_relic")
@@ -126,7 +145,7 @@ func _run() -> void:
 				quit(1)
 				return
 			_check(game.field_key == "peak","farewell leads to dragon terrace")
-			if alternate:
+			if alternate and build_route.is_empty():
 				_alternate_loadout()
 		_verify_map(chapter)
 		if chapter == 0:
@@ -135,23 +154,24 @@ func _run() -> void:
 			if quests:
 				await _side_step("seals")
 		await _capture("field-%s" % game.stage.key)
-		if chapter == 1:
+		if not pacing and chapter == 1:
 			_check(not _reach("exit"),"village exit unreachable before crossing")
-		elif chapter != 2:
+		elif not pacing and chapter != 2:
 			_check(_reach("exit"),"exit path %d" % (chapter+1))
 			_key(KEY_E)
 			_check(game.mode == "field" and game.toast_time > 0,"exit stays locked before combat")
-		_check(_reach("guide"),"guide path %d" % (chapter+1))
-		_key(KEY_E)
-		_check(game.mode == "dialogue","NPC dialogue starts")
-		_drain_dialogue()
-		_check(_reach("shrine"),"shrine path %d" % (chapter+1))
-		_key(KEY_E)
-		_check(FileAccess.file_exists(game.storage.path),"shrine saves")
-		_check(_reach("chest"),"chest path %d" % (chapter+1))
-		_key(KEY_E)
-		_check(game.slot.chest and game.storage.read().chest,"chest reward persists")
-		var order := [0,2,1] if easy else [0,1]
+		if not pacing:
+			_check(_reach("guide"),"guide path %d" % (chapter+1))
+			_key(KEY_E)
+			_check(game.mode == "dialogue","NPC dialogue starts")
+			_drain_dialogue()
+			_check(_reach("shrine"),"shrine path %d" % (chapter+1))
+			_key(KEY_E)
+			_check(FileAccess.file_exists(game.storage.path),"shrine saves")
+			_check(_reach("chest"),"chest path %d" % (chapter+1))
+			_key(KEY_E)
+			_check(game.slot.chest and game.storage.read().chest,"chest reward persists")
+		var order := [0,2,1] if all_encounters else [0,1]
 		if chapter == 0 and not rear_route.is_empty():
 			order.erase(1)
 		if chapter == 1 and boat_route:
@@ -159,11 +179,13 @@ func _run() -> void:
 				quit(1)
 				return
 			order.erase(0)
-		if chapter == 2 and easy:
+		if chapter == 2 and all_encounters:
 			order = [0,1,2]
 		if chapter == 3:
 			_do_point("apothecary")
 			_do_point("pool_intro")
+			if pacing:
+				_check_main(["pool_back"],"Medicine hut after receiving instructions")
 			if quests:
 				await _side_step("remedy")
 				await _side_step("remedy")
@@ -201,6 +223,8 @@ func _run() -> void:
 					await _side_step("shift",int(alternate))
 					await _side_step("swordstory",int(alternate))
 				_do_point("palace_back")
+			if chapter == 5 and fight == 1 and quests:
+				await _side_step("swordstory")
 			if chapter == 5 and fight == 1 and not await _scene_step("altar","altar","altar"):
 				quit(1)
 				return
@@ -212,7 +236,20 @@ func _run() -> void:
 			if not _check(game.mode == "battle","battle entry %d/%d" % [chapter+1,fight]):
 				quit(1)
 				return
-			if chapter == 0 and fight == 0:
+			if quests and chapter == 5 and fight == 1:
+				var aid_kind: String = game.slot.chronicle.quests.swordstory
+				var boss: Dictionary = game.encounter.foes[0]
+				var expected: bool = (boss.poise == boss.max_poise - 2) if aid_kind == "done_guard" else game.encounter.bond == 1
+				_check(expected and not game.encounter.quest_aid_line.is_empty(), "final fight receives the chosen sword testimony payoff")
+				print("AID final %s %s" % [aid_kind, game.encounter.quest_aid_line])
+			if quests and chapter == 1 and fight == 1:
+				var paper: Dictionary = game.encounter.foes[0]
+				var proof: bool = game.slot.chronicle.quests.seals == "done_proof"
+				_check(paper.poise == paper.max_poise - int(proof) and (not game.encounter.quest_aid_line.is_empty()) == proof,
+					"seal proof changes the enemy's opening stance on the west bank")
+				if proof:
+					print("AID west bank " + game.encounter.quest_aid_line)
+			if chapter == 0 and fight == 0 and not pacing:
 				await _capture("03-first-battle")
 				_key(KEY_1)
 				_check(game.pending_action == 0,"number shortcuts enter target mode")
@@ -241,7 +278,7 @@ func _run() -> void:
 				await _tutorial_combat()
 			if chapter == 5 and fight == 1:
 				await _capture("04-final-battle")
-			if chapter == 1 and fight == 1:
+			if chapter == 1 and fight == 1 and (not pacing or build_route.is_empty()):
 				await _signal_opening()
 			if chapter == 3 and fight == 0:
 				await _demon_opening()
@@ -272,6 +309,7 @@ func _run() -> void:
 				quit(1)
 				return
 			_drain_dialogue()
+			_print_pacing(chapter)
 			continue
 		if chapter == 1:
 			_resume()
@@ -306,10 +344,17 @@ func _run() -> void:
 			_check(game.field_key == "returnhall" and game.chronicle.has("forge_pursue" if alternate else "forge_rescue"),
 				"first tyrant and route choice persist on resume")
 			_do_point("invaded")
+			_print_pacing(chapter)
 			continue
 		if chapter == 3:
+			if pacing:
+				_check_main(["pool_gate"],"Magic pool after the demon fight")
 			_do_point("pool_gate")
+			if pacing:
+				_check_main(["pool_escape"],"Magic pool fence opened")
 			_do_point("pool_escape")
+			if pacing:
+				_check_main(["exit"],"Magic pool farewell complete")
 		if chapter == 4:
 			_do_point("tearoom")
 			await _capture("2-tearoom-fire")
@@ -317,7 +362,6 @@ func _run() -> void:
 			_do_point("evacuated")
 			_do_point("palace_back")
 		if chapter == 5 and quests:
-			await _side_step("swordstory")
 			await _side_step("stairs")
 			await _side_step("stairs")
 			await _side_step("stairs",int(alternate))
@@ -337,6 +381,7 @@ func _run() -> void:
 			_do_point("dawn_lamp")
 			await _capture("2-dawn")
 			_do_point("dawn_exit")
+		_print_pacing(chapter)
 	if _check(game.mode == "ending" and game.storage.read().finished,"ending and completed save"):
 		await _capture("06-ending")
 		_key(KEY_ENTER)
@@ -351,11 +396,14 @@ func _run() -> void:
 			"all eight quests finished and persisted")
 		print("Quest outcomes: ",q)
 		_check(Equipment.owned(completed_slot).size() == 10,"all ten rewards available after clearing the campaign and quests")
+	if not build_route.is_empty():
+		print("Build activations during real battles: ",build_triggers)
+		_check(build_triggers.values().all(func(count: int): return count > 0),"each equipped style activated during campaign combat")
 	if tidal and game.mode == "ending":
 		await _verify_afterstory()
 	_verify_replay()
 	_check(saw_shield and combo_count > 0,"boss shield and combo reached")
-	_check(wins == (18 if easy else 12) - int(rear_route == "quiet") - int(boat_route),"all requested battles won")
+	_check(wins == (18 if all_encounters else 12) - int(rear_route == "quiet") - int(boat_route),"all requested battles won")
 	_verify_model()
 	_verify_new_martial()
 	_verify_backup()
@@ -384,6 +432,57 @@ func _equip_route() -> void:
 		_check(Equipment.assign(game.slot,second,1,"qi_ring"),"equip the second member for sustained techniques")
 	game._commit()
 	print("Route loadout chapter %d: %s %s, %s %s" % [game.slot.chapter + 1, first, game.slot.gear[first], second, game.slot.gear.get(second,[])])
+
+func _equip_playtest_build(chapter: int) -> void:
+	if game.rank() < Martial.SYNERGY_TIER:
+		return
+	match chapter:
+		1:
+			_equip_for_route("wind", [0, 2], "travel_coat", "qi_ring")
+			_equip_for_route("frost", [0, 2], "scale_vest", "")
+		2:
+			_equip_for_route("cloud", [0, 1], "travel_coat", "qi_ring")
+			_equip_for_route("wind", [1, 0], "scale_vest", "ferry_knot")
+		3:
+			_equip_for_route("wind", [0, 1], "scale_vest", "qi_ring")
+			_equip_for_route("dream", [0, 1], "travel_coat", "ferry_knot")
+		4:
+			_equip_for_route("cloud", [0, 3], "scale_vest", "ferry_knot")
+			_equip_for_route("sage", [0, 2], "travel_coat", "qi_ring")
+		5:
+			_equip_for_route("cloud", [0, 3], "scale_vest", "ferry_knot")
+			_equip_for_route("wind", [0, 3], "travel_coat", "qi_ring")
+	game._commit()
+	var detail: Array = game.stage.party.map(func(hero: String): return "%s %s" % [hero, Martial.synergy_text(game.slot, hero, game.rank())])
+	print("Build loadout chapter %d: %s" % [chapter + 1, detail])
+
+func _equip_for_route(hero: String, moves: Array, armor: String, accessory: String) -> void:
+	_check(moves.all(func(at: int): return Martial.unlocked(game.slot, hero, at)), "route martial arts are available for " + hero)
+	game.slot.chronicle.loadout[hero] = moves
+	_check(Equipment.assign(game.slot, hero, 0, armor), "route armor is available for " + hero)
+	_check(Equipment.assign(game.slot, hero, 1, accessory), "route accessory is available for " + hero)
+
+func _main_targets() -> Array:
+	return TrailGuide.main_points(game, game.field_points()).map(func(point: Dictionary):
+		return "fight%d" % point.index if point.id == "fight" else point.id)
+
+func _check_main(expected: Array, label: String) -> void:
+	var markers := TrailGuide.main_points(game, game.field_points())
+	var actual: Array = []
+	for marker in markers:
+		actual.append("fight%d" % marker.index if marker.id == "fight" else marker.id)
+		_check(not String(marker.name).is_empty(), label + " marker also has a journal label")
+		if marker.get("ground_marker", false):
+			_check(game.passable(marker.pos),label + " marker lies on walkable terrain")
+	_check(actual == expected, "%s main markers %s (expected %s)" % [label,actual,expected])
+	if pacing:
+		print("GUIDE %s %s" % [label, str(actual)])
+
+func _print_pacing(chapter: int) -> void:
+	if not pacing:
+		return
+	print("PACING " + JSON.stringify({"chapter":chapter + 1,"walk_seconds":snappedf(path_length / 101.0, 0.1),
+		"rank_after":game.rank(),"tonics_after":game.slot.tonics,"encounters":chapter_battles}))
 
 func _resume() -> void:
 	_key(KEY_ESCAPE)
@@ -522,6 +621,13 @@ func _special(point: String, id: String, trigger: bool = true) -> void:
 		return
 	if not _check(game.mode == "battle" and game.chronicle.special == id,"encounter starts: " + id):
 		return
+	if quests and id == "cavern_guard":
+		var shift: String = game.slot.chronicle.quests.shift
+		var beast: Dictionary = game.encounter.foes[0]
+		var wind: Dictionary = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == "wind").front()
+		var expected: bool = beast.poise == beast.max_poise - 2 if shift == "done_fight" else wind.ward
+		_check(expected and not game.encounter.quest_aid_line.is_empty(), "jailer choice carries into the Dragon Cave fight")
+		print("AID cave %s %s" % [shift, game.encounter.quest_aid_line])
 	if await _play_battle():
 		if id == "first_tyrant":
 			_check(game.encounter.shield_resolution == "combo","first Tyrant duel requires a real combo")
@@ -628,10 +734,14 @@ func _scene_step(point: String, scene: String, flag: String) -> bool:
 
 func _take_ferry() -> bool:
 	var merit: int = game.slot.merit
+	if pacing:
+		_check_main(["stone_bridge" if game.slot.cleared.has(0) else "fight0", "mooring"],"Fengxi approach")
 	if not _check(_reach("mooring"),"old dock reached"):
 		return false
 	_key(KEY_E)
 	_check(game.slot.campaign.rope,"rope released")
+	if pacing:
+		_check_main(["stone_bridge" if game.slot.cleared.has(0) else "fight0", "escort_boatman"],"Fengxi rope released")
 	_resume()
 	_check(game.slot.campaign.rope and game.slot.campaign.crossing.is_empty(),"mid-ferry setup resumes on east bank")
 	_go_to(game.position_of("guide") + Vector2(-25,3))
@@ -641,6 +751,10 @@ func _take_ferry() -> bool:
 		printerr("Board diagnostics player=%s boatman=%s target=%s nearest=%s follower=%s" %
 			[game.player,game.campaign.boatman,game.position_of("board"),game.nearest(),game.follower])
 		return false
+	if pacing:
+		_check_main(["stone_bridge" if game.slot.cleared.has(0) else "fight0", "board"],"Fengxi boarding ready")
+	var original_motion: bool = game.settings.motion
+	game.settings.motion = true
 	_key(KEY_E)
 	_check(game.mode == "ferry","board starts crossing")
 	_key(KEY_ESCAPE)
@@ -649,13 +763,13 @@ func _take_ferry() -> bool:
 		game.settings.motion = false
 		_key(KEY_E)
 		_check(game.mode == "field","reduced-motion ferry lands immediately")
-		game.settings.motion = true
 	else:
 		_key(KEY_E)
 		if visual:
 			await create_timer(0.72).timeout
 			await _capture("ferry-crossing")
 		_key(KEY_ENTER)
+	game.settings.motion = original_motion
 	_check(game.slot.merit == merit + 2 and game.slot.campaign.crossing == "boat","boat route grants one landing reward")
 	_resume()
 	_check(game.slot.merit == merit + 2 and game.slot.campaign.crossing == "boat","ferry reload does not repeat reward")
@@ -666,6 +780,8 @@ func _cross_bridge() -> bool:
 	var merit: int = game.slot.merit
 	if not _check(game.slot.cleared.has(0) and game.passable(Vector2(320,200)),"win unlocks bridge"):
 		return false
+	if pacing:
+		_check_main(["stone_bridge", "mooring"],"Fengxi bridge unlocked")
 	var reached := _go_to(game.position_of("west_spawn"))
 	_check(game.slot.merit == merit + 2 and game.slot.campaign.crossing == "bridge","bridge landing grants two merit")
 	_check(_go_to(Vector2(403,204)) and _go_to(game.position_of("west_spawn")) and game.slot.merit == merit+2,
@@ -673,11 +789,15 @@ func _cross_bridge() -> bool:
 	return _check(reached,"west bank reached by stone bridge")
 
 func _cross_forge() -> bool:
+	if pacing:
+		_check_main(["winch", "north_ledge"],"Forge crossings available")
 	if not forge_ledge:
 		if not _check(_reach("winch"),"reach sluice winch"):
 			return false
 		_key(KEY_E)
 		_check(game.slot.campaign.forge_gate and game.passable(Vector2(320,192)),"opened sluice clears bridge")
+		if pacing:
+			_check_main(["sluice_bridge", "north_ledge"],"Forge sluice opened")
 		if not _go_to(Vector2(318,193)):
 			return false
 	var at := Vector2(392,114 if forge_ledge else 191)
@@ -766,6 +886,8 @@ func _wedding_route(rear: bool) -> bool:
 	_key(KEY_E)
 	_check(game.field_key == "banquet","rear route locked until ceremony")
 	_do_point("kindness")
+	if pacing:
+		_check_main(["ceremony"],"Banquet after speaking to Kong Ci")
 	if quests:
 		await _side_step("seals")
 		await _side_step("seals")
@@ -782,6 +904,8 @@ func _wedding_route(rear: bool) -> bool:
 		await _capture("wedding-strike")
 	_drain_dialogue()
 	_check(game.slot.hall.wedding,"wedding completion saved")
+	if pacing:
+		_check_main(["court_door", "garden_door"],"Wedding escape routes")
 	var stock: int = game.slot.tonics
 	for person in ["maid","servant"]:
 		if not _check(_reach(person),"staff member can be reached: " + person):
@@ -838,7 +962,9 @@ func _walk_waypoints(points: Array, patrol: bool) -> bool:
 			if shift.length() < 1.5:
 				break
 			var dt := minf(0.03,shift.length() / 101.0)
+			var prior: Vector2 = game.player
 			game.walk(shift.normalized(),dt)
+			path_length += prior.distance_to(game.player)
 			if patrol:
 				game.first.update(dt)
 			if game.mode != "field":
@@ -885,7 +1011,21 @@ func _key(key: Key) -> void:
 	var event := InputEventKey.new()
 	event.keycode = key
 	event.pressed = true
+	var battle: RefCounted = game.encounter if pacing and game.mode == "battle" else null
+	if battle == null:
+		game._unhandled_input(event)
+		return
+	if measured_encounter != battle:
+		measured_encounter = battle
+		battle_metrics = {"actions":0,"lowest_hp_pct":100,"tonics_start":battle.tonics}
+	var before := [battle.round_no, battle.actor, battle.result]
 	game._unhandled_input(event)
+	if before != [battle.round_no, battle.actor, battle.result]:
+		battle_metrics.actions += 1
+		for effect in battle.events:
+			if effect.kind == "damage" and effect.side == "ally":
+				var pct := roundi(100.0 * effect.stats.hp / battle.allies[effect.index].max_hp)
+				battle_metrics.lowest_hp_pct = mini(battle_metrics.lowest_hp_pct, pct)
 
 func _joy(button: JoyButton) -> void:
 	var event := InputEventJoypadButton.new()
@@ -977,7 +1117,9 @@ func _go_to(marker: Vector2, radius: float = 5.0) -> bool:
 	route.reverse()
 	for node in route:
 		var change := Vector2(node) - Vector2(game.player)
+		var prior: Vector2 = game.player
 		game.walk(change.normalized(),change.length()/101.0)
+		path_length += prior.distance_to(game.player)
 	return game.player.distance_to(marker) < radius + 1
 
 func _play_battle() -> bool:
@@ -994,19 +1136,22 @@ func _play_battle() -> bool:
 		var self_unit: Dictionary = b.allies[b.actor]
 		var heal_index: int = b.weakest_ally()
 		var wounded: Dictionary = b.allies[heal_index]
+		var selection := _build_action(b, self_unit, enemy, foe_index) if not build_route.is_empty() else {}
 		saw_shield = saw_shield or (enemy.id == "boss" and enemy.shield)
 		if b.available(5) and (enemy.id != "boss" or (not poise_finish and enemy.shield)):
 			action = 5
 			combo_count += 1
-		elif b.available(4) and wounded.hp < 42:
+		elif b.available(4) and (wounded.hp < 42 if not pacing else wounded.hp * 3 < wounded.max_hp):
 			action = 4
-		elif self_unit.id == "dream" and b.available(1) and wounded.hp < 63:
+		elif not selection.is_empty():
+			action = selection.action
+		elif self_unit.id == "dream" and b.available(1) and self_unit.moves[0][0] == "回春诀" and wounded.hp < 63:
 			action = 1
 		else:
 			var best := float(self_unit.attack)
 			for candidate in [1,2]:
 				var move: Array = self_unit.moves[candidate - 1]
-				if not b.available(candidate) or move[2] == "疗":
+				if not b.available(candidate) or move[2] == "疗" or Martial.protection_move(move):
 					continue
 				var score := float(move[3]) + 3.0*float(move[4])
 				if move[2] == enemy.weak:
@@ -1025,10 +1170,14 @@ func _play_battle() -> bool:
 			4: used_actions.tonics += 1
 			5: used_actions.combo += 1
 		if game.pending_action >= 0:
-			var wanted := heal_index if action == 4 else foe_index
+			var wanted: int = heal_index if action == 4 else (selection.target if selection.get("action") == action else foe_index)
 			if game.target != wanted:
 				_key(KEY_RIGHT)
 			_key(KEY_ENTER)
+		if not build_route.is_empty() and not b.synergy_feedback.is_empty():
+			var style_name: String = b.synergy_feedback.get_slice(" ",0)
+			if build_triggers.has(style_name):
+				build_triggers[style_name] += 1
 		if visual and not b.events.is_empty():
 			var style: String = b.events[0].style
 			await _capture_effect("combo-" + b.pair if style == "combo" else style)
@@ -1036,7 +1185,46 @@ func _play_battle() -> bool:
 		printerr("Battle %s failed, remaining foes %s, allies %s" % [str(game.active_battle),
 			str(b.foes.map(func(e): return e.hp)),str(b.allies.map(func(e): return e.hp))])
 		return _check(false,"battle must resolve as victory")
+	if pacing:
+		battle_metrics.merge({"fight":game.battle_info()[0],"rounds":b.round_no,
+			"tonics_used":battle_metrics.tonics_start - b.tonics,
+			"qi_left":b.allies.map(func(unit: Dictionary): return int(unit.qi))})
+		chapter_battles.append(battle_metrics)
 	return true
+
+func _build_action(b: RefCounted, unit: Dictionary, enemy: Dictionary, foe_index: int) -> Dictionary:
+	for candidate in [1, 2]:
+		if not b.available(candidate):
+			continue
+		var move: Array = unit.moves[candidate - 1]
+		if unit.build.has("exploit") and Martial.exploit_move(move):
+			for at in b.foes.size():
+				if b.foes[at].hp > 0 and b.foes[at].broken:
+					return {"action":candidate,"target":at}
+		if unit.build.has("interrupt") and Martial.interrupt_move(move):
+			for at in b.foes.size():
+				if b.poise_preview(candidate, at).begins_with("可破势"):
+					return {"action":candidate,"target":at}
+	if b.bond < 4 and unit.build.has("retaliate") and enemy.hp > unit.attack:
+		for candidate in [1, 2]:
+			var move: Array = unit.moves[candidate - 1]
+			if not b.available(candidate) or not Martial.protection_move(move):
+				continue
+			var defender: int = b.actor if move[6] == "counter" else 1 - b.actor
+			for threat in b.foes:
+				if threat.hp <= 0 or threat.broken:
+					continue
+				var pattern: String = b._pattern(threat)
+				if pattern == "sweep" or (pattern in ["strike", "charge"] and (move[6] == "shelter" or b._threat_target(threat) == defender)):
+					return {"action":candidate,"target":defender}
+	for candidate in [1, 2]:
+		var move: Array = unit.moves[candidate - 1]
+		if not b.available(candidate) or not Martial.interrupt_move(move):
+			continue
+		var other: Dictionary = b.allies[1 - b.actor]
+		if b.actor == 0 and other.build.has("exploit") and b.poise_preview(candidate, foe_index).begins_with("可破势"):
+			return {"action":candidate,"target":foe_index}
+	return {}
 
 func _verify_model() -> void:
 	var Battle = preload("res://scripts/battle.gd")

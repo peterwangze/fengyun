@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS rank one keeps ordinary techniques and gear
+PASS rank two opens interrupt with an appropriate technique and accessory
+PASS rank four strengthens both active effects
+PASS transferring the only ring changes both tactical previews
+PASS recipient immediately sees the new style
+PASS unequipped technique cannot enable interrupt
+PASS temporary Devil Blade is counted as the equipped heavy skill
+PASS selected target previews the qualifying Qi refund
+PASS weakness technique breaks a live scout with the signal badge
+PASS interrupt refunds Qi on the successful break
+PASS foe resolve prevents both break and the interrupt refund
+PASS set counter while the other fighter guards
+PASS counter stance takes the forecast hit and gains one bond and 4 Qi despite multiple enemies
+PASS counter stance aimed at the wrong fighter has no affinity payoff
+PASS cover selects a teammate and reads the forecast instead of allowing self-target
+PASS cover takes the blow and grants the equipped defender's affinity
+PASS an external ward and basic guard cannot trigger the prepared-technique reward
+PASS target preview shows the available follow-through
+PASS partner opens a gap and the heavy technique exploits it
+PASS heavy strike does not get the payoff from a break it opens itself
+PASS quest intelligence weakens just the named living enemy without an automatic break
+PASS quest aid applies opening protection and capped bond with visible feedback
+Builds: 0 failures

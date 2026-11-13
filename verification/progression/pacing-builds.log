@@ -1,0 +1,61 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS injected joypad menu navigation, drift rejection and reconnect latch
+PASS added encounter spar
+PASS chapter 1 encounter 0 rounds 2 tonics 3 qi 步惊云 13/30,聂风 16/34
+PASS chapter 1 encounter 2 rounds 2 tonics 4 qi 步惊云 26/30,聂风 23/34
+GUIDE Banquet after speaking to Kong Ci ["ceremony"]
+GUIDE Wedding escape routes ["court_door", "garden_door"]
+PASS wedding, both evacuations, and room reload
+PASS quiet rear escape without a second fight
+PACING {"chapter":1,"encounters":[{"actions":3,"fight":"同门切磋","lowest_hp_pct":100,"qi_left":[29,27],"rounds":2,"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"守门执事","lowest_hp_pct":76,"qi_left":[13,16],"rounds":2,"tonics_start":3,"tonics_used":0},{"actions":3,"fight":"巡山小队","lowest_hp_pct":93,"qi_left":[26,23],"rounds":2,"tonics_start":3,"tonics_used":0}],"rank_after":2,"tonics_after":6,"walk_seconds":35.9}
+Build loadout chapter 2: ["wind 截势 · 守反", "frost 守反"]
+GUIDE Fengxi approach ["fight0", "mooring"]
+GUIDE Fengxi rope released ["fight0", "escort_boatman"]
+GUIDE Fengxi boarding ready ["fight0", "board"]
+PASS ferry turn back, land and reload
+PASS added encounter courier_guard
+PASS chapter 2 encounter 2 rounds 2 tonics 7 qi 聂风 28/42,秦霜 23/30
+AID west bank 秦霜凭口供预判换哨，纸探花开场少 1 格势。
+PASS chapter 2 encounter 1 rounds 2 tonics 7 qi 聂风 30/44,秦霜 32/32
+PACING {"chapter":2,"encounters":[{"actions":5,"fight":"截住雨夜暗探","lowest_hp_pct":96,"qi_left":[21,23],"rounds":3,"tonics_start":6,"tonics_used":0},{"actions":4,"fight":"雨夜伏影","lowest_hp_pct":96,"qi_left":[28,23],"rounds":2,"tonics_start":6,"tonics_used":0},{"actions":3,"fight":"天池杀手","lowest_hp_pct":100,"qi_left":[30,32],"rounds":2,"tonics_start":7,"tonics_used":0}],"rank_after":4,"tonics_after":8,"walk_seconds":22.9}
+Build loadout chapter 3: ["cloud 截势", "wind 乘隙"]
+PASS chapter 3 encounter 0 rounds 2 tonics 8 qi 步惊云 25/42,聂风 21/32
+GUIDE Forge crossings available ["winch", "north_ledge"]
+PASS chapter 3 encounter 1 rounds 2 tonics 8 qi 步惊云 33/42,聂风 10/32
+PASS chapter 3 encounter 2 rounds 2 tonics 9 qi 步惊云 35/44,聂风 12/34
+PASS added encounter first_tyrant
+PACING {"chapter":3,"encounters":[{"actions":3,"fight":"剑池试炼","lowest_hp_pct":100,"qi_left":[25,21],"rounds":2,"tonics_start":8,"tonics_used":0},{"actions":4,"fight":"火麟争锋","lowest_hp_pct":73,"qi_left":[33,10],"rounds":2,"tonics_start":8,"tonics_used":0},{"actions":4,"fight":"炉心幻影","lowest_hp_pct":87,"qi_left":[35,12],"rounds":2,"tonics_start":8,"tonics_used":0},{"actions":5,"fight":"风云初合","lowest_hp_pct":80,"qi_left":[35,12],"rounds":3,"tonics_start":9,"tonics_used":0}],"rank_after":5,"tonics_after":9,"walk_seconds":41.2}
+Build loadout chapter 4: ["wind 截势", "dream 乘隙"]
+GUIDE Medicine hut after receiving instructions ["pool_back"]
+PASS chapter 4 encounter 0 rounds 2 tonics 9 qi 聂风 22/44,第二梦 39/47
+PASS chapter 4 encounter 2 rounds 2 tonics 9 qi 聂风 32/46,第二梦 40/49
+PASS chapter 4 encounter 1 rounds 2 tonics 9 qi 聂风 26/48,第二梦 33/51
+GUIDE Magic pool after the demon fight ["pool_gate"]
+GUIDE Magic pool fence opened ["pool_escape"]
+GUIDE Magic pool farewell complete ["exit"]
+PACING {"chapter":4,"encounters":[{"actions":3,"fight":"试刀魔念","lowest_hp_pct":81,"qi_left":[22,39],"rounds":2,"tonics_start":9,"tonics_used":0},{"actions":3,"fight":"守池残念","lowest_hp_pct":100,"qi_left":[32,40],"rounds":2,"tonics_start":9,"tonics_used":0},{"actions":4,"fight":"入魔之影","lowest_hp_pct":100,"qi_left":[26,33],"rounds":2,"tonics_start":9,"tonics_used":0}],"rank_after":7,"tonics_after":9,"walk_seconds":26.2}
+Build loadout chapter 5: ["cloud 乘隙", "sage 截势 · 守反"]
+PASS chapter 5 encounter 0 rounds 2 tonics 9 qi 步惊云 20/34,无名 54/56
+PASS chapter 5 encounter 2 rounds 2 tonics 9 qi 步惊云 16/36,无名 55/58
+PASS added encounter shift_guard
+PASS chapter 5 encounter 1 rounds 4 tonics 9 qi 步惊云 8/36,无名 52/58
+PACING {"chapter":5,"encounters":[{"actions":4,"fight":"天牢卫队","lowest_hp_pct":91,"qi_left":[20,54],"rounds":2,"tonics_start":9,"tonics_used":0},{"actions":4,"fight":"绝心拦路","lowest_hp_pct":96,"qi_left":[16,55],"rounds":2,"tonics_start":9,"tonics_used":0},{"actions":3,"fight":"拦下交班的守卫","lowest_hp_pct":94,"qi_left":[22,55],"rounds":2,"tonics_start":9,"tonics_used":0},{"actions":8,"fight":"不灭金身","lowest_hp_pct":87,"qi_left":[8,52],"rounds":4,"tonics_start":9,"tonics_used":0}],"rank_after":9,"tonics_after":9,"walk_seconds":35.2}
+Build loadout chapter 6: ["wind 截势", "cloud 乘隙"]
+AID cave done_fight 铜哨引开守兽视线，火麟幻影开场少 2 格势。
+PASS added encounter cavern_guard
+PASS added encounter prepare_guard
+PASS chapter 6 encounter 0 rounds 3 tonics 9 qi 聂风 42/56,步惊云 21/38
+PASS chapter 6 encounter 2 rounds 2 tonics 9 qi 聂风 42/56,步惊云 24/38
+AID final done_guard 侧坡响箭引雄霸分神，他开场少 2 格势。
+PASS chapter 6 encounter 1 rounds 7 tonics 9 qi 聂风 24/58,步惊云 14/40
+PASS final shield poise
+PASS added encounter stairs_guard
+PACING {"chapter":6,"encounters":[{"actions":5,"fight":"夺回龙脉","lowest_hp_pct":91,"qi_left":[42,31],"rounds":3,"tonics_start":9,"tonics_used":0},{"actions":2,"fight":"守住药庐","lowest_hp_pct":100,"qi_left":[49,31],"rounds":1,"tonics_start":9,"tonics_used":0},{"actions":6,"fight":"龙脉戾影","lowest_hp_pct":71,"qi_left":[42,21],"rounds":3,"tonics_start":9,"tonics_used":0},{"actions":4,"fight":"残部截杀","lowest_hp_pct":92,"qi_left":[42,24],"rounds":2,"tonics_start":9,"tonics_used":0},{"actions":14,"fight":"末路雄霸","lowest_hp_pct":36,"qi_left":[24,14],"rounds":7,"tonics_start":9,"tonics_used":0},{"actions":4,"fight":"截住山道追兵","lowest_hp_pct":87,"qi_left":[46,35],"rounds":2,"tonics_start":9,"tonics_used":0}],"rank_after":11,"tonics_after":9,"walk_seconds":32.5}
+Quest outcomes: { "courier": "done_fight", "forgework": "done_rack", "lamps": "done_goods", "remedy": "done_aid", "seals": "done_proof", "shift": "done_fight", "stairs": "done_decoy", "swordstory": "done_guard" }
+Build activations during real battles: { "截势": 7, "守反": 6, "乘隙": 5 }
+PASS Tidegate route=sluice rescue=false ending=witness
+PASS partner combos, delayed reinforcement and ally-targeted protection
+PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery
+Connected physical controllers: []
+RESULT wins=16 combos=10 failures=0 actions={ "tonics": 0, "techniques": 90, "guard": 0, "combo": 10 }

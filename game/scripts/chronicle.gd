@@ -80,8 +80,12 @@ func music_for_field() -> String:
 func ending() -> Array:
 	if not has("dawn_lamp"):
 		return []
+	var home := "朝阳落到渡口，那盏灯还在桥栏上。"
+	match side.state().get("lamps",""):
+		"wait_boat", "done_boat": home = "渡工修好了从浅滩拖回的旧船。第一趟船过桥时，灯还亮着。"
+		"wait_goods", "done_goods": home = "乡亲用救回来的冬粮煮了热粥。邻村的船载人过桥时，灯还亮着。"
 	return [
-		["尾声","朝阳落到渡口，那盏灯还在桥栏上。"],
+		["尾声",home],
 		["尾声","两个旅人沿着山路走远。路过的船看见桥上的光，就知道已经到家了。"]]
 
 func entry() -> Array:
@@ -198,17 +202,31 @@ func objective() -> String:
 			return "回西岸南面，与步惊云会合。"
 		"forge":
 			if g.slot.campaign.sword: return "从东侧出口前往剑庐。"
-		"swordhall": return "请无名指点，再返回天下会。"
-		"returnhall": return "迎战雄霸，查清接管哨卫的人。"
+		"swordhall": return "从无名身侧的路标返回天下会。" if has("lesson") else "先到北边，请无名指点合璧。"
+		"returnhall":
+			if not has("first_tyrant"): return "迎战雄霸，留意他的护气。"
+			if not has("forge_rescue") and not has("forge_pursue"): return "回正堂与无名商议，决定先救人还是追查。"
+			if has("invaded"): return "从东侧出口前往生死门。"
+			return "去东侧哨门，查清换防的人。"
 		"pool":
 			if not has("pool_intro"): return "先到生死门药庐，找第二梦和独孤梦。"
-			if g.slot.cleared.has(1) and not has("pool_escape"): return "刀皇闯入，去东岸接应第二梦。"
-		"apothecary": return "听清两人的来意，再去魔池。"
+			if g.slot.cleared.has(1) and not has("pool_escape"):
+				return "去东北石阶接应第二梦。" if has("pool_gate") else "刀皇闯入，先去东岸切开木栅。"
+		"apothecary": return "从南门返回魔池，去池边试刀。" if has("pool_intro") else "先问第二梦和独孤梦为何守在药庐。"
 		"palace":
 			if g.slot.campaign.rescued and not has("tea"): return "到茶房侧廊，听颜盈与绝心交谈。"
 			if g.slot.cleared.has(1) and not has("evacuated"): return "绝宫起火，从茶房侧门撤离。"
-		"tearoom": return "走侧廊，留意颜盈、绝心和秦霜。"
-		"cavern": return "夺龙脉，追绝心，再为第二梦守住药炉。"
+		"tearoom":
+			if g.slot.cleared.has(1):
+				if not has("fire_signal"): return "去东侧查明火从何处烧起。"
+				if has("evacuated"): return "沿南门回绝宫，从西侧离开。"
+				return "从右侧便门护送至尊。" if String(side.state().get("shift","")).begins_with("done_") else "沿左侧廊道护送至尊，绕开大火。"
+			return "回绝宫破金身。" if has("tea") else "到正中茶桌，听颜盈和绝心交谈。"
+		"cavern":
+			if not has("relic"): return "去洞门前击退守兽，夺取龙脉。"
+			if not has("lost_relic"): return "去东侧接应秦霜。"
+			if not has("shatter_relic"): return "赶回北侧洞门，追上雄霸。"
+			return "去南边的小筑协助第二梦。" if has("prepare") else "去西边替第二梦守住药炉。"
 		"lodge":
 			if not has("blood_rite"): return "在药炉旁协助第二梦，随后与她告别。"
 		"dawn": return "沿石桥向东，与步惊云离开。" if has("dawn_lamp") else "去桥栏点灯，兑现和第二梦的约定。"
@@ -246,11 +264,13 @@ func handle(id: String) -> bool:
 		"inn_exit": enter("village","west_spawn")
 		"ferry_evidence":
 			var clue := "石桥那面旗和封门令都盖着缺角印。" if g.slot.campaign.crossing == "bridge" else "渡工认出了追兵旗上的缺角印。"
+			var answer := "一边令我们拔刀，一边封门灭口。先回渡口截住持哨的人，我要让云师兄亲眼看这道令。"
 			if side.state().get("seals","") == "done_proof":
-				clue += "你留下的口供还证实，封门早于婚宴。"
+				clue += "那份口供还记下了换哨的时刻，封门比婚宴还早。"
+				answer = "照口供上的时辰抢先一步，持哨的人就来不及站稳。走，先把哨声截住。"
 			beat("ferry_evidence",[
 				["秦霜","两张调令合上了。" + clue],
-				["聂风","一边令我们拔刀，一边封门灭口。先回渡口截住持哨的人，我要让云师兄亲眼看这道令。"]])
+				["聂风",answer]])
 		"dream_intro":
 			beat("dream_intro",[
 				["第二梦","手松开。伤成这样，拿刀只会让血流得更快。先听我的声音，我给你包扎。"],
@@ -321,9 +341,15 @@ func handle(id: String) -> bool:
 				["绝心","你要我假扮至尊给你调兵。雄霸答应，等你一死，这道诏令就由我来发。"],
 				["秦霜","火已经到了柱子。" + path + "我留在这里掩护。"]])
 		"evacuated":
+			var next := "他偷走的旧图就画着这条水道，尽头是凌云窟的龙脉。无名送我回城，你沿水道追。"
+			match side.state().get("shift",""):
+				"done_stealth":
+					next = "旧图的水道通往凌云窟。那狱卒从便门出来时留了面护心镜，追上聂风时先给他戴上。"
+				"done_fight":
+					next = "旧图的水道通往凌云窟。狱卒说关在那里的守兽听铜哨。刚缴的哨子你带上，能引开它。"
 			beat("evacuated",[
 				["步惊云","绝心带着聂风从后门走了。秦师兄刚才跟上去，在水道入口给我留了个记号。"],
-				["至尊","他偷走的旧图就画着这条水道，尽头是凌云窟的龙脉。无名送我回城，你沿水道追。"]])
+				["至尊",next]])
 		"relic": begin_special("cavern_guard")
 		"lost_relic":
 			beat("lost_relic",[
@@ -350,9 +376,13 @@ func handle(id: String) -> bool:
 			g._load_field("peak","altar")
 			g._notice("已走过守军留下的小径。")
 		"dawn_lamp":
+			var river := "船家说它夜里也会亮。我们走吧。"
+			match side.state().get("stairs",""):
+				"done_escort": river = "从小径下山的人都坐上船了。船家说夜里也会留着这盏灯。"
+				"done_decoy": river = "从岔口脱身的乡亲都到了。那位老伯给灯添了油，说要照到夜里。"
 			beat("dawn_lamp",[
 				["聂风","雨停了。桥栏还在，我把灯搁在这儿。"],
-				["步惊云","船家说它夜里也会亮。我们走吧。"]])
+				["步惊云",river]])
 		"dawn_exit":
 			if not warn_departure(_finish_dawn):
 				_finish_dawn()
@@ -466,7 +496,14 @@ func enter(room: String, arrival: String = "spawn") -> void:
 func begin_special(id: String) -> void:
 	special = id
 	g.active_battle = -1
-	g._talk(SPECIALS[id][2],g._start_battle)
+	var dialogue: Array = SPECIALS[id][2]
+	if id == "cavern_guard":
+		match side.state().get("shift",""):
+			"done_stealth":
+				dialogue = [["步惊云","绝心的人守住了洞门。先戴上狱卒留下的护心镜。等守兽扑过来，我来截它的路。"]]
+			"done_fight":
+				dialogue = [["步惊云","绝心的人守住了洞门。风师弟，我吹铜哨引守兽回头，你趁它分神攻过去。"]]
+	g._talk(dialogue,g._start_battle)
 
 func on_special_won() -> void:
 	g.slot.tonics = g.encounter.tonics

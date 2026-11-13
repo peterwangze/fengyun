@@ -72,10 +72,12 @@ func objective() -> String:
 			return "击退东侧伏兵，或返回喜堂改走竹径。"
 		"banquet":
 			if not state().wedding: return "沿红毯走到喜堂中央。"
-			return "可先疏散仆役，再从正门或竹径撤离。"
+			if state().staff.size() < STAFF.size(): return "疏散两人可熄灭竹径灯火，也可直接撤离。"
+			return "走西门迎战伏兵，或经东门竹径绕行。"
 		"garden":
 			if state().alarm and not g.slot.cleared.has(1): return "巡卫已戒备。到后门迎战，或返回喜堂。"
-			return "避开巡卫视线，从竹径尽头的后门下山。"
+			if not g.slot.cleared.has(1): return "沿竹径下缘绕开巡卫，去东北后门下山。"
+			return "去东北后门下山。"
 	return ""
 
 func subtitle() -> String:

@@ -1,6 +1,11 @@
 extends RefCounted
 
 const Story = preload("res://scripts/story.gd")
+const Equipment = preload("res://scripts/equipment.gd")
+const SYNERGY_TIER := 2
+const SYNERGY_ADVANCED_TIER := 4
+const SYNERGY_NAMES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
+const PROTECTION := ["cover", "counter", "shelter", "aid"]
 const EXTRA := {
 	"wind": [
 		["护风步",7,"风",0,0,"单体 · 替同伴挡下一击","cover"],
@@ -50,6 +55,60 @@ static func prepared(slot: Dictionary, id: String) -> Array:
 	var loadout: Array = slot.chronicle.loadout.get(id,[0,1])
 	var valid := loadout.filter(func(at): return unlocked(slot,id,int(at)))
 	return valid if valid.size() == 2 else [0,1]
+
+static func slotted_moves(id: String, sword: bool, loadout: Array, chapter: int) -> Array:
+	var catalog := options(id, sword)
+	var moves := loadout.map(func(at): return catalog[int(at)])
+	if chapter == 3 and id == "wind":
+		moves[1] = ["魔刀狂斩", 11, "锋", 30, 2, "全体 · 魔念 +2"]
+	if chapter == 3 and id == "dream":
+		for move in moves:
+			if move[0] == "回春诀":
+				move[5] = "全体治疗 · 魔念 −3"
+	return moves
+
+static func synergies(slot: Dictionary, hero: String, rank: int) -> Dictionary:
+	if rank < SYNERGY_TIER:
+		return {}
+	var advanced := rank >= SYNERGY_ADVANCED_TIER
+	var gear := [Equipment.equipped(slot, hero, 0), Equipment.equipped(slot, hero, 1)]
+	var moves := slotted_moves(hero, slot.campaign.sword, prepared(slot, hero), int(slot.chapter))
+	var active := {}
+	if gear[1] in ["qi_ring", "courier_badge"] and moves.any(interrupt_move):
+		active.interrupt = 5 if advanced else 3
+	if not gear[0].is_empty() and moves.any(protection_move):
+		active.retaliate = 4 if advanced else 0
+	if gear[1] == "ferry_knot" and moves.any(exploit_move):
+		active.exploit = 12 if advanced else 8
+	return active
+
+static func interrupt_move(move: Array) -> bool:
+	return move[3] > 0 and move[4] >= 2 and "单体" in move[5] and move[2] != "疗"
+
+static func protection_move(move: Array) -> bool:
+	return move.size() > 6 and move[6] in PROTECTION
+
+static func exploit_move(move: Array) -> bool:
+	return move[2] != "疗" and move[3] >= 30 and move[1] >= 9
+
+static func synergy_text(slot: Dictionary, hero: String, rank: int) -> String:
+	var active := synergies(slot, hero, rank)
+	var names := PackedStringArray()
+	for id in active:
+		names.append(SYNERGY_NAMES[id])
+	return " · ".join(names)
+
+static func synergy_descriptions(slot: Dictionary, hero: String, rank: int) -> PackedStringArray:
+	var active := synergies(slot, hero, rank)
+	var descriptions := PackedStringArray()
+	if active.has("interrupt"):
+		descriptions.append("截势 · 单体削势武学破势时回 %d 气" % active.interrupt)
+	if active.has("retaliate"):
+		var recovery := "并回 %d 气" % active.retaliate if active.retaliate > 0 else ""
+		descriptions.append("守反 · 以护招接住攻击，得 1 格合击%s" % recovery)
+	if active.has("exploit"):
+		descriptions.append("乘隙 · 重招打已破势敌人，首个目标伤害基础 +%d" % active.exploit)
+	return descriptions
 
 static func pair_id(party: Array) -> String:
 	if party.has("wind"):
