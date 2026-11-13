@@ -19,6 +19,8 @@ const FLAGS := ["brief","register","seal","sluice","gate","aid","chief","ledger"
 const FENGXI_CONTACT := Vector2(412,240)
 const TIDEGATE_SHOP := Vector2(474,268)
 const TIDEGATE_FORGE := Vector2(514,259)
+const DRY_STORE_HINT := Vector2(77,222)
+const DRY_STORE := Vector2(119,273)
 
 var g
 var active := false
@@ -44,6 +46,12 @@ static func valid(value: Variant) -> bool:
 		if not value.get(flag) is bool:
 			return false
 	if not value.get("fengxi_contact",false) is bool or (value.get("fengxi_contact",false) and not value.brief):
+		return false
+	var dry_hint: Variant = value.get("dry_store_hint",false)
+	var dry_store: Variant = value.get("dry_store",false)
+	if not dry_hint is bool or not dry_store is bool:
+		return false
+	if (dry_hint and not value.register) or (dry_store and not dry_hint):
 		return false
 	if (value.register or value.seal) and not value.brief:
 		return false
@@ -71,8 +79,14 @@ func _fengxi_aid() -> String:
 	return ""
 
 func battle_aid() -> Dictionary:
-	if battle == "chief" and state().get("fengxi_contact",false) and g.chronicle.reunion_plan() == "roll":
-		return {"foe":"tidal_drum","poise":2,"line":"名册帮船工认出鼓手，他开战少 2 格势。"}
+	var flags := state()
+	if battle == "chief":
+		if flags.get("fengxi_contact",false) and g.chronicle.reunion_plan() == "roll":
+			return {"foe":"tidal_drum","poise":2,"line":"名册帮船工认出鼓手，他开战少 2 格势。"}
+		if flags.get("canal_witness",false):
+			return {"foe":"tidal_drum","poise":1,"line":"卸粮人指出鼓手的起手信号，他开场少 1 格势。"}
+		if flags.get("canal_manifest",false):
+			return {"ward":"wind","line":"船工借出扛粮护甲，聂风开场获得护持。"}
 	return {}
 
 func title_item() -> String:
@@ -91,7 +105,8 @@ func resume() -> void:
 		g.slot["afterstory"] = initial()
 	state().supplies = Items.clean(state().get("supplies", Items.fresh(2)))
 	var opened := _open_crew_sluice()
-	_enter(state().room)
+	if not g.transit.resume():
+		_enter(state().room)
 	if opened:
 		g._notice("凤溪渡工已抬起水栅。")
 
@@ -138,14 +153,16 @@ func points() -> Array:
 	if g.field_key == "tidal_ford":
 		if flags.resolution != "":
 			result = [_spot("brief","与陶伯交谈","boatman_front"),_spot("memory","探望渡口人","maid")]
+			_add_workbench(result)
 			_add_fengxi_contact(result)
+			_add_dry_store(result)
 			return result
 		result.append(_spot("brief","向陶伯问粮票" if not flags.brief else "和陶伯说话","boatman_front"))
 		if not flags.brief:
 			return result
-		result.append({"id":"shop_tidegate","name":"查看盐汊杂货","pos":TIDEGATE_SHOP,"sprite":"guide","optional":true})
-		result.append({"id":"craft_tidegate","name":"使用盐汊锻台","pos":TIDEGATE_FORGE,"sprite":"guard","optional":true})
+		_add_workbench(result)
 		_add_fengxi_contact(result)
+		_add_dry_store(result)
 		if not flags.register: result.append(_spot("register","核对领粮名册"))
 		if not flags.seal: result.append(_spot("seal","查看旧印封条"))
 		if flags.register and flags.seal:
@@ -165,12 +182,25 @@ func points() -> Array:
 		result.append(_spot("ledger","收回粮仓账簿"))
 	return result
 
+func _add_workbench(points: Array) -> void:
+	points.append({"id":"shop_tidegate","name":"查看盐汊杂货","pos":TIDEGATE_SHOP,"sprite":"guide","optional":true})
+	points.append({"id":"craft_tidegate","name":"使用盐汊锻台","pos":TIDEGATE_FORGE,"sprite":"guard","optional":true})
+
 func _add_fengxi_contact(points: Array) -> void:
 	match g.chronicle.reunion_plan():
 		"roll":
 			points.append({"id":"fengxi_contact","name":"查看归人册的回信","pos":FENGXI_CONTACT,"sprite":"guard","optional":true})
 		"aid":
 			points.append({"id":"fengxi_contact","name":"探望凤溪渔户","pos":FENGXI_CONTACT,"sprite":"servant","optional":true})
+
+func _add_dry_store(points: Array) -> void:
+	var flags := state()
+	if not flags.register or flags.get("dry_store",false):
+		return
+	if flags.get("dry_store_hint",false):
+		points.append({"id":"dry_store","name":"查看背潮旧匣","pos":DRY_STORE,"sprite":"","optional":true})
+	else:
+		points.append({"id":"dry_store_hint","name":"翻看木棚修闸簿","pos":DRY_STORE_HINT,"sprite":"","optional":true})
 
 func handle(id: String) -> void:
 	var flags := state()
@@ -194,6 +224,13 @@ func handle(id: String) -> void:
 			g._open_forge("tidegate")
 		"register":
 			g._talk([["聂风","阿芦名下二十户都没领粮。账台下还压着块盐淬铁，带去锻台能用。"]],_mark.bind("register"))
+		"dry_store_hint":
+			g._talk([["修闸簿","旧零件收在西南背潮的板箱里。听见两短一长，待长响过后拨扣，顶潮便掀不开箱底。"]],
+				_mark.bind("dry_store_hint"))
+		"dry_store":
+			g.chronicle.choose("背潮旧匣的铜扣",
+				[["两声短响后拨","short"],["长响过后拨","long"],["等到下一次涨潮","wait"]],
+				_unlock_dry_store,"铜扣连着潮簧，刻槽是「短、短、长」。修闸簿记了拨扣时机。")
 		"seal":
 			g._talk([["步惊云","箱上盖的是废了的旧关印。粮进了仓，账却还在韩朔手里。"]],_mark.bind("seal"))
 		"sluice":
@@ -203,7 +240,10 @@ func handle(id: String) -> void:
 		"gate_entry","sluice_entry":
 			if flags.route == "":
 				flags.route = "gate" if id == "gate_entry" else "sluice"
-			_enter("tidal_fort")
+			if g.transit.available("tidal_canal") and not flags.gate and not flags.chief:
+				g.transit.enter("tidal_canal")
+			else:
+				_enter("tidal_fort")
 		"return_ford": _enter("tidal_ford")
 		"gate","aid","chief":
 			battle = id
@@ -229,6 +269,20 @@ func handle(id: String) -> void:
 				g._talk([["渡口乡亲","今年总算有粮了。给我们递信的阿芦，还在等粮仓那头的回音。"]],g._return_to_field)
 		"fengxi_contact":
 			_meet_fengxi_contact()
+
+func _unlock_dry_store(option: String) -> void:
+	var flags := state()
+	if option != "long":
+		g._return_to_field()
+		if option == "short":
+			g._notice("扣扭不动。长响过后再拨一次。")
+		return
+	if not flags.get("dry_store_hint",false) or flags.get("dry_store",false):
+		g._return_to_field()
+		return
+	g.sfx("mechanism")
+	g._talk([["聂风","夹层里有一枚潮纹扣，还有件被油布裹住的仓卫厚甲。取去打铁铺就能配扣。"]],
+		_mark.bind("dry_store"))
 
 func _meet_fengxi_contact() -> void:
 	var plan: String = g.chronicle.reunion_plan()
@@ -335,6 +389,14 @@ func _resolve(resolution: String) -> void:
 				else "凤溪乡亲会先借粮给最缺粮的几户，等州府按回执补足。")
 	if flag.aid:
 		scene.append(["阿芦","我愿意作证。我认得每一张被他们换过的粮票。"])
+	if flag.get("canal_witness",false):
+		var testimony := "那三十袋是我亲手卸的。我在公示的账旁守着，有人问，我当面作证。" if resolution == "public" \
+			else "我随送账的人一道去州府。在岸上卸过几袋，我一袋一袋说清楚。"
+		scene.append(["卸粮人",testimony])
+	elif flag.get("canal_manifest",false):
+		var manifest := "船单贴在原账旁，让等粮的人看清每只船该交几袋。" if resolution == "public" \
+			else "船单有舟工的指印，和原账一并交州府。拿回执就能按船号复核实数。"
+		scene.append(["陶伯",manifest])
 	g._talk(scene,func():
 		state().resolution = resolution
 		g._commit()
@@ -359,4 +421,11 @@ func journal() -> Array:
 	match g.chronicle.reunion_plan():
 		"roll": entries.append(["渡口归人册","已查看船工回信" if f.get("fengxi_contact",false) else "盐汊渡口可访归人册"])
 		"aid": entries.append(["凤溪粮棚","已获渔户接济" if f.get("fengxi_contact",false) else "盐汊渡口可探望渔户"])
+	if f.register:
+		var dry_store := "渡口西棚可查修闸簿"
+		if f.get("dry_store",false):
+			dry_store = "已取出潮纹扣 · 可到锻台淬炼厚甲"
+		elif f.get("dry_store_hint",false):
+			dry_store = "西南旧匣 · 长响过后拨扣"
+		entries.append(["背潮旧匣",dry_store])
 	return entries

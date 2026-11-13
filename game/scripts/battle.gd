@@ -18,6 +18,7 @@ const ELITE_WINDUPS := ["kindle", "fire_sweep", "mind_sweep", "armor_bash",
 	"dragon_draw", "dragon_reflux", "tyrant_palm", "tyrant_sweep", "tidal_advance"]
 const STANDARD_ELITE_HP := {"duan":202, "beast":178, "demon":260, "godless":310}
 const LATE_ELITES := ["dragon", "beast", "boss", "tidal_chief", "tidal_drum"]
+const NORMAL_ARMOR_FACTOR := 0.40
 
 var allies: Array[Dictionary] = []
 var foes: Array[Dictionary] = []
@@ -45,10 +46,11 @@ var quest_aid_line := ""
 var synergy_feedback := ""
 var retaliation_used := false
 var opening_used := false
+var cultivation_action_used := false
 
 func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, chapter: int = 5,
 	sword: Variant = null, prepared: Dictionary = {}, expanded: bool = false, gear: Dictionary = {},
-	stock_items: Dictionary = {}, builds: Dictionary = {}) -> void:
+	stock_items: Dictionary = {}, builds: Dictionary = {}, training: Dictionary = {}) -> void:
 	tonics = stock
 	supplies = Items.clean(stock_items)
 	story_mode = easy
@@ -63,6 +65,9 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 		unit["id"] = id
 		unit["gear"] = kit
 		unit["build"] = builds.get(id, {})
+		var cultivation: Dictionary = training.get(id, {})
+		unit["stance"] = cultivation.get("stance", {}).get("id", "")
+		unit["stance_used"] = false
 		unit["technique_bonus"] = (rank - 1) * 2
 		unit["max_hp"] = stats.hp
 		unit["max_qi"] = stats.qi
@@ -73,8 +78,9 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 		unit["ward"] = false
 		unit["ward_owner"] = -1
 		unit["counter"] = ""
+		unit["counter_mastered"] = false
 		unit["protector"] = -1
-		unit.moves = Martial.slotted_moves(id, sword_ready, prepared.get(id, [0, 1]), chapter)
+		unit.moves = Martial.slotted_moves(id, sword_ready, prepared.get(id, [0, 1]), chapter, cultivation.get("mastered", false))
 		if id == "cloud" and not sword_ready:
 			unit.title = "佩剑"
 		if id == "wind" and chapter == 3:
@@ -140,7 +146,9 @@ func label(action: int) -> String:
 		return "%s ×%d" % [Items.CATALOG[id].name, supplies.get(id, 0)]
 	match action:
 		0: return "普攻"
-		1, 2: return str(allies[actor].moves[action - 1][0])
+		1, 2:
+			var move: Array = allies[actor].moves[action - 1]
+			return str(move[0]) + (" · 精修" if Martial.enhanced(move) else "")
 		3: return "固守"
 		4: return "金创药 ×%d" % tonics
 		5:
@@ -357,6 +365,7 @@ func act(action: int, target: int) -> bool:
 	events.clear()
 	synergy_feedback = ""
 	opening_used = false
+	cultivation_action_used = false
 	var unit := allies[actor]
 	var action_name := label(action)
 	_note("%s施展%s。" % [unit.name, action_name])
@@ -506,6 +515,7 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 		"counter", "counter_poise":
 			unit.guard = true
 			unit.counter = kind
+			unit.counter_mastered = Martial.enhanced(move)
 			_ally_state(actor,"蓄势反击")
 		"shelter":
 			for i in allies.size():
@@ -513,16 +523,14 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 					_grant_ward(i, actor)
 					_ally_state(i,"护持")
 		"aid":
-			_heal(target,power + int(unit.gear.get("heal", 0)))
+			_healing_move(unit, target, power)
 			_grant_ward(target, actor)
 			_ally_state(target,"护持")
 		"needle_transfer":
-			_heal(target, power + int(unit.gear.get("heal", 0)))
+			var recovered := _healing_move(unit, target, power, 9 if Martial.enhanced(move) else 6)
 			corruption = maxi(0, corruption - 2)
-			var recovered := _restore_qi(allies[target], 6)
-			if recovered > 0:
-				_ally_state(target, "真气 +%d" % recovered)
-				events.back().stats.qi = allies[target].qi
+			if Martial.enhanced(move) and recovered > 0:
+				_note("精修针渡清脉 · 回气 %d" % recovered)
 		_:
 			if style == "dark":
 				power += 12 + corruption
@@ -531,7 +539,7 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 				corruption = maxi(0,corruption - (4 if kind == "cleanse" else 3))
 				for i in allies.size():
 					if allies[i].hp > 0:
-						_heal(i,power + int(unit.gear.get("heal", 0)))
+						_healing_move(unit, i, power)
 				return
 			if _automatic(action):
 				for i in foes.size():
@@ -545,6 +553,7 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: String, style: String) -> void:
 	var enemy := foes[at]
 	var poise := _technique_poise(unit, move, enemy, kind)
+	var windup: bool = not enemy.broken and _pattern(enemy) in ELITE_WINDUPS
 	if kind == "shatter":
 		enemy.frost = 0
 	elif advanced and unit.id == "frost":
@@ -553,6 +562,10 @@ func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: St
 	var pursuit: bool = has_opening and (kind == "pursuit" or (advanced and enemy.frost == 2 and unit.id == "wind"))
 	if has_opening:
 		power += int(unit.gear.get("broken_damage", 0))
+		if unit.stance == "cloud_pursuit" and not cultivation_action_used:
+			cultivation_action_used = true
+			power += 5
+			_note("追云 · 空门武学威力 +5")
 		if not opening_used and unit.build.has("exploit") and Martial.exploit_move(move) and unit.qi >= Martial.EXPLOIT_COST:
 			opening_used = true
 			unit.qi -= Martial.EXPLOIT_COST
@@ -560,7 +573,15 @@ func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: St
 			_announce_synergy("乘隙 · 重招威力 +%d" % unit.build.exploit)
 	var already_broken: bool = enemy.broken
 	var interrupt_recovery := _interrupt_recovery(unit, enemy)
-	_hit_foe(at, power, poise, move[2], style, 0, kind == "armor_pierce")
+	var armor_factor := NORMAL_ARMOR_FACTOR
+	if kind == "armor_pierce":
+		armor_factor = 0.82 if Martial.enhanced(move) else 0.68
+	_hit_foe(at, power, poise, move[2], style, 0, armor_factor)
+	if unit.stance == "wind_seek" and move[2] == "风" and windup and not cultivation_action_used:
+		cultivation_action_used = true
+		var recovered := _restore_qi(unit, 2)
+		if recovered > 0:
+			_note("逐风 · 回气 %d" % recovered)
 	if not already_broken and enemy.broken and unit.build.has("interrupt") and Martial.interrupt_move(move):
 		var recovered := _restore_qi(unit, interrupt_recovery)
 		if recovered > 0:
@@ -568,6 +589,9 @@ func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: St
 	if kind == "frost_ward" and not already_broken and enemy.broken and enemy.hp > 0 and allies[1 - actor].hp > 0:
 		_grant_ward(1 - actor, actor)
 		_ally_state(1 - actor, "霜衣护持")
+		if Martial.enhanced(move):
+			_grant_ward(actor, actor)
+			_ally_state(actor, "精修 · 霜衣护持")
 	if pursuit and not followup_used and enemy.hp > 0:
 		followup_used = true
 		enemy.frost = 0
@@ -578,8 +602,13 @@ func _technique_poise(unit: Dictionary, move: Array, enemy: Dictionary, kind: St
 	var amount: int = move[4]
 	if kind == "shatter":
 		amount += enemy.frost
-	elif kind == "windup_break" and _pattern(enemy) in ELITE_WINDUPS:
-		amount += 1
+		if enemy.frost > 0 and unit.stance == "frost_shatter":
+			amount += 1
+	elif not enemy.broken and _pattern(enemy) in ELITE_WINDUPS:
+		if kind == "windup_break":
+			amount += 2 if Martial.enhanced(move) else 1
+		if unit.stance == "sage_cut" and "单体" in move[5]:
+			amount += 1
 	if move[2] == enemy.weak:
 		amount += int(unit.gear.get("weakness_poise", 0))
 	return amount
@@ -629,6 +658,25 @@ func _restore_qi(unit: Dictionary, amount: int) -> int:
 	unit.qi += recovered
 	return recovered
 
+func _recover_with_cue(index: int, amount: int, source: String, beat: int) -> int:
+	var recovered := _restore_qi(allies[index], amount)
+	if recovered > 0:
+		_ally_state(index, "%s回气 %d" % [source + " · " if not source.is_empty() else "", recovered], beat)
+		events.back().stats.qi = allies[index].qi
+		if not source.is_empty():
+			_note("%s · 回气 %d" % [source, recovered])
+	return recovered
+
+func _healing_move(unit: Dictionary, at: int, power: int, qi: int = 0) -> int:
+	var recipient := allies[at]
+	var extra := 0
+	if unit.stance == "dream_heal" and recipient.hp * 2 < recipient.max_hp:
+		extra = 4
+		_note("温针 · 危急队友治疗 +4")
+	_heal(at, power + int(unit.gear.get("heal", 0)) + extra)
+	var stance_qi: bool = unit.stance == "dream_breath" and at != actor
+	return _recover_with_cue(at, qi + (2 if stance_qi else 0), "调息" if stance_qi else "", 0)
+
 func _announce_synergy(message: String) -> void:
 	synergy_feedback = message
 	_note(message)
@@ -660,7 +708,8 @@ func _on_drummer_falls(beat: int) -> void:
 	else:
 		_phase_change(0, beat, "guard", "韩朔独战")
 
-func _hit_foe(index: int, base: int, break_power: int, element: String, style: String, beat: int = 0, armor_pierce: bool = false) -> void:
+func _hit_foe(index: int, base: int, break_power: int, element: String, style: String, beat: int = 0,
+		armor_factor: float = NORMAL_ARMOR_FACTOR) -> void:
 	var enemy := foes[index]
 	var weak: bool = element == enemy.weak
 	var damage := float(base)
@@ -674,7 +723,7 @@ func _hit_foe(index: int, base: int, break_power: int, element: String, style: S
 	elif enemy.opening > 0:
 		damage *= 1.15
 	elif enemy.phase == "armor":
-		damage *= 0.68 if armor_pierce else 0.40
+		damage *= armor_factor
 	elif _pattern(enemy) == "mind_sweep":
 		damage *= 0.78
 	elif _pattern(enemy) == "brace":
@@ -849,6 +898,8 @@ func _enemy_turn() -> void:
 	for unit in allies:
 		unit.guard = false
 		unit.counter = ""
+		unit.counter_mastered = false
+		unit.stance_used = false
 	for enemy in foes:
 		enemy.opening = maxi(0, enemy.opening - 1)
 	round_no += 1
@@ -893,6 +944,9 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int, 
 		unit.ward = false
 		armor += int(unit.gear.get("ward_armor", 0))
 		ward_owner = int(unit.ward_owner)
+		if ward_owner >= 0 and allies[ward_owner].stance == "frost_shelter":
+			armor += 2
+			_note("寒衣 · 护持额外减伤 2")
 		unit.ward_owner = -1
 	var damage := maxi(1, roundi(points * factor) - armor)
 	unit.hp = maxi(0, unit.hp - damage)
@@ -900,6 +954,9 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int, 
 	if unit.hp == 0:
 		_note("%s倒下。金创药可救起。" % unit.name)
 		return
+	if redirected and unit.stance == "wind_cover" and not unit.stance_used:
+		unit.stance_used = true
+		_recover_with_cue(index, 3, "护风", beat)
 	if attack == "armor_bash" and protected:
 		_open_guard_gap(source, beat)
 		_note("重击被接住，绝无神的金身露出空门。")
@@ -918,7 +975,17 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int, 
 		var poise_counter: bool = unit.counter == "counter_poise"
 		unit.counter = ""
 		var power: int = unit.attack + (2 if poise_counter else 13) + int(unit.gear.get("counter_power", 0))
-		_hit_foe(source, power, 3 if poise_counter else 1, "", "blade", beat)
+		if unit.stance == "sage_counter":
+			power += 6
+			_note("听锋 · 反击威力 +6")
+		var poise := 3 if poise_counter else 1
+		if unit.stance == "cloud_counter":
+			poise += 1
+			_note("凝云 · 反击削势 +1")
+		_hit_foe(source, power, poise, "", "blade", beat)
+		if unit.counter_mastered:
+			_recover_with_cue(index, 3, "精修 · 回云卸劲", beat)
+		unit.counter_mastered = false
 
 func _open_guard_gap(source: int, beat: int) -> bool:
 	var foe := foes[source]

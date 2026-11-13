@@ -19,6 +19,11 @@ func _run() -> void:
 		quit(1)
 		return
 	game = Main.instantiate()
+	if not game.has_method("_new_game"):
+		push_error("Main scene failed to load")
+		game.free()
+		quit(1)
+		return
 	root.add_child(game)
 	game.settings.motion = false
 	_test_seals()
@@ -30,6 +35,9 @@ func _run() -> void:
 	_test_reunion_save()
 	_test_tidegate_carryover()
 	_test_reunion_tidegate()
+	_test_canal_witness()
+	_test_hidden_ledger()
+	_test_dry_store()
 	_test_journal_fit()
 	_test_market_placement()
 	_test_craft_placement()
@@ -46,6 +54,114 @@ func _chapter(at: int, quests: Dictionary) -> void:
 	game.slot.chronicle.quests = quests.duplicate()
 	game._enter_chapter(false)
 
+func _test_hidden_ledger() -> void:
+	for index in [0,1]:
+		_chapter(4,{})
+		game.slot.cleared = [0]
+		_visit("jail_door")
+		_check(not _has_point("side_hidden_ledger") and "hidden_ledger" not in game.chronicle.side.journal_ids(),
+			"the hidden ledger does not leak into the journal or map before the prison rescue")
+		_visit("cell")
+		_drain_dialogue()
+		_visit_on_foot("side_hidden_ledger")
+		_drain_dialogue()
+		var quest := "hidden_ledger"
+		var journal: Dictionary = game.chronicle.side.journal_entry(quest)
+		var saved: Dictionary = game.storage.read()
+		_check(saved.chronicle.quests.get(quest) == "seeking" and quest in game.chronicle.side.journal_ids()
+			and "凌云山" in journal.place and journal.status == "待回访", "reading the wall stores a traceable clue for the next chapter")
+		_chapter(5,saved.chronicle.quests)
+		game.slot.campaign.farewell = true
+		game._enter_chapter(false)
+		_visit_on_foot("side_hidden_ledger")
+		_drain_dialogue()
+		_check(game.chronicle.side.state().get(quest) == "decision", "following the mountain landmark uncovers the old plates")
+		_visit_on_foot("side_hidden_ledger")
+		_drain_dialogue()
+		if not _check(game.mode == "choice" and game.chronicle.options.size() == 3,"unrouted elite leaves both hidden choices available"):
+			continue
+		game.menu_confirm(2)
+		_check(game.mode == "field" and game.chronicle.side.state().get(quest) == "decision", "deferring does not resolve the quest")
+		_visit("side_hidden_ledger")
+		_drain_dialogue()
+		game.menu_confirm(index)
+		saved = game.storage.read()
+		var outcome := "done_defend" if index == 0 else "done_trade"
+		_check(saved.chronicle.quests.get(quest) == outcome and not _has_point("side_hidden_ledger"), "chosen ledger resolution persists and the action is consumed")
+		_check(saved.materials.get("star_steel",0) == 1 and saved.insights.get("wind",false) == (index == 0)
+			and saved.manual_grants.get("crosswind",false) == (index == 0),
+			"both choices grant one star steel; study grants Wind insight and the fallback manual")
+		_visit("fight",2)
+		_drain_dialogue()
+		_check(game.mode == "battle" and game.encounter.bond == index
+			and game.encounter.foes[0].poise == 5 - 2 * index and game.encounter.foes[1].poise == 5,
+			"the ambush weakens the lead enemy in the existing elite fight")
+		game.slot.cleared = [0,1,2]
+		game.chronicle.state().marks.dawn_lamp = true
+		var closing: Array = game.chronicle.ending()
+		_check(("护步" if index == 0 else "暗道") in closing[1][1],"the ending reflects how the hidden plates were used")
+	_chapter(5,{"hidden_ledger":"decision"})
+	game.slot.campaign.farewell = true
+	game.slot.cleared = [0,1,2]
+	game._enter_chapter(false)
+	_visit_on_foot("side_hidden_ledger")
+	_drain_dialogue()
+	_check(game.mode == "choice" and game.chronicle.options.size() == 2 and game.chronicle.options[0][1] == "done_defend",
+		"after the elite is defeated, the journal offers study and avoids promising a missed ambush")
+	game.cancel()
+
+func _test_dry_store() -> void:
+	_chapter(5,{})
+	game.slot.finished = true
+	game.slot.cleared = [0,1]
+	game.afterstory.resume()
+	_visit("brief")
+	_drain_dialogue()
+	_check(not _has_point("dry_store_hint") and not _has_point("dry_store"), "the western cache is hidden until registration clues emerge")
+	_visit("register")
+	_drain_dialogue()
+	_check(not _has_point("dry_store"), "reading the main register alone does not expose the cache")
+	_visit_on_foot("dry_store_hint")
+	_drain_dialogue()
+	_check(game.storage.read().afterstory.get("dry_store_hint",false) and _has_point("dry_store"), "the maintenance diary reveals the optional cache")
+	var journal: Array = game.afterstory.journal()
+	_check("长响过后" in journal.back()[1], "Tidegate journal records the cache timing clue")
+	_visit_on_foot("dry_store")
+	game.menu_confirm(0)
+	_check(game.mode == "field" and not game.afterstory.state().get("dry_store",false) and _has_point("dry_store"),
+		"wrong timing stays recoverable with no loss or forced encounter")
+	var main_stock: Dictionary = game.slot.materials.duplicate()
+	_visit("dry_store")
+	game.menu_confirm(1)
+	_drain_dialogue()
+	game.slot = game.storage.read()
+	game.afterstory.resume()
+	var flags: Dictionary = game.afterstory.state()
+	_check(flags.get("dry_store",false) and not _has_point("dry_store") and not flags.chief,
+		"opening the chest persists and remains obtainable before fighting Han Shuo")
+	_check(flags.materials.get("tide_core",0) == 1 and game.slot.gear_grants.get("granary_vest",false)
+		and game.slot.materials == main_stock, "cache grants the vest and one local-only tide core")
+	game._commit()
+	_check(flags.materials.get("tide_core",0) == 1, "reopening and saving cannot duplicate the unique tide core")
+	_chapter(5,{})
+	game.slot.finished = true
+	game.slot.cleared = [0,1]
+	game.slot.afterstory = Afterstory.initial()
+	game.slot.afterstory.merge({"brief":true,"register":true,"seal":true,"sluice":true,"chief":true,
+		"ledger":true,"route":"sluice","resolution":"public"},true)
+	game.afterstory.resume()
+	_check(_has_point("dry_store_hint") and _has_point("craft_tidegate") and _has_point("shop_tidegate"),
+		"a completed legacy Tidegate slot can still discover the chest and use the local forge")
+	if _check(game.storage.write(game.slot), "a legacy Tidegate checkpoint without cache flags remains valid"):
+		var broken: Dictionary = game.slot.duplicate(true)
+		broken.afterstory.dry_store = true
+		_check(not game.storage.write(broken), "validation rejects a cache claim without reading the clue")
+
+func _visit_on_foot(id: String) -> void:
+	var point := _field_point(id)
+	if _check(not point.is_empty() and _walk_to(point.pos), id + " is reachable via ordinary map collision"):
+		_visit(id)
+
 func _test_seals() -> void:
 	for step in ["","done_guide","done_proof"]:
 		_chapter(1,{} if step.is_empty() else {"seals":step})
@@ -56,6 +172,7 @@ func _test_seals() -> void:
 		_check(("换哨" in game.lines[0][1]) == (step == "done_proof"), "Fengxi evidence responds to the testimony")
 		_drain_dialogue()
 		_visit("inn_exit")
+		game.slot.journey.done.lanes_done = true
 		_visit("fight",1)
 		_drain_dialogue()
 		if not _check(game.mode == "battle", "Fengxi main fight opens with any quest outcome"):
@@ -362,7 +479,7 @@ func _test_craft_placement() -> void:
 		var forge: Dictionary = MarketCatalog.FORGES[site]
 		_check(_line_count(forge.note,270,13) <= 2, site + " forge note fits the panel")
 		for id in forge.gear:
-			_check(MarketCatalog.UPGRADE_COSTS.get(id,[]).size() == 2, id + " has two bounded upgrade tiers")
+			_check(MarketCatalog.UPGRADE_COSTS.get(id,[]).size() == 2, id + " has two standard upgrade tiers")
 	_chapter(2,{})
 	game.chronicle.enter("swordhall")
 	_check(not _has_point("craft_swordhall"), "the Swordhall forge opens after the lesson")
@@ -499,10 +616,17 @@ func _test_reunion_tidegate() -> void:
 		for point in ["register","seal","sluice","sluice_entry"]:
 			_visit(point)
 			_drain_dialogue()
+		for point in ["canal_tally","canal_manifest","canal_gatehouse","canal_exit"]:
+			_visit(point)
+			_drain_dialogue()
+		_check(game.field_key == "tidal_fort" and game.afterstory.state().get("canal_manifest",false),
+			"the sluice approach presents and persists the shipping manifest")
 		_visit("chief")
 		_drain_dialogue()
-		_check(game.encounter.foes[1].id == "tidal_drum" and game.encounter.foes[1].poise == (2 if plan == "roll" else 4),
-			"the public roll creates a real opening to interrupt the drum encounter")
+		if not _check(game.mode == "battle" and game.encounter.foes.size() == 2,"the canal continues into the original chief encounter"):
+			continue
+		_check(game.encounter.foes[1].id == "tidal_drum" and game.encounter.foes[1].poise == (2 if plan == "roll" else 4)
+			and game.encounter.allies[0].ward == (plan == "aid"), "Fengxi contact and canal manifest have distinct precedence in the chief encounter")
 		_retry()
 		_check(game.encounter.foes[1].poise == (2 if plan == "roll" else 4), "retry reuses the correct contact outcome")
 		game.afterstory.state().merge({"chief":true,"ledger":true,"resolution":"public"},true)
@@ -510,6 +634,40 @@ func _test_reunion_tidegate() -> void:
 		_visit("fengxi_contact")
 		_check(("领粮单" if plan == "roll" else "热锅") in game.lines[0][1], "Tidegate public settlement has a plan-specific aftermath")
 		_drain_dialogue()
+
+func _test_canal_witness() -> void:
+	_chapter(5,{})
+	game.slot.finished = true
+	game.slot.cleared = [0,1]
+	game.afterstory.resume()
+	for point in ["brief","register","seal","gate_entry","canal_tally"]:
+		_visit(point)
+		_drain_dialogue()
+	if not _check(game.field_key == "tidal_canal" and _has_point("canal_witness") and not _has_point("canal_manifest"),
+		"gate approach offers only the on-site witness"):
+		return
+	_visit("canal_witness")
+	_drain_dialogue()
+	game.slot = game.storage.read()
+	game.afterstory.resume()
+	_check(game.field_key == "tidal_canal" and game.afterstory.state().get("canal_witness",false) and _has_point("canal_gatehouse"),
+		"gate testimony persists across Tidegate reloads before reaching the warehouse")
+	for point in ["canal_gatehouse","canal_exit"]:
+		_visit(point)
+		_drain_dialogue()
+	if not _check(game.field_key == "tidal_fort" and _has_point("gate"), "gate route retains its original guard battle"):
+		return
+	game.afterstory.state().gate = true
+	_visit("chief")
+	_drain_dialogue()
+	_check(game.mode == "battle" and game.encounter.foes[1].poise == 3,
+		"tally testimony lowers the drum's opening poise by one")
+	game.afterstory.state().merge({"chief":true,"ledger":true},true)
+	game.afterstory._enter("tidal_ford")
+	_visit("report")
+	game.menu_confirm(1)
+	_check("州府" in game.lines.back()[1] and game.lines.back()[0] == "卸粮人", "the witness accompanies the ledger in the prefecture ending")
+	_drain_dialogue()
 
 func _line_count(value: String, width: float, size: int) -> int:
 	var line := ""

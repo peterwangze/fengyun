@@ -1,0 +1,114 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS lantern_pass is 768 px wide and connects to the next story location
+PASS pass_cart is unique and placed on the trail
+PASS pass_cart has a reachable successor index
+PASS pass_worker is unique and placed on the trail
+PASS pass_worker has a reachable successor index
+PASS pass_scouts is unique and placed on the trail
+PASS pass_scouts has a reachable successor index
+PASS pass_rope is unique and placed on the trail
+PASS pass_rope has a reachable successor index
+PASS pass_stencil is unique and placed on the trail
+PASS pass_stencil has a reachable successor index
+PASS pass_gate is unique and placed on the trail
+PASS pass_gate has a reachable successor index
+PASS pass_exit is unique and placed on the trail
+PASS pass_exit has a reachable successor index
+PASS lantern_pass records each authored branch outcome once
+PASS lantern_pass only starts the designated confrontations
+PASS pass_cart follows the prior interaction state
+PASS pass_cart can be reached in order with normal collisions
+PASS pass_worker follows the prior interaction state
+PASS pass_worker can be reached in order with normal collisions
+PASS pass_rope follows the prior interaction state
+PASS pass_rope can be reached in order with normal collisions
+PASS pass_gate follows the prior interaction state
+PASS pass_gate can be reached in order with normal collisions
+PASS pass_exit follows the prior interaction state
+PASS pass_exit can be reached in order with normal collisions
+PASS pass_worker reaches the terminal step through more than two viewport widths
+WALK pass_worker 1468 world pixels
+PASS pass_cart follows the prior interaction state
+PASS pass_cart can be reached in order with normal collisions
+PASS pass_scouts follows the prior interaction state
+PASS pass_scouts can be reached in order with normal collisions
+PASS pass_stencil follows the prior interaction state
+PASS pass_stencil can be reached in order with normal collisions
+PASS pass_gate follows the prior interaction state
+PASS pass_gate can be reached in order with normal collisions
+PASS pass_exit follows the prior interaction state
+PASS pass_exit can be reached in order with normal collisions
+PASS pass_scouts reaches the terminal step through more than two viewport widths
+WALK pass_scouts 1444 world pixels
+PASS courtyard_road is 768 px wide and connects to the next story location
+PASS escape_orders is unique and placed on the trail
+PASS escape_orders has a reachable successor index
+PASS escape_wounded is unique and placed on the trail
+PASS escape_wounded has a reachable successor index
+PASS escape_false_tracks is unique and placed on the trail
+PASS escape_false_tracks has a reachable successor index
+PASS escape_haul is unique and placed on the trail
+PASS escape_haul has a reachable successor index
+PASS escape_patrol is unique and placed on the trail
+PASS escape_patrol has a reachable successor index
+PASS escape_lantern is unique and placed on the trail
+PASS escape_lantern has a reachable successor index
+PASS escape_river is unique and placed on the trail
+PASS escape_river has a reachable successor index
+PASS courtyard_road records each authored branch outcome once
+PASS courtyard_road only starts the designated confrontations
+PASS escape_orders follows the prior interaction state
+PASS escape_orders can be reached in order with normal collisions
+PASS escape_wounded follows the prior interaction state
+PASS escape_wounded can be reached in order with normal collisions
+PASS escape_haul follows the prior interaction state
+PASS escape_haul can be reached in order with normal collisions
+PASS escape_lantern follows the prior interaction state
+PASS escape_lantern can be reached in order with normal collisions
+PASS escape_river follows the prior interaction state
+PASS escape_river can be reached in order with normal collisions
+PASS escape_wounded reaches the terminal step through more than two viewport widths
+WALK escape_wounded 1456 world pixels
+PASS escape_orders follows the prior interaction state
+PASS escape_orders can be reached in order with normal collisions
+PASS escape_false_tracks follows the prior interaction state
+PASS escape_false_tracks can be reached in order with normal collisions
+PASS escape_patrol follows the prior interaction state
+PASS escape_patrol can be reached in order with normal collisions
+PASS escape_lantern follows the prior interaction state
+PASS escape_lantern can be reached in order with normal collisions
+PASS escape_river follows the prior interaction state
+PASS escape_river can be reached in order with normal collisions
+PASS escape_false_tracks reaches the terminal step through more than two viewport widths
+WALK escape_false_tracks 1428 world pixels
+PASS fengxi_lanes is 768 px wide and connects to the next story location
+PASS lanes_child is unique and placed on the trail
+PASS lanes_child has a reachable successor index
+PASS lanes_witness is unique and placed on the trail
+PASS lanes_witness has a reachable successor index
+PASS lanes_tracks is unique and placed on the trail
+PASS lanes_tracks has a reachable successor index
+PASS lanes_relay is unique and placed on the trail
+PASS lanes_relay has a reachable successor index
+PASS lanes_bill is unique and placed on the trail
+PASS lanes_bill has a reachable successor index
+PASS lanes_exit is unique and placed on the trail
+PASS lanes_exit has a reachable successor index
+PASS fengxi_lanes records each authored branch outcome once
+PASS fengxi_lanes only starts the designated confrontations
+PASS lanes_child follows the prior interaction state
+PASS lanes_child can be reached in order with normal collisions
+PASS lanes_witness follows the prior interaction state
+PASS lanes_witness can be reached in order with normal collisions
+PASS lanes_tracks follows the prior interaction state
+PASS lanes_tracks can be reached in order with normal collisions
+PASS lanes_relay follows the prior interaction state
+PASS lanes_relay can be reached in order with normal collisions
+PASS lanes_bill follows the prior interaction state
+PASS lanes_bill can be reached in order with normal collisions
+PASS lanes_exit follows the prior interaction state
+PASS lanes_exit can be reached in order with normal collisions
+PASS lanes_witness reaches the terminal step through more than two viewport widths
+WALK lanes_witness 1600 world pixels
+Early transit zones: 0 failures

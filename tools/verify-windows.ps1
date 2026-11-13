@@ -184,7 +184,7 @@ try {
 
     if ($Equipment) {
         Press-Key 0x49
-        if ($PlaySystems -and $versionInfo.ProductMinorPart -ge 4) {
+        if ($PlaySystems -and ($versionInfo.ProductMajorPart -ge 3 -or $versionInfo.ProductMinorPart -ge 4)) {
             Press-Key 0x47
             Save-Screenshot '34-windows-build-guide' -Direct
             Press-Key 0x1B
@@ -501,7 +501,7 @@ try {
         Press-Key 0x34
         Start-Sleep -Milliseconds 740
         Save-Screenshot '26-windows-tidal-ward' -Direct
-        if ($PlaySystems -and $versionInfo.ProductMinorPart -ge 6) {
+        if ($PlaySystems -and ($versionInfo.ProductMajorPart -ge 3 -or $versionInfo.ProductMinorPart -ge 6)) {
             Save-Screenshot '35-windows-tidegate-phase' -Direct
         }
         Assert-NoRuntimeErrors $tidalLog
@@ -543,7 +543,7 @@ try {
         Assert-NoRuntimeErrors $settlementLog
         $later += 'Tidegate settlement with ledger fixture, main campaign unchanged'
     }
-    if ($PlaySystems -and $versionInfo.ProductMajorPart -eq 2 -and $versionInfo.ProductMinorPart -ge 8) {
+    if ($PlaySystems -and ($versionInfo.ProductMajorPart -ge 3 -or ($versionInfo.ProductMajorPart -eq 2 -and $versionInfo.ProductMinorPart -ge 8))) {
         Close-Game $game
         Set-ChapterFixture 2 10 @(0,1) -Expanded -Room 'swordhall'
         $forgeFixture = Get-Content -Raw -LiteralPath $savePath | ConvertFrom-Json -AsHashtable
@@ -587,6 +587,30 @@ try {
         }
         Assert-NoRuntimeErrors $resumeForgeLog
         $later += 'Swordhall forge keyboard/mouse, two upgrades across restart, exact material and silver costs'
+    }
+    if ($PlaySystems -and $versionInfo.ProductMajorPart -ge 3) {
+        Close-Game $game
+        Set-ChapterFixture 0 8 @(0,1) -Expanded
+        $roadFixture = Get-Content -Raw -LiteralPath $savePath | ConvertFrom-Json -AsHashtable
+        $roadFixture.hall = @{room='hall'; wedding=$true; staff=@('maid','servant'); alarm=$false}
+        $roadFixture.chronicle.marks = @{spar=$true; orders=$true; escape_carrier=$true}
+        $roadFixture.journey = @{active='courtyard_road'; step=4; at='escape_haul'; done=@{}}
+        [IO.File]::WriteAllText($savePath, ($roadFixture | ConvertTo-Json -Depth 8 -Compress))
+        $roadLog = Join-Path $ReportDirectory 'windows-road.log'
+        $game = Open-Game $roadLog
+        Press-Key 0x0D
+        Press-Key 0x4B
+        Press-Key 0x47
+        Press-Key 0x0D
+        if ((Read-Slot).cultivation.cloud -ne 'cloud_counter') {
+            throw 'The installed game did not persist the chosen cultivation stance.'
+        }
+        Save-Screenshot '37-windows-cultivation' -Direct
+        Press-Key 0x1B
+        Press-Key 0x1B
+        Save-Screenshot '38-windows-road' -Direct
+        Assert-NoRuntimeErrors $roadLog
+        $later += 'Loaded a wide-road checkpoint and persisted a cultivation stance through the installed game'
     }
     [PSCustomObject]@{
         Result = 'passed'

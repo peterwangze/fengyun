@@ -10,11 +10,15 @@ const SEAL_CHASE := ["客栈截印", ["shade","blade"], [
 ]]
 
 static func objective(g: Node2D) -> String:
+	if g.transit.active():
+		return g.transit.objective()
 	if g.afterstory.active:
 		return g.afterstory.objective()
 	var field: String = g.field_key
 	var f: Dictionary = g.slot.campaign
 	var won: Array = g.slot.cleared
+	if field == "village" and g.chronicle.has("ferry_evidence") and not won.has(1) and g.transit.available("fengxi_lanes"):
+		return "从西岸循车辙进雨巷，查运铁货单。"
 	if field == "village" and f.crossing.is_empty():
 		var bridge := "过石桥" if won.has(0) else "打石桥守卫"
 		if not f.rope: return "%s，或到东边船埠解缆。" % bridge
@@ -42,6 +46,9 @@ static func main_point(g: Node2D, points: Array) -> Dictionary:
 
 static func main_points(g: Node2D, points: Array) -> Array[Dictionary]:
 	var candidates: Array[Dictionary] = []
+	if g.transit.active():
+		candidates.assign(points)
+		return candidates
 	var paths := _walking_targets(g)
 	for id in _next_ids(g):
 		if paths.has(id):
@@ -98,6 +105,7 @@ static func _next_ids(g: Node2D) -> Array:
 				var ferry := "mooring" if not f.rope else ("board" if g.campaign.ferry_ready() else "escort_boatman")
 				return ["stone_bridge" if won.has(0) else "fight0", ferry]
 			if c.enabled() and (not c.has("ferry_evidence") or (won.has(1) and not c.has("dream_intro"))): return ["inn"]
+			if not won.has(1) and g.transit.available("fengxi_lanes"): return ["fengxi_lanes"]
 			if not won.has(1): return ["fight1"]
 			return ["exit"] if f.reunion else ["reunion"]
 		"inn":
@@ -128,7 +136,7 @@ static func _next_ids(g: Node2D) -> Array:
 			if f.rescued and not c.has("tea"): return ["tea"]
 			if won.has(1) and not c.has("evacuated"): return ["evacuated"] if c.has("fire_signal") else ["fire_signal"]
 			return ["palace_back"]
-		"cavern": return ["relic", "lost_relic", "shatter_relic", "prepare", "lodge"]
+		"cavern": return ["relic", "lost_relic", "shatter_relic", "ridge_road", "prepare", "lodge"]
 		"lodge": return ["blood_rite"] if c.enabled() and not c.has("blood_rite") else ["bedside"]
 		"peak":
 			if not won.has(0): return ["fight0"]

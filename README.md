@@ -1,20 +1,20 @@
 # 风云：山河劫
 
-简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。当前为 2.8.0，包含六章、潮关外篇、境界成长、秘籍、江湖商铺和装备锻造。
+简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.0.0 重排为十章主线与潮关外篇，新增十张可横向探索的地图。
 
 ## 开始游戏
 
-**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 2.8.0 APK](https://github.com/peterwangze/fengyun/releases/download/v2.8.0/Fengyun-2.8.0-android.apk)
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.0.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.0.0/Fengyun-3.0.0-android.apk)
 
-**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 2.8.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v2.8.0/Fengyun-2.8.0-windows-x64-setup.exe)
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.0.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.0.0/Fengyun-3.0.0-windows-x64-setup.exe)
 
-[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v2.8.0) · [第三方许可](Windows/Licenses)
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.0.0) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
-这是一部六章的同人改编，从天下会同门切磋、婚宴决裂，写到绝无神夺权和龙脉易手，最后由风云重上祭台、回凤溪点灯收束。主线取自 2002 年电视剧《风云》，原作漫画为马荣成作品。走正门和石桥会经历 16 场主线战。另有八条支线，部分选择会触发可选战。对白、美术与配乐按游戏场景重新制作。[电视剧分集梗概](https://watch.plex.tv/zh/show/wind-and-cloud-conquer-the-world-2002/season/1) · [爱奇艺《风云必胜》](https://www.iqiyi.com/a_1acbd8hdkmp.html)
+这部同人改编从天下会婚宴写到凤溪点灯，主线取自 2002 年电视剧《风云》，原作漫画为马荣成作品。标准路线因救援、绕行和迎敌选择经历 19–24 场主线战。重返天下会、龙脉易手、雨夜换血、最终守山与凤溪尾声各有独立章节。 [战役设计](CAMPAIGN.md) · [电视剧分集梗概](https://watch.plex.tv/zh/show/wind-and-cloud-conquer-the-world-2002/season/1)
 
-六章通关后，可从尾声或标题进入原创外篇「潮关余事」。在盐汊渡口找线索，从正门或水栅进入潮关粮仓，选择是否先解救被扣的证人，再决定如何交还账簿。外篇使用独立补给，随通关档记录进度。旧通关档可直接进入。
+通关后可从尾声或标题进入原创外篇「潮关余事」。在盐汊查名册和关印，经装卸渠沿正门或水栅入仓。两路取得的证词或运单分别影响战斗和结案。外篇使用独立补给，旧通关档可直接进入。
 
 - **凤溪**可走石桥或解缆渡河。西岸客栈可核对调令、接应信使和认识第二梦。留意天池杀手的鸣哨预告。
 - **剑池与魔池**可走泄火主桥或北侧石栈。取剑后随无名试招，再回天下会迎战雄霸。聂风在魔池用固守或第二梦的回春诀压住魔念。
@@ -50,7 +50,7 @@ Windows 手柄映射与 Android 一致。屏幕提示随键鼠和手柄输入切
 - 上方显示敌人下一招和克制属性。武学削减势条，破势让敌人跳过一次行动。
 - 普攻和固守回复真气。五名队员各有五门武学候选，可准备两门。积满四格且两人都站立时可发动专属合招。金创药能救起倒地的队友。
 - 选中单体攻击时会预览敌人的势条变化。药囊里的聚气丸回真气，护脉散抵挡下一次受击，破势针可打断敌人。核对凤溪调令后可在客栈后窗拦截密探，他从第二回合起会尝试逃走。
-- 青色「主」标记当前主线目标。江湖手记可查看八条支线的下一步、位置、期限和报酬，选择「追踪此事」后在当前场景标出「支」。
+- 青色「主」标记当前主线目标，宽地图边缘箭头提示屏外方向。江湖手记列出已知支线的下一步、位置、期限和报酬，选择「追踪此事」后在当前场景标出「支」。
 - 主线每累计四点历练提高一重境界。「行装与境界」显示当前属性与下次提升所需历练。护具和佩物各一栏，同一件可在队员间转交。行装来自开篇、境界、主线地点和支线，面板显示未取得行装的来源。
 - 境界 2 开启搭配，境界 4 强化效果。截势打断首领重招时多回真气；守反接住攻击时可以制造空门并积攒合击；乘隙用重招打空门时追加消耗 3 真气来提高威力。武学页标出每招适用的打法，选敌时可预览收益与代价。
 - 标准难度中，断浪蓄火后横扫全队；入魔之影会随魔念增强并吸走真气；被绝无神点名的队员可以固守或接受护持，接下金身重击便能打开空门。
@@ -63,6 +63,8 @@ Windows 手柄映射与 Android 一致。屏幕提示随键鼠和手柄输入切
 - 第三章剑庐可首次强化。靠近锻台互动，查看已有行装、下一级效果、材料持有量和工钱。药庐、获救老匠、凌云山和盐汊也能整修行装。强化最高 +2，随行装转交。
 - 剑池和后期精英战提供火纹铁；客栈截印、药箱和药庐等支线提供韧丝；核对名册、正门战和粮棚救援提供盐淬铁。剑庐可花 19 两购入「回云卸劲」，也可用 8 两、两块火纹铁和一份韧丝拓印。
 - 凤溪渡口解围、剑架修好、药庐结案和潮关救人等进展会改变商铺货源。已售出的货品按店累计。潮关强化使用当地的盐淬铁和盘缠。
+- 境界三可在「准备武学」打开「心法」（键盘 G、手柄 RB，触屏点按钮）。每人可在两式中选一，可随时在战外改换。五位队员的秘籍各能通过对应支线得心得后自动精修。
+- 凌云山和盐汊锻台可将指定 +2 行装改制成二选一的专属装备。Tab、RB 或点「分支改制」查看得失；确认后固定。星纹钢来自后期精英和「壁刻遗图」，潮纹扣来自「背潮旧匣」。
 - 第一章完成婚宴与撤离目标后可以走正门或竹径。后续章节按上方目标解锁路线、剧情和出口。金色标记表示可选战或支线。手记记录进度，离开章节前会提示进行中的限章任务。
 - 胜利、开箱、石灯、武学装配和关键剧情会写入存档。继续旅程从最近的章节安全点恢复。旧版存档保留进度，新增历史场景可从章节回看体验。败阵可原地重试。
 - 标准与轻松两种难度在开档时选择。声音与动态特效可在设置中切换，Windows 另有窗口模式。
@@ -76,7 +78,8 @@ Windows 手柄映射与 Android 一致。屏幕提示随键鼠和手柄输入切
 | `game/scripts/story.gd` | 章节、对白、人物、敌人和战斗配置 |
 | `game/scripts/game.gd`、`game/scripts/first_chapter.gd` | 主流程、第一章演出和巡逻路线、输入、碰撞和音频 |
 | `game/scripts/campaign.gd`、`game/scripts/campaign_art.gd` | 凤溪至终战的路线、章节状态和场景演出 |
-| `game/scripts/chronicle.gd`、`game/scripts/side_stories.gd`、`game/scripts/martial.gd` | 扩展主线、八条支线和武学配置 |
+| `game/scripts/campaign_arcs.gd`、`game/scripts/transit*.gd` | 章节事件关系、沿途区域、持久化进度和场景行动 |
+| `game/scripts/chronicle.gd`、`game/scripts/side_stories.gd`、`game/scripts/martial.gd` | 章节剧情、支线和武学配置 |
 | `game/scripts/afterstory.gd` | 潮关调查、两条路线与结案状态 |
 | `game/scripts/battle.gd`、`game/scripts/equipment.gd` | 双人战斗、敌方行动、行装效果与获取条件 |
 | `game/scripts/screen.gd`、`game/scripts/combat_art.gd`、`game/scripts/mobile_controls.gd` | 界面、地图、战斗动效与触屏控件 |
@@ -97,14 +100,14 @@ $godot = 'D:/AI/dev_toolchain/godot_tool_list/app/Godot_v4.7.2-stable_win64_cons
 & $godot --headless --path game --export-release 'Windows Desktop' (Join-Path $PWD 'Windows/Fengyun.exe')
 ```
 
-Windows 安装程序使用 Inno Setup 6.5.4 构建。完成 Windows 导出后，用已安装的 `ISCC.exe` 编译 `Windows/Fengyun.iss`，生成 `Windows/Fengyun-2.8.0-windows-x64-setup.exe`。[Inno Setup](https://jrsoftware.org/isinfo.php)
+Windows 安装程序使用 Inno Setup 6.5.4 构建。完成 Windows 导出后，用已安装的 `ISCC.exe` 编译 `Windows/Fengyun.iss`，生成 `Windows/Fengyun-3.0.0-windows-x64-setup.exe`。[Inno Setup](https://jrsoftware.org/isinfo.php)
 
 Android 使用 `Android` 导出预设。安装 OpenJDK 17、Android SDK 和匹配的 Godot 4.7.2 Android 模板，并在编辑器的 Android 设置里填入 JDK 和 SDK 路径。发布导出从环境变量 `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`、`GODOT_ANDROID_KEYSTORE_RELEASE_USER` 与 `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` 读取签名配置。覆盖安装时需保持相同包名和签名证书。[Godot Android 导出文档](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html)
 
 ```powershell
 New-Item -ItemType Directory -Force Android
-& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.8.0-android.apk')
+& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-3.0.0-android.apk')
 ```
 
-查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[2.8.0 验收](verification/forging/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。
+查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[3.0.0 验收](verification/mastery/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。
 

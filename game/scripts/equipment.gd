@@ -11,6 +11,16 @@ const FORGE_BONUSES := {
 	"sword_tassel":[{"broken_damage":2}, {"broken_damage":3}],
 	"apothecary_gourd":[{"heal":2}, {"ward_armor":2}],
 }
+const BRANCHES := {
+	"wind_break":{"item":"tide_whistle","hero":"wind","name":"断潮风哨","mods":{"weakness_poise":1,"qi":-4}},
+	"wind_breath":{"item":"tide_whistle","hero":"wind","name":"听潮风哨","mods":{"interrupt_qi":2,"attack":-2}},
+	"cloud_returning":{"item":"forge_guard","hero":"cloud","name":"回澜铁臂","mods":{"counter_power":4,"hp":-8}},
+	"cloud_bastion":{"item":"forge_guard","hero":"cloud","name":"镇浪铁臂","mods":{"heavy_armor":4,"counter_power":-2}},
+	"cloud_edge":{"item":"sword_tassel","hero":"cloud","name":"锁隙剑穗","mods":{"broken_damage":5,"qi":-4}},
+	"cloud_balance":{"item":"sword_tassel","hero":"cloud","name":"藏锋剑穗","mods":{"qi":5,"broken_damage":-3}},
+	"tidal_bank":{"item":"granary_vest","hero":"wind","name":"护堤风衣","mods":{"sweep_armor":5,"heavy_armor":-3}},
+	"tidal_watch":{"item":"granary_vest","hero":"cloud","name":"镇仓铁衣","mods":{"heavy_armor":3,"guard_qi":2,"hp":-8}},
+}
 const CATALOG := {
 	"travel_coat": {"kind":0,"name":"行旅布衣","source":"开篇自带","mods":{"hp":8,"attack":-2}},
 	"scale_vest": {"kind":0,"name":"鳞纹背心","source":"达到境界 2","merit":4,"mods":{"hp":14,"qi":-4}},
@@ -92,8 +102,25 @@ static func _stored_level(value: Variant) -> int:
 		return int(clampf(value, 0, MAX_FORGE_LEVEL))
 	return 0
 
+static func branch(slot: Dictionary, id: String) -> String:
+	return slot.get("gear_branches",{}).get(id,"")
+
+static func clean_branches(slot: Dictionary, value: Variant) -> Dictionary:
+	var clean := {}
+	if value is Dictionary:
+		for id in FORGE_BONUSES:
+			var chosen: Variant = value.get(id)
+			if chosen is String and BRANCHES.has(chosen) and BRANCHES[chosen].item == id and level(slot,id) == MAX_FORGE_LEVEL and unlocked(slot,id):
+				clean[id] = chosen
+	return clean
+
+static func can_wear(slot: Dictionary, hero: String, id: String) -> bool:
+	var chosen := branch(slot,id)
+	return chosen.is_empty() or BRANCHES[chosen].hero == hero
+
 static func display_name(slot: Dictionary, id: String) -> String:
-	var name: String = CATALOG[id].name
+	var chosen := branch(slot,id)
+	var name: String = CATALOG[id].name if chosen.is_empty() else BRANCHES[chosen].name
 	var current := level(slot, id)
 	return "%s +%d" % [name, current] if current > 0 else name
 
@@ -109,7 +136,7 @@ static func clean_loadouts(slot: Dictionary, stored: Variant) -> Dictionary:
 		var loadout := ["", ""]
 		for kind in CATEGORIES.size():
 			var id: Variant = items[kind]
-			if id is String and unlocked(slot, id) and CATALOG[id].kind == kind and not used.has(id):
+			if id is String and unlocked(slot, id) and CATALOG[id].kind == kind and can_wear(slot,hero,id) and not used.has(id):
 				loadout[kind] = id
 				used.append(id)
 		clean[hero] = loadout
@@ -128,7 +155,7 @@ static func owner(slot: Dictionary, id: String) -> String:
 static func assign(slot: Dictionary, hero: String, kind: int, id: String) -> bool:
 	if not Story.HEROES.has(hero) or kind < 0 or kind >= CATEGORIES.size():
 		return false
-	if not id.is_empty() and (not unlocked(slot, id) or CATALOG[id].kind != kind):
+	if not id.is_empty() and (not unlocked(slot, id) or CATALOG[id].kind != kind or not can_wear(slot,hero,id)):
 		return false
 	var holder := owner(slot, id)
 	if not holder.is_empty():
@@ -142,8 +169,24 @@ static func modifiers(slot: Dictionary, hero: String) -> Dictionary:
 	var total := {}
 	for id in slot.gear.get(hero, []):
 		if not id.is_empty():
-			_merge_mods(total, item_modifiers(id, level(slot, id)))
+			_merge_mods(total, equipped_modifiers(slot,hero,id))
 	return total
+
+static func equipped_modifiers(slot: Dictionary, hero: String, id: String) -> Dictionary:
+	return _owned_modifiers(slot,id) if can_wear(slot,hero,id) else {}
+
+static func _owned_modifiers(slot: Dictionary, id: String) -> Dictionary:
+	var mods := item_modifiers(id,level(slot,id))
+	var chosen := branch(slot,id)
+	if not chosen.is_empty():
+		_merge_mods(mods,BRANCHES[chosen].mods)
+	return mods
+
+static func describe_owned(slot: Dictionary, id: String) -> String:
+	return _describe_mods(_owned_modifiers(slot,id))
+
+static func branch_description(recipe: String) -> String:
+	return _describe_mods(BRANCHES[recipe].mods)
 
 static func item_modifiers(id: String, at_level: int = 0) -> Dictionary:
 	var mods: Dictionary = CATALOG[id].mods.duplicate()

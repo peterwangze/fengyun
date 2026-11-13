@@ -4,6 +4,8 @@ const MATERIALS := {
 	"ember_iron":{"name":"火纹铁","source":"剑池战斗、炉火借一更、山路残部"},
 	"clear_silk":{"name":"韧丝","source":"客栈截印、药庐三问、路上药箱"},
 	"tidal_iron":{"name":"盐淬铁","source":"潮关查名册、守卒和粮棚救援"},
+	"star_steel":{"name":"星纹钢","source":"绝宫与凌云山精英、石壁暗记"},
+	"tide_core":{"name":"潮纹扣","source":"潮关旧料仓"},
 }
 
 const FORGES := {
@@ -14,9 +16,17 @@ const FORGES := {
 	"palace":{"title":"天牢修具箱","note":"老匠取回了工具，可趁回茶房前把随身行装修好。",
 		"gear":["reed_mantle","forge_guard","tide_whistle","sword_tassel","apothecary_gourd"],"manuals":["cloud_return"]},
 	"peak":{"title":"凌云山临时锻台","note":"剑庐工匠带着工具来接人，决战前还能整修行装。",
-		"gear":["reed_mantle","forge_guard","tide_whistle","sword_tassel","apothecary_gourd"],"manuals":["cloud_return"]},
+		"gear":["reed_mantle","forge_guard","tide_whistle","sword_tassel","apothecary_gourd"],"manuals":["cloud_return"],
+		"branches":["wind_break","wind_breath","cloud_returning","cloud_bastion","cloud_edge","cloud_balance"]},
 	"tidegate":{"title":"盐汊打铁铺","note":"粮仓护衣须用潮关本地的盐淬铁。",
-		"gear":["granary_vest"]},
+		"gear":["granary_vest"],"branches":["tidal_bank","tidal_watch"]},
+}
+
+const BRANCH_COSTS := {
+	"tide_whistle":{"silver":10,"materials":{"star_steel":1}},
+	"forge_guard":{"silver":11,"materials":{"star_steel":1}},
+	"sword_tassel":{"silver":10,"materials":{"star_steel":1}},
+	"granary_vest":{"silver":4,"materials":{"tide_core":1,"tidal_iron":1}},
 }
 
 const UPGRADE_COSTS := {
@@ -86,18 +96,20 @@ const DROPS := {
 	"battle:forge:0":{"materials":{"ember_iron":1},"line":"执剑人把淬过的铁料留在了炉边。"},
 	"battle:forge:1":{"gear":"sword_tassel","materials":{"ember_iron":2},"line":"断浪没能带走剑穗和炉边的铁料。"},
 	"battle:forge:2":{"materials":{"ember_iron":2},"line":"炉火幻影散去，露出两块火纹铁。"},
-	"quest:remedy":{"manual":"moon_needle","silver":4,"materials":{"clear_silk":2},"line":"第二梦给你针法抄本和缝护具用的韧丝。"},
+	"quest:remedy":{"manual":"moon_needle","insight":"dream","silver":4,"materials":{"clear_silk":2},"line":"第二梦给你针法抄本和缝护具用的韧丝。"},
 	"battle:palace:0":{"manual":"sword_trace","materials":{"ember_iron":1},"line":"无名取回被卫队没收的剑谱和铁料。"},
-	"battle:palace:2":{"materials":{"ember_iron":2,"clear_silk":1},"line":"拦路的东瀛人把修甲材料留在廊下。"},
+	"battle:palace:2":{"materials":{"ember_iron":2,"clear_silk":1,"star_steel":1},"line":"廊下的修甲材料中压着一块星纹钢。"},
 	"battle:peak:0":{"materials":{"ember_iron":1},"line":"戾影散去，露出祭台原有的铁钉。"},
-	"battle:peak:2":{"materials":{"ember_iron":2,"clear_silk":1},"line":"天池残部的火纹铁与韧丝掉在石阶上。"},
+	"battle:peak:2":{"materials":{"ember_iron":2,"clear_silk":1,"star_steel":1},"line":"天池残部把铁料和星纹钢藏在石阶上。"},
 	"quest:seals":{"silver":4},
-	"quest:courier":{"silver":4},
-	"quest:forgework":{"silver":5,"materials":{"ember_iron":1,"clear_silk":1}},
+	"quest:courier":{"silver":4,"insight":"frost"},
+	"quest:forgework":{"silver":5,"materials":{"ember_iron":1,"clear_silk":1},"insight":"cloud"},
 	"quest:lamps":{"silver":4},
 	"quest:swordstory":{"silver":5},
-	"quest:shift":{"silver":4,"materials":{"clear_silk":1}},
+	"quest:shift":{"silver":4,"materials":{"clear_silk":1},"insight":"sage"},
 	"quest:stairs":{"silver":5,"materials":{"clear_silk":1}},
+	"quest:hidden_ledger":{"materials":{"star_steel":1}},
+	"quest:hidden_ledger/defend":{"manual":"crosswind","insight":"wind"},
 	"chest:hall":{"silver":4,"materials":{"clear_silk":1}},
 	"chest:village":{"silver":4},
 	"chest:forge":{"silver":4},
@@ -107,4 +119,5 @@ const DROPS := {
 	"tidal:register":{"materials":{"tidal_iron":1},"line":"粮棚账台下面放着一块盐淬铁。"},
 	"tidal:gate":{"materials":{"tidal_iron":1},"line":"正门守卒落下了一块盐淬铁。"},
 	"tidal:aid":{"silver":5,"materials":{"tidal_iron":2},"line":"阿芦把粮棚夹层的盐淬铁和盘缠交给了你。"},
+	"tidal:dry_store":{"silver":4,"gear":"granary_vest","materials":{"tide_core":1,"tidal_iron":1}},
 }

@@ -1,0 +1,105 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS injected joypad menu navigation, drift rejection and reconnect latch
+PASS added encounter spar
+PASS chapter 1 encounter 0 rounds 2 tonics 3 qi 步惊云 13/30,聂风 16/34
+GUIDE Banquet after speaking to Kong Ci ["ceremony"]
+GUIDE Wedding escape routes ["court_door", "garden_door"]
+PASS wedding, both evacuations, and room reload
+PASS chapter 1 encounter 1 rounds 2 tonics 4 qi 步惊云 13/30,聂风 12/34
+GUIDE courtyard_road step 1 ["escape_orders"]
+GUIDE courtyard_road step 2 ["escape_wounded", "escape_false_tracks"]
+GUIDE courtyard_road step 3 ["escape_haul"]
+GUIDE courtyard_road step 4 ["escape_lantern"]
+GUIDE courtyard_road step 5 ["escape_river"]
+PACING {"chapter":1,"encounters":[{"actions":3,"fight":"同门切磋","lowest_hp_pct":100,"qi_left":[29,27],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":0,"stagger_needle":0},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"守门执事","lowest_hp_pct":76,"qi_left":[13,16],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":0,"stagger_needle":0},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"飞云堂伏兵","lowest_hp_pct":76,"qi_left":[13,12],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":4,"tonics_used":0}],"rank_after":2,"tonics_after":5,"walk_seconds":41.4}
+PASS chapter 2 encounter 0 rounds 2 tonics 5 qi 聂风 18/36,秦霜 28/34
+GUIDE Fengxi bridge unlocked ["stone_bridge", "mooring"]
+GUIDE Fengxi evidence leads to the lanes ["fengxi_lanes"]
+GUIDE fengxi_lanes step 1 ["lanes_child"]
+GUIDE fengxi_lanes step 2 ["lanes_witness"]
+GUIDE fengxi_lanes step 3 ["lanes_tracks"]
+GUIDE fengxi_lanes step 4 ["lanes_relay"]
+GUIDE fengxi_lanes step 5 ["lanes_bill"]
+GUIDE fengxi_lanes step 6 ["lanes_exit"]
+PASS chapter 2 encounter 1 rounds 3 tonics 5 qi 聂风 18/36,秦霜 31/34
+PACING {"chapter":2,"encounters":[{"actions":3,"fight":"渡口密探","lowest_hp_pct":90,"qi_left":[18,28],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":5,"tonics_used":0},{"actions":3,"fight":"客栈截印","lowest_hp_pct":90,"qi_left":[18,28],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":5,"tonics_used":0},{"actions":4,"fight":"截住雨巷悬旗的接应者","lowest_hp_pct":90,"qi_left":[18,30],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":5,"tonics_used":0},{"actions":5,"fight":"天池杀手","lowest_hp_pct":100,"qi_left":[18,31],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":5,"tonics_used":0}],"rank_after":3,"tonics_after":6,"walk_seconds":52.6}
+GUIDE lantern_pass step 1 ["pass_cart"]
+GUIDE lantern_pass step 2 ["pass_worker", "pass_scouts"]
+GUIDE lantern_pass step 3 ["pass_rope"]
+GUIDE lantern_pass step 4 ["pass_gate"]
+GUIDE lantern_pass step 5 ["pass_exit"]
+PASS chapter 3 encounter 0 rounds 2 tonics 6 qi 步惊云 14/34,聂风 33/38
+GUIDE Forge crossings available ["winch", "north_ledge"]
+GUIDE Forge sluice opened ["sluice_bridge", "north_ledge"]
+RESPONSE duan fire_sweep 步惊云
+PASS chapter 3 encounter 1 rounds 3 tonics 6 qi 步惊云 20/34,聂风 16/38
+GUIDE outer_watch step 1 ["watch_signal"]
+GUIDE outer_watch step 2 ["watch_list"]
+GUIDE outer_watch step 3 ["watch_guard"]
+GUIDE outer_watch step 4 ["watch_exit"]
+PASS added encounter first_tyrant
+PACING {"chapter":3,"encounters":[{"actions":4,"fight":"剑池试炼","lowest_hp_pct":95,"qi_left":[14,33],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":6,"tonics_used":0},{"actions":5,"fight":"火麟争锋","lowest_hp_pct":100,"qi_left":[20,16],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":6,"tonics_used":0},{"actions":3,"fight":"从岗门救出两名证人","lowest_hp_pct":90,"qi_left":[24,29],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":2,"stagger_needle":5},"supplies_used":[],"tonics_start":6,"tonics_used":0},{"actions":9,"fight":"风云初合","lowest_hp_pct":61,"qi_left":[4,7],"rounds":5,"supplies_start":{"breath_pill":2,"guard_powder":2,"stagger_needle":5},"supplies_used":[],"tonics_start":6,"tonics_used":0}],"rank_after":4,"tonics_after":7,"walk_seconds":61.1}
+GUIDE Medicine hut after receiving instructions ["pool_back"]
+PASS chapter 4 encounter 0 rounds 2 tonics 7 qi 聂风 27/40,第二梦 34/44
+PASS chapter 4 encounter 1 rounds 5 tonics 7 qi 聂风 5/40,第二梦 44/44
+GUIDE Magic pool after the demon fight ["pool_gate"]
+GUIDE Magic pool fence opened ["pool_escape"]
+GUIDE Magic pool farewell complete ["exit"]
+GUIDE broken_trestle step 1 ["trestle_bell"]
+GUIDE broken_trestle step 2 ["trestle_shoal", "trestle_herbs"]
+GUIDE broken_trestle step 3 ["trestle_tracks"]
+GUIDE broken_trestle step 4 ["trestle_exit"]
+PACING {"chapter":4,"encounters":[{"actions":3,"fight":"试刀魔念","lowest_hp_pct":83,"qi_left":[27,34],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":7,"tonics_used":0},{"actions":10,"fight":"入魔之影","lowest_hp_pct":55,"qi_left":[5,44],"rounds":5,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":7,"tonics_used":0}],"rank_after":5,"tonics_after":8,"walk_seconds":34.4}
+PASS chapter 5 encounter 0 rounds 2 tonics 8 qi 步惊云 9/31,无名 34/46
+GUIDE palace_sluice step 1 ["palace_sluice_gate"]
+GUIDE palace_sluice step 2 ["palace_sluice_guard"]
+GUIDE palace_sluice step 3 ["palace_sluice_map"]
+GUIDE palace_sluice step 4 ["palace_sluice_exit"]
+AID palace 伤者托信使传到金身换气的时机。
+PASS chapter 5 encounter 1 rounds 7 tonics 8 qi 步惊云 1/31,无名 6/46
+PACING {"chapter":5,"encounters":[{"actions":3,"fight":"天牢卫队","lowest_hp_pct":82,"qi_left":[9,34],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":8,"tonics_used":0},{"actions":2,"fight":"击退水道巡卫","lowest_hp_pct":100,"qi_left":[20,39],"rounds":1,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":8,"tonics_used":0},{"actions":13,"fight":"不灭金身","lowest_hp_pct":58,"qi_left":[1,6],"rounds":7,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":8,"tonics_used":0}],"rank_after":6,"tonics_after":9,"walk_seconds":46.7}
+GUIDE dragon_waterway step 1 ["waterway_rubbing"]
+GUIDE dragon_waterway step 2 ["waterway_worker", "waterway_scout"]
+GUIDE dragon_waterway step 3 ["waterway_signal"]
+GUIDE dragon_waterway step 4 ["waterway_blood"]
+GUIDE dragon_waterway step 5 ["waterway_exit"]
+AID cave done_stealth 狱卒的护心镜让聂风获得一次护持。
+PASS added encounter cavern_guard
+GUIDE dragon_ridge step 1 ["ridge_lantern"]
+GUIDE dragon_ridge step 2 ["ridge_high", "ridge_low"]
+GUIDE dragon_ridge step 3 ["ridge_stove"]
+GUIDE dragon_ridge step 4 ["ridge_exit"]
+PASS added encounter prepare_guard
+GUIDE summit_steps step 1 ["summit_roster"]
+GUIDE summit_steps step 2 ["summit_escort", "summit_decoy"]
+GUIDE summit_steps step 3 ["summit_handoff"]
+GUIDE summit_steps step 4 ["summit_exit"]
+PASS chapter 6 encounter 0 rounds 4 tonics 9 qi 聂风 19/44,步惊云 28/33
+AID final done_sage 无名教的起手已用上，风云开场多 1 格合击。
+PASS chapter 6 encounter 1 rounds 6 tonics 8 qi 聂风 8/44,步惊云 1/33
+PASS final shield combo
+REUNION 凤溪·渡口公示
+PACING {"chapter":6,"encounters":[{"actions":6,"fight":"夺回龙脉","lowest_hp_pct":81,"qi_left":[41,28],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":9,"tonics_used":0},{"actions":2,"fight":"守住药庐","lowest_hp_pct":100,"qi_left":[33,22],"rounds":1,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":9,"tonics_used":0},{"actions":8,"fight":"龙脉戾影","lowest_hp_pct":62,"qi_left":[19,28],"rounds":4,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":["stagger_needle"],"tonics_start":9,"tonics_used":0},{"actions":12,"fight":"末路雄霸","lowest_hp_pct":2,"qi_left":[8,1],"rounds":6,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":9,"tonics_used":1}],"rank_after":7,"tonics_after":8,"walk_seconds":76.8}
+Quest outcomes: { "courier": "done_quiet", "forgework": "done_rack", "lamps": "done_boat", "remedy": "done_aid", "seals": "done_guide", "shift": "done_stealth", "stairs": "done_escort", "swordstory": "done_sage" }
+TACTICS { "fire_blocked": 1, "fire_guarded": 0, "mind_suppressed": 1, "armor_opened": 1 }
+AID Tidegate reunion opening poise
+AID Tidegate boat opened the waterway
+GUIDE tidal_canal step 1 ["canal_tally"]
+GUIDE tidal_canal step 2 ["canal_witness"]
+GUIDE tidal_canal step 3 ["canal_gatehouse"]
+GUIDE tidal_canal step 4 ["canal_exit"]
+PASS Tidegate route=gate rescue=true ending=public
+TIDAL {"encounters":[{"actions":5,"fight":"潮关守卒","lowest_hp_pct":89,"qi_left":[24,16],"rounds":3,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":5,"fight":"粮棚截押","lowest_hp_pct":93,"qi_left":[22,16],"rounds":3,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":13,"fight":"潮关夺账","lowest_hp_pct":33,"qi_left":[8,5],"rounds":7,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":1},"supplies_used":["stagger_needle"],"tonics_start":5,"tonics_used":0}],"ending":"public","route":"gate"}
+ENDGAME tactics { "dragon_stopped": 1, "tyrant_transition": 1, "formation_cancelled": 1 }
+ENDGAME build activations {  }
+MARKET route=training events=["frost_gate", "crosswind", "inn:reed_mantle", "tide_whistle", "sword_tassel", "forge:cloud_return", "moon_needle", "medicine:apothecary_gourd", "sword_trace", "tidegate:granary_vest"]
+MANUAL_CASTS { "crosswind": 1, "frost_gate": 1, "cloud_return": 1, "moon_needle": 1, "sword_trace": 1 }
+TRANSIT [{"battles":[],"flags":["escape_carrier"],"points":["escape_orders","escape_wounded","escape_haul","escape_lantern","escape_river"],"room":"courtyard_road","walk_seconds":14.5},{"battles":["lanes_relay"],"flags":[],"points":["lanes_child","lanes_witness","lanes_tracks","lanes_relay","lanes_bill","lanes_exit"],"room":"fengxi_lanes","walk_seconds":16.0},{"battles":[],"flags":["pass_help"],"points":["pass_cart","pass_worker","pass_rope","pass_gate","pass_exit"],"room":"lantern_pass","walk_seconds":14.6},{"battles":["watch_guard"],"flags":["watch_freed"],"points":["watch_signal","watch_list","watch_guard","watch_exit"],"room":"outer_watch","walk_seconds":14.8},{"battles":[],"flags":["trestle_carry"],"points":["trestle_bell","trestle_shoal","trestle_tracks","trestle_exit"],"room":"broken_trestle","walk_seconds":14.1},{"battles":["palace_sluice_guard"],"flags":[],"points":["palace_sluice_gate","palace_sluice_guard","palace_sluice_map","palace_sluice_exit"],"room":"palace_sluice","walk_seconds":14.2},{"battles":[],"flags":["waterway_high"],"points":["waterway_rubbing","waterway_worker","waterway_signal","waterway_blood","waterway_exit"],"room":"dragon_waterway","walk_seconds":14.1},{"battles":[],"flags":["ridge_guide"],"points":["ridge_lantern","ridge_high","ridge_stove","ridge_exit"],"room":"dragon_ridge","walk_seconds":14.6},{"battles":[],"flags":["summit_aid"],"points":["summit_roster","summit_escort","summit_handoff","summit_exit"],"room":"summit_steps","walk_seconds":14.5},{"battles":[],"flags":["canal_witness"],"points":["canal_tally","canal_witness","canal_gatehouse","canal_exit"],"room":"tidal_canal","walk_seconds":14.6}]
+ARCS [{"arc":1,"encounters":[{"actions":3,"fight":"同门切磋","lowest_hp_pct":100,"qi_left":[29,27],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":0,"stagger_needle":0},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"守门执事","lowest_hp_pct":76,"qi_left":[13,16],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":0,"stagger_needle":0},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"飞云堂伏兵","lowest_hp_pct":76,"qi_left":[13,12],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":4,"tonics_used":0}],"entry":"hall","goals":["escape_orders","escape_wounded","escape_haul","escape_lantern","escape_river"],"silver_change":18,"walk_seconds":41.4},{"arc":2,"encounters":[{"actions":3,"fight":"渡口密探","lowest_hp_pct":90,"qi_left":[18,28],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":5,"tonics_used":0},{"actions":3,"fight":"客栈截印","lowest_hp_pct":90,"qi_left":[18,28],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":5,"tonics_used":0},{"actions":4,"fight":"截住雨巷悬旗的接应者","lowest_hp_pct":90,"qi_left":[18,30],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":5,"tonics_used":0},{"actions":5,"fight":"天池杀手","lowest_hp_pct":100,"qi_left":[18,31],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":5,"tonics_used":0}],"entry":"village","goals":["lanes_child","lanes_witness","lanes_tracks","lanes_relay","lanes_bill","lanes_exit"],"silver_change":8,"walk_seconds":52.6},{"arc":3,"encounters":[{"actions":4,"fight":"剑池试炼","lowest_hp_pct":95,"qi_left":[14,33],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":6,"tonics_used":0},{"actions":5,"fight":"火麟争锋","lowest_hp_pct":100,"qi_left":[20,16],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":3},"supplies_used":[],"tonics_start":6,"tonics_used":0}],"entry":"lantern_pass","goals":["pass_cart","pass_worker","pass_rope","pass_gate","pass_exit"],"silver_change":11,"walk_seconds":30.7},{"arc":4,"encounters":[{"actions":3,"fight":"从岗门救出两名证人","lowest_hp_pct":90,"qi_left":[24,29],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":2,"stagger_needle":5},"supplies_used":[],"tonics_start":6,"tonics_used":0},{"actions":9,"fight":"风云初合","lowest_hp_pct":61,"qi_left":[4,7],"rounds":5,"supplies_start":{"breath_pill":2,"guard_powder":2,"stagger_needle":5},"supplies_used":[],"tonics_start":6,"tonics_used":0}],"entry":"swordhall","goals":["watch_signal","watch_list","watch_guard","watch_exit"],"silver_change":-6,"walk_seconds":30.5},{"arc":5,"encounters":[{"actions":3,"fight":"试刀魔念","lowest_hp_pct":83,"qi_left":[27,34],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":7,"tonics_used":0},{"actions":10,"fight":"入魔之影","lowest_hp_pct":55,"qi_left":[5,44],"rounds":5,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":7,"tonics_used":0}],"entry":"pool","goals":["trestle_bell","trestle_shoal","trestle_tracks","trestle_exit"],"silver_change":-2,"walk_seconds":34.4},{"arc":6,"encounters":[{"actions":3,"fight":"天牢卫队","lowest_hp_pct":82,"qi_left":[9,34],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":8,"tonics_used":0},{"actions":2,"fight":"击退水道巡卫","lowest_hp_pct":100,"qi_left":[20,39],"rounds":1,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":5},"supplies_used":[],"tonics_start":8,"tonics_used":0},{"actions":13,"fight":"不灭金身","lowest_hp_pct":58,"qi_left":[1,6],"rounds":7,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":8,"tonics_used":0}],"entry":"palace","goals":["palace_sluice_gate","palace_sluice_guard","palace_sluice_map","palace_sluice_exit"],"silver_change":18,"walk_seconds":46.7},{"arc":7,"encounters":[{"actions":6,"fight":"夺回龙脉","lowest_hp_pct":81,"qi_left":[41,28],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":9,"tonics_used":0}],"entry":"dragon_waterway","goals":["waterway_rubbing","waterway_worker","waterway_signal","waterway_blood","waterway_exit"],"silver_change":5,"walk_seconds":18.4},{"arc":8,"encounters":[{"actions":2,"fight":"守住药庐","lowest_hp_pct":100,"qi_left":[33,22],"rounds":1,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":9,"tonics_used":0}],"entry":"cavern","goals":["ridge_lantern","ridge_high","ridge_stove","ridge_exit"],"silver_change":5,"walk_seconds":20.2},{"arc":9,"encounters":[{"actions":8,"fight":"龙脉戾影","lowest_hp_pct":62,"qi_left":[19,28],"rounds":4,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":["stagger_needle"],"tonics_start":9,"tonics_used":0},{"actions":12,"fight":"末路雄霸","lowest_hp_pct":2,"qi_left":[8,1],"rounds":6,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":9,"tonics_used":1}],"entry":"summit_steps","goals":["summit_roster","summit_escort","summit_handoff","summit_exit"],"silver_change":21,"walk_seconds":32.0},{"arc":10,"encounters":[],"entry":"dawn","goals":[],"silver_change":4,"walk_seconds":6.1}]
+REPLAY chapter boundaries 3, 7, 8, 9 and main save isolation checked
+PASS partner combos, delayed reinforcement and ally-targeted protection
+MARKET_MIGRATION passed
+PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery
+Connected physical controllers: []
+RESULT wins=12 combos=14 failures=0 actions={ "tonics": 1, "techniques": 85, "guard": 5, "combo": 14 }

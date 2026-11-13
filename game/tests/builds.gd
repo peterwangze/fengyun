@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Battle = preload("res://scripts/battle.gd")
+const Economy = preload("res://scripts/economy.gd")
 const Equipment = preload("res://scripts/equipment.gd")
 const Martial = preload("res://scripts/martial.gd")
 const Save = preload("res://scripts/save.gd")
@@ -23,6 +24,10 @@ func _initialize() -> void:
 	_test_new_gear()
 	_test_new_manual_actions()
 	_test_forged_loadouts()
+	_test_cultivation()
+	_test_masteries()
+	_test_exclusive_gear_branches()
+	_test_advancement_save_migration()
 	print("Builds: %d failures" % failures)
 	quit(1 if failures else 0)
 
@@ -38,11 +43,13 @@ func _battle(slot: Dictionary, party: Array, enemies: Array, rank: int) -> RefCo
 	var prepared := {}
 	var gear := {}
 	var builds := {}
+	var training := {}
 	for id in party:
 		prepared[id] = Martial.prepared(slot, id)
 		gear[id] = Equipment.modifiers(slot, id)
 		builds[id] = Martial.synergies(slot, id, rank)
-	return Battle.new(party, enemies, rank, 2, false, slot.chapter, slot.campaign.sword, prepared, true, gear, {}, builds)
+		training[id] = Martial.training(slot, id, rank)
+	return Battle.new(party, enemies, rank, 2, false, slot.chapter, slot.campaign.sword, prepared, true, gear, {}, builds, training)
 
 func _test_unlocks() -> void:
 	var slot := _slot()
@@ -448,6 +455,156 @@ func _test_forged_loadouts() -> void:
 	Equipment.assign(slot, "cloud", 1, "tide_whistle")
 	_check(Equipment.level(slot, "tide_whistle") == 2 and Equipment.modifiers(slot,"cloud").interrupt_qi == 1
 		and not Equipment.modifiers(slot,"wind").has("interrupt_qi"), "reinforcement follows the unique item when transferred")
+
+func _test_cultivation() -> void:
+	var slot := _slot()
+	slot.chapter = 5
+	slot.campaign.sword = true
+	slot.chronicle.loadout.cloud = [2, 1]
+	slot.chronicle.loadout.frost = [2, 3]
+	slot.chronicle.loadout.sage = [0, 2]
+	slot.chronicle.loadout.wind = [0, 2]
+	slot.cultivation = Martial.clean_cultivation({"wind":"wind_seek", "cloud":"wind_cover", "unknown":"unknown"})
+	_check(slot.cultivation == {"wind":"wind_seek"} and Martial.cultivation_choice(slot,"wind",2).is_empty(),
+		"stance validation rejects another hero's style and rank two cannot use cultivation")
+	var seek := _battle(slot,["wind","cloud"],["dragon"],3)
+	var seek_qi: int = seek.allies[0].qi
+	seek.act(1,0)
+	_check(seek.allies[0].qi == seek_qi - 5 and "逐风 · 回气 2" in seek.log, "Wind's Seeking stance rewards a wind attack against a telegraph")
+	slot.cultivation = {"wind":"wind_cover", "cloud":"cloud_counter"}
+	var cover := _battle(slot,["wind","cloud"],["gate_guard"],3)
+	var cover_qi: int = cover.allies[0].qi
+	cover.act(2,1)
+	cover.act(3,0)
+	_check(cover.allies[0].qi == cover_qi - 4 and "护风 · 回气 3" in cover.log, "Wind's Cover stance recovers Qi for actually redirecting a hit")
+	var cloud := _battle(slot,["wind","cloud"],["gate_guard"],3)
+	cloud.act(3,0)
+	cloud.act(1,0)
+	_check(cloud.foes[0].poise == 3 and "凝云 · 反击削势 +1" in cloud.log, "Cloud's counter stance increases retaliatory poise loss")
+	slot.cultivation = {"cloud":"cloud_pursuit"}
+	var pursuit := _battle(slot,["cloud","wind"],["gate_guard"],3)
+	pursuit.foes[0].opening = 1
+	pursuit.act(2,0)
+	_check("追云 · 空门武学威力 +5" in pursuit.log, "switching Cloud to Pursuit adds damage to a real opening")
+	slot.cultivation = {"frost":"frost_shelter"}
+	var shelter := _battle(slot,["frost","wind"],["gate_guard"],3)
+	var guarded_hp: int = shelter.allies[1].hp
+	shelter.act(1,0)
+	shelter._hurt_ally(1,20,1,"cloud",0)
+	_check(guarded_hp - shelter.allies[1].hp == 7, "Frost's Shelter stance strengthens his ward on an ally")
+	slot.cultivation = {"frost":"frost_shatter"}
+	var shatter := _battle(slot,["frost","wind"],["gate_guard"],3)
+	shatter.foes[0].frost = 1
+	_check(shatter.poise_preview(2,0) == "势 5 → 1" and shatter.act(2,0) and shatter.foes[0].poise == 1,
+		"Frost's Shatter stance forecasts and deals an extra poise only with a consumed mark")
+	slot.cultivation = {"dream":"dream_breath"}
+	var breath := _battle(slot,["dream","wind"],["gate_guard"],3)
+	breath.allies[0].qi = 22
+	breath.allies[1].qi = 10
+	breath.act(1,0)
+	_check(breath.allies[0].qi == 14 and breath.allies[1].qi == 12, "Dream's Breathing stance supports the partner's Qi without refunding her own cast")
+	slot.cultivation = {"dream":"dream_heal"}
+	var healer := _battle(slot,["dream","wind"],["gate_guard"],3)
+	healer.allies[1].hp = 20
+	healer.act(1,0)
+	_check(healer.allies[1].hp == 70 and "温针 · 危急队友治疗 +4" in healer.log, "Dream's Warm Needle gives an actual extra four HP to a critical ally")
+	slot.cultivation = {"sage":"sage_cut"}
+	var sage := _battle(slot,["sage","cloud"],["dragon"],3)
+	_check(sage.poise_preview(1,0) == "势 5 → 2" and sage.act(1,0) and sage.foes[0].poise == 2,
+		"Sage's Sword Heart adds one poise only against a telegraphed move")
+	slot.cultivation = {"sage":"sage_counter"}
+	var counter := _battle(slot,["cloud","sage"],["gate_guard"],3)
+	counter.act(3,0)
+	counter.act(2,0)
+	_check("听锋 · 反击威力 +6" in counter.log and counter.foes[0].hp == counter.foes[0].max_hp - 41,
+		"Sage's Listening Edge increases counter damage by six")
+
+func _test_masteries() -> void:
+	var slot := _slot()
+	slot.chapter = 5
+	slot.campaign.sword = true
+	slot.insights = Martial.clean_insights({"wind":true,"cloud":true,"frost":true,"dream":true,"sage":true,"unknown":true})
+	_check(slot.insights.size() == 5 and not Martial.mastered(slot,"wind"), "insight waits for the base manual and invalid hero receipts are dropped")
+	slot.manual_grants = {"crosswind":true,"cloud_return":true,"frost_gate":true,"moon_needle":true,"sword_trace":true}
+	for hero in slot.insights:
+		slot.chronicle.loadout[hero] = [4,0]
+	_check(Martial.enhanced(Martial.move_for(slot,"wind",4)) and Martial.mastery_source("wind").begins_with("壁刻遗图"),
+		"mastered description and source are available before equipping")
+	var wind := _battle(slot,["wind","cloud"],["dragon"],4)
+	_check("精修" in wind.label(1) and wind.poise_preview(1,0) == "势 5 → 1" and wind.act(1,0) and wind.foes[0].poise == 1,
+		"mastered Crosswind forecasts and deals two extra poise against a windup")
+	var cloud := _battle(slot,["wind","cloud"],["gate_guard"],4)
+	cloud.act(3,0)
+	var cloud_qi: int = cloud.allies[1].qi
+	cloud.act(1,0)
+	_check(cloud.allies[1].qi == cloud_qi - 6, "mastered Cloud Return refunds three Qi on a successful counter")
+	var frost := _battle(slot,["frost","wind"],["claw"],4)
+	frost.foes[0].poise = 1
+	frost.act(1,0)
+	_check(frost.allies[0].ward and frost.allies[1].ward, "mastered Frost Gate protects both fighters after a live break")
+	var dream := _battle(slot,["dream","wind"],["demon"],4)
+	dream.allies[1].qi = 2
+	dream.act(1,1)
+	_check(dream.allies[1].qi == 11, "mastered Needle Transfer restores nine Qi")
+	var sage := _battle(slot,["sage","cloud"],["godless"],4)
+	sage.act(1,0)
+	_check(sage.foes[0].hp == sage.foes[0].max_hp - 31, "mastered Sword Trace uses its published 82% armor factor")
+
+func _test_exclusive_gear_branches() -> void:
+	var slot := _slot()
+	slot.gear_grants = {"tide_whistle":true}
+	slot.gear_levels = {"tide_whistle":2}
+	slot.materials = {"star_steel":1}
+	slot.silver = 22
+	_check(Equipment.assign(slot,"cloud",1,"tide_whistle") and Equipment.modifiers(slot,"cloud").qi == 6,
+		"older +2 equipment retains original modifiers and can still be shared")
+	var alternate := slot.duplicate(true)
+	_check(Economy.reinforce(slot,slot,"peak",0,true).ends_with("断潮风哨") and Equipment.owner(slot,"tide_whistle").is_empty(),
+		"choosing the Wind-only branch automatically removes the previous incompatible wearer")
+	_check(not Equipment.assign(slot,"cloud",1,"tide_whistle") and Equipment.assign(slot,"wind",1,"tide_whistle")
+		and Equipment.modifiers(slot,"wind").weakness_poise == 1, "exclusive combat modifiers only apply when the named hero equips the crafted form")
+	_check(slot.silver == 12 and slot.materials.star_steel == 0 and Economy.reinforce(slot,slot,"peak",1,true).is_empty()
+		and Economy.reinforce(slot,slot,"peak",0,true).is_empty() and slot.silver == 12 and slot.materials.star_steel == 0,
+		"repeat crafting and choosing the alternate branch spend no resources")
+	_check(Economy.reinforce(alternate,alternate,"peak",1,true).ends_with("听潮风哨") and Equipment.assign(alternate,"wind",1,"tide_whistle")
+		and Martial.synergies(alternate,"wind",4).interrupt == 8 and not Equipment.modifiers(alternate,"wind").has("weakness_poise"),
+		"the other branch is independently craftable and trades the poise modifier for extra interrupt Qi")
+	_check(Economy.forge_offer(alternate,alternate,"peak",0,true).limit == "已选另一式", "the choice is exclusive in either direction")
+	var storage := Save.new("qa_growth_branch_%d" % OS.get_process_id())
+	_check(storage.write(alternate), "exclusive branch save writes successfully")
+	var restored := storage.read()
+	_check(Equipment.branch(restored,"tide_whistle") == "wind_breath" and Equipment.owner(restored,"tide_whistle") == "wind"
+		and restored.silver == 12 and not restored.materials.has("star_steel"), "reload preserves chosen branch and paid resource balances")
+	_remove_fixture(storage)
+
+func _test_advancement_save_migration() -> void:
+	var storage := Save.new("qa_growth_migration_%d" % OS.get_process_id())
+	var old := _slot()
+	old.chapter = 5
+	old.gear_grants = {"tide_whistle":true}
+	old.gear_levels = {"tide_whistle":2}
+	Equipment.assign(old,"cloud",1,"tide_whistle")
+	old.silver = 19
+	old.materials = {"ember_iron":2,"clear_silk":1}
+	old.loot_claims = {"battle:palace:2":true,"battle:peak:2":true,"quest:forgework":true,"quest:courier":true}
+	old.material_claims = {"battle:palace:2":true,"battle:peak:2":true,"quest:forgework":true}
+	for future in ["insights", "cultivation", "gear_branches"]:
+		old.erase(future)
+	_check(storage.write(old), "older earned-elite checkpoint can be written for migration")
+	var upgraded := storage.read()
+	_check(upgraded.materials == {"ember_iron":2,"clear_silk":1,"star_steel":2} and upgraded.silver == 19,
+		"new rare materials are recovered from recorded sources without refunding spent old materials or silver")
+	_check(upgraded.insights == {"frost":true,"cloud":true} and not Martial.mastered(upgraded,"cloud")
+		and Equipment.level(upgraded,"tide_whistle") == 2 and Equipment.owner(upgraded,"tide_whistle") == "cloud",
+		"migration restores only earned insights and keeps a portable legacy +2 item")
+	_check(storage.write(upgraded) and storage.read().materials == upgraded.materials, "saving migrated account makes rare material recovery idempotent")
+	_remove_fixture(storage)
+
+func _remove_fixture(storage: RefCounted) -> void:
+	for suffix in ["", ".bak", ".tmp"]:
+		var file: String = storage.path + suffix
+		if FileAccess.file_exists(file):
+			DirAccess.remove_absolute(file)
 
 func _check(passed: bool, description: String) -> void:
 	print(("PASS " if passed else "FAIL ") + description)

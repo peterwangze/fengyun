@@ -4,6 +4,7 @@ const Story = preload("res://scripts/story.gd")
 const Equipment = preload("res://scripts/equipment.gd")
 const SYNERGY_TIER := 2
 const SYNERGY_ADVANCED_TIER := 4
+const CULTIVATION_RANK := 3
 const EXPLOIT_COST := 3
 const SYNERGY_NAMES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const PROTECTION := ["cover", "counter", "counter_poise", "shelter", "aid"]
@@ -39,6 +40,25 @@ const MANUALS := {
 }
 const MANUAL_INDEX := 4
 const HERO_MANUALS := {"wind":"crosswind", "cloud":"cloud_return", "frost":"frost_gate", "dream":"moon_needle", "sage":"sword_trace"}
+const CULTIVATION := {
+	"wind":[{"id":"wind_seek","name":"逐风","detail":"以风系武学迎击重招时回 2 气。"},
+		{"id":"wind_cover","name":"护风","detail":"成功代挡回 3 气，每回合一次。"}],
+	"cloud":[{"id":"cloud_counter","name":"凝云","detail":"反击多削 1 格势。"},
+		{"id":"cloud_pursuit","name":"追云","detail":"武学打空门威力 +5，每次出招一次。"}],
+	"frost":[{"id":"frost_shelter","name":"寒衣","detail":"自身武学施加的护持额外减伤 2 点。"},
+		{"id":"frost_shatter","name":"裂霜","detail":"引爆霜印时再削 1 格势。"}],
+	"dream":[{"id":"dream_breath","name":"调息","detail":"医疗武学给另一名队员额外回复 2 气。"},
+		{"id":"dream_heal","name":"温针","detail":"医疗武学用于半血以下的队员时多治 4 点。"}],
+	"sage":[{"id":"sage_cut","name":"剑心","detail":"单体武学迎击重招时多削 1 格势。"},
+		{"id":"sage_counter","name":"听锋","detail":"反击威力 +6。"}],
+}
+const MASTERY := {
+	"wind":{"source":"壁刻遗图 · 留印研步","detail":"单体 · 迎重招额外削 2 格势"},
+	"cloud":{"source":"炉火借一更","detail":"固守 · 反击削 3 势并回 3 气"},
+	"frost":{"source":"雨夜押书","detail":"单体 · 破势后两人均获护持"},
+	"dream":{"source":"药庐三问","detail":"单体 · 治疗、回 9 气，魔念 −2"},
+	"sage":{"source":"换岗的灯","detail":"单体 · 保留 82% 威力穿金身"},
+}
 const NAMES := {"wind_frost":"风霜封渡","wind_dream":"风息回春","cloud_sage":"双剑开阵","wind_cloud":"风云合璧"}
 
 static func options(id: String, sword: bool) -> Array:
@@ -65,6 +85,52 @@ static func clean_grants(value: Variant) -> Dictionary:
 				grants[id] = true
 	return grants
 
+static func clean_cultivation(value: Variant) -> Dictionary:
+	var clean := {}
+	if value is Dictionary:
+		for hero in CULTIVATION:
+			var choice: Variant = value.get(hero)
+			for stance in CULTIVATION[hero]:
+				if choice == stance.id:
+					clean[hero] = choice
+	return clean
+
+static func clean_insights(value: Variant) -> Dictionary:
+	var clean := {}
+	if value is Dictionary:
+		for hero in MASTERY:
+			if value.get(hero) == true:
+				clean[hero] = true
+	return clean
+
+static func cultivation_choice(slot: Dictionary, hero: String, rank: int) -> Dictionary:
+	if rank < CULTIVATION_RANK:
+		return {}
+	var id: String = slot.get("cultivation", {}).get(hero, "")
+	for stance in CULTIVATION.get(hero, []):
+		if id == stance.id:
+			return stance
+	return {}
+
+static func mastered(slot: Dictionary, hero: String) -> bool:
+	return slot.get("insights", {}).get(hero, false) == true and unlocked(slot, hero, MANUAL_INDEX)
+
+static func mastery_source(hero: String) -> String:
+	return MASTERY.get(hero, {}).get("source", "")
+
+static func training(slot: Dictionary, hero: String, rank: int) -> Dictionary:
+	return {"stance":cultivation_choice(slot, hero, rank), "mastered":mastered(slot, hero)}
+
+static func move_for(slot: Dictionary, hero: String, index: int) -> Array:
+	var move: Array = options(hero, slot.campaign.sword)[index]
+	if index == MANUAL_INDEX and mastered(slot, hero):
+		_apply_mastery(hero, move)
+	return move
+
+static func _apply_mastery(hero: String, move: Array) -> void:
+	move[5] = MASTERY[hero].detail
+	move.append(true)
+
 static func unlocked(slot: Dictionary, id: String, at: int) -> bool:
 	if at < 0 or at >= move_count(id):
 		return false
@@ -87,8 +153,10 @@ static func prepared(slot: Dictionary, id: String) -> Array:
 	var valid := loadout.filter(func(at): return unlocked(slot,id,int(at)))
 	return valid if valid.size() == 2 else [0,1]
 
-static func slotted_moves(id: String, sword: bool, loadout: Array, chapter: int) -> Array:
+static func slotted_moves(id: String, sword: bool, loadout: Array, chapter: int, mastering: bool = false) -> Array:
 	var catalog := options(id, sword)
+	if mastering:
+		_apply_mastery(id, catalog[MANUAL_INDEX])
 	var moves := loadout.map(func(at): return catalog[int(at)])
 	if chapter == 3 and id == "wind":
 		moves[1] = ["魔刀狂斩", 11, "锋", 30, 2, "全体 · 魔念 +2"]
@@ -98,6 +166,9 @@ static func slotted_moves(id: String, sword: bool, loadout: Array, chapter: int)
 				move[5] = "全体治疗 · 魔念 −3"
 	return moves
 
+static func enhanced(move: Array) -> bool:
+	return move.size() > 7 and move[7] == true
+
 static func synergies(slot: Dictionary, hero: String, rank: int) -> Dictionary:
 	if rank < SYNERGY_TIER:
 		return {}
@@ -106,7 +177,7 @@ static func synergies(slot: Dictionary, hero: String, rank: int) -> Dictionary:
 	var moves := slotted_moves(hero, slot.campaign.sword, prepared(slot, hero), int(slot.chapter))
 	var active := {}
 	if (gear[1] in ["qi_ring", "courier_badge"] or Equipment.style(gear[1]) == "interrupt") and moves.any(interrupt_move):
-		var accessory := Equipment.item_modifiers(gear[1], Equipment.level(slot, gear[1]))
+		var accessory := Equipment.equipped_modifiers(slot, hero, gear[1])
 		active.interrupt = (5 if advanced else 3) + int(accessory.get("interrupt_qi", 0))
 	if not gear[0].is_empty() and moves.any(protection_move):
 		active.retaliate = 4 if advanced else 0

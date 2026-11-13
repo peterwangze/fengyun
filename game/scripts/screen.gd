@@ -9,6 +9,7 @@ const SideStories = preload("res://scripts/side_stories.gd")
 const Equipment = preload("res://scripts/equipment.gd")
 const Economy = preload("res://scripts/economy.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
+const Arcs = preload("res://scripts/campaign_arcs.gd")
 const SANS = preload("res://assets/fonts/body.tres")
 const SERIF = preload("res://assets/fonts/display.tres")
 const GOLD := Color("#e8c185")
@@ -180,6 +181,9 @@ func paint() -> void:
 		"martial":
 			_field(false)
 			_martial()
+		"cultivation":
+			_field(false)
+			_cultivation()
 		"gear":
 			_field(false)
 			_gear()
@@ -189,13 +193,17 @@ func paint() -> void:
 		"forge":
 			_field(false)
 			_forge()
+		"forge_confirm":
+			_field(false)
+			var row := Economy.forge_offer(g.slot,g.shop_account(),g.forge_id,g.pending_recipe,true)
+			_modal("改制 " + row.name,"此件行装将固定为这一式，仅%s可用。\n%s" % [Story.HEROES[row.hero].name,row.detail])
 		"review":
 			_title(false)
 			_fill(FULL,Color("#0b1120dd"))
 			_panel(Rect2(147,25,346,312),true)
 			_center("章节回看",320,62,26,CREAM,SERIF)
 			_center("从选中章节开头体验，回看使用独立记录。",320,85,13,DIM)
-			_menu(Vector2(177,98),286,29,5)
+			_menu(Vector2(177,94),286,19,3)
 			if not g.touch_ui():
 				_center("Esc / B 返回标题",320,320,12,DIM)
 		"journal":
@@ -254,13 +262,23 @@ func _modal(title: String, note: String) -> void:
 		_menu(Vector2(174,157),292,30,6)
 
 func _field(interactive: bool = true) -> void:
-	_picture("field/" + ("hall" if g.field_key == "returnhall" else String(g.field_key)))
+	var scroll: float = g.field_offset()
+	_picture("field/" + ("hall" if g.field_key == "returnhall" else String(g.field_key)),Rect2(-scroll,0,g.field_width(),360))
 	_field_atmosphere()
+	g.draw_set_transform(Vector2(-scroll,0))
 	var party: Array = g.chronicle.field_party()
 	var units := [_traveler(party[1],g.follower,g.follow_direction,g.follow_facing,_walk_frame(g.follow_moving,g.follow_distance)),
 		_traveler(party[0],g.player,g.field_direction,g.facing,_walk_frame(g.moving,g.walk_distance))]
+	if g.transit.active() and g.field_key == "dragon_waterway" and g.slot.journey.step == 0:
+		units = [_traveler("cloud",g.player,g.field_direction,g.facing,_walk_frame(g.moving,g.walk_distance))]
 	var marks: Array[Dictionary] = []
-	if g.afterstory.active:
+	if g.transit.active():
+		for point in g.transit.points():
+			if point.has("sprite"):
+				units.append(_unit(point.sprite,point.pos,0,true))
+			if point.has("prop"):
+				_map_prop(point.pos,point.prop)
+	elif g.afterstory.active:
 		_afterstory_field(units,marks)
 	else:
 		if g.map.has("fights"):
@@ -271,8 +289,6 @@ func _field(interactive: bool = true) -> void:
 			campaign_art.stage(units,marks)
 		_chronicle_field(units,marks)
 	var touch_field: bool = interactive and g.touch_ui()
-	if touch_field:
-		g.touch_controls.paint_stick(g)
 	_draw_field_actors(units)
 	if g.field_key in ["garden","village","lodge","inn","apothecary","tearoom","cavern","tidal_ford","tidal_fort"]:
 		_picture("field/%s_canopy" % g.field_key)
@@ -282,14 +298,27 @@ func _field(interactive: bool = true) -> void:
 		_field_guidance(marks)
 	for mark in marks:
 		_marker(mark.point, mark.color, mark.get("symbol",""))
+	g.draw_set_transform(Vector2.ZERO)
+	if interactive and g.transit.active():
+		for mark in marks:
+			var screen_x: float = mark.point.x - scroll
+			if screen_x < 17.0 or screen_x > 623.0:
+				var right := screen_x > 623.0
+				var edge_x := 619.0 if right else 21.0
+				var edge_y := clampf(mark.point.y,84.0,280.0)
+				_marker(Vector2(edge_x,edge_y),mark.color,"›" if right else "‹")
+	if touch_field:
+		g.touch_controls.paint_stick(g)
 	_fill(Rect2(0,0,640,52),Color("#12192bf8"))
 	_line(Vector2(0,51),Vector2(640,51),LINE)
 	_fill(Rect2(19,13,31,29),Color("#352c3b"))
 	_stroke(Rect2(19,13,31,29),GOLD)
-	_center(g.stage.num,34,34,17,GOLD,SERIF)
-	_text(g.stage.title,62,28,20,CREAM,SERIF)
+	_center(Arcs.number(g.arc_index()) if not g.afterstory.active else g.stage.num,34,34,17,GOLD,SERIF)
+	_text(Arcs.ARCS[g.arc_index()].title if not g.afterstory.active else g.stage.title,62,28,20,CREAM,SERIF)
 	var place: String = g.afterstory.subtitle() if g.afterstory.active else Chronicle.SUBTITLE.get(
 		g.field_key,g.first.subtitle() if g.first.active() else g.campaign.subtitle())
+	if g.transit.active():
+		place = g.transit.data().title
 	_text(place,63,45,12,DIM)
 	var main_count: int = int(g.slot.cleared.has(0)) + int(g.slot.cleared.has(1))
 	var status := "主线进度  %d / 2" % main_count
@@ -297,6 +326,8 @@ func _field(interactive: bool = true) -> void:
 		status = "疏散  %d / 2" % g.slot.hall.staff.size() if g.slot.hall.wedding else "婚宴"
 	if g.afterstory.active:
 		status = "已结案" if g.afterstory.state().resolution != "" else "粮账待查"
+	if g.transit.active():
+		status = "沿途调查"
 	_right("%s    ·    境界  %d" % [status,g.rank()],620,24,13,GOLD)
 	var objective := TrailGuide.objective(g)
 	_right(objective,620,43,13,DIM)
@@ -373,7 +404,7 @@ func _afterstory_field(units: Array, marks: Array[Dictionary]) -> void:
 		if not spot.sprite.is_empty():
 			units.append(_unit(spot.sprite,p,0,true))
 		match spot.id:
-			"seal","ledger": _map_prop(p,"chest")
+			"seal","ledger","dry_store": _map_prop(p,"chest")
 			"sluice": campaign_art._prop("winch",p,0.8)
 		if g.mode == "field":
 			if spot.id in ["gate_entry","sluice_entry","return_ford"]:
@@ -568,7 +599,7 @@ func _field_atmosphere() -> void:
 		if (g.field_key == "banquet" and (g.slot.hall.wedding or (g.first.wedding_playing and g.line_index >= 3))) or (
 				g.field_key == "garden" and g.slot.hall.staff.size() == 2):
 			break
-		var p := Vector2(light[0],light[1]) * 2.0
+		var p := Vector2(light[0],light[1]) * 2.0 - Vector2(g.field_offset(),0)
 		var glint := 0.16 + 0.1 * sin(time * 5.0 + p.x * 0.17)
 		_diamond(p, 4, Color(1.0,0.74,0.42,glint))
 
@@ -598,17 +629,17 @@ func _journal() -> void:
 		for entry in g.afterstory.journal():
 			_text(entry[0],70,row,14,CREAM)
 			_text(entry[1],215,row,13,DIM)
-			row += 22
+			row += 20
 		_journal_back()
 		return
-	var ids := SideStories.TASKS.keys()
+	var ids: Array = g.chronicle.side.journal_ids()
 	for i in ids.size() + 1:
-		var box := Rect2(63,82+i*24,207,23)
+		var box := Rect2(63,82+i*22,207,21)
 		var active: bool = i == g.journal_index
 		_fill(box,Color("#363243") if active else Color("#161e30"))
 		if active:
 			_stroke(box,GOLD)
-		var label: String = "主线 · " + String(g.stage.title) if i == 0 else SideStories.TASKS[ids[i-1]].title
+		var label: String = "主线 · " + Arcs.ARCS[g.arc_index()].title if i == 0 else SideStories.TASKS[ids[i-1]].title
 		_text(label,box.position.x+8,box.position.y+16,13,CREAM)
 		if i > 0:
 			_right(g.chronicle.side.note(ids[i-1]),box.end.x-6,box.position.y+16,11,DIM)
@@ -618,7 +649,7 @@ func _journal() -> void:
 	_fill(detail,Color("#151d30"))
 	_stroke(detail,LINE)
 	if chosen.is_empty():
-		_text("第%s章  %s" % [g.stage.num,g.stage.title],300,111,17,GOLD)
+		_text("第%s章  %s" % [Arcs.number(g.arc_index()),Arcs.ARCS[g.arc_index()].title],300,111,17,GOLD)
 		_paragraph(TrailGuide.objective(g),300,142,258,15,CREAM,21)
 		var point_names := PackedStringArray()
 		for point in TrailGuide.main_points(g,g.field_points()):
@@ -645,10 +676,7 @@ func _journal_back() -> void:
 		_text("B  返回" if g.using_joypad else "Esc / J  返回",68,313,13,DIM)
 		_hit(Rect2(61,292,129,26),"cancel")
 
-func _martial() -> void:
-	_fill(FULL,Color("#0b1120ce"))
-	_panel(Rect2(70,26,500,305),true)
-	_text("准备武学",91,67,26,CREAM,SERIF)
+func _martial_heroes() -> void:
 	for i in g.stage.party.size():
 		var hero: Dictionary = Story.HEROES[g.stage.party[i]]
 		var tab := Rect2(343+94*i,41,89,30)
@@ -656,8 +684,18 @@ func _martial() -> void:
 		_stroke(tab,GOLD if g.chronicle.martial_hero == i else LINE)
 		_center(hero.name,tab.get_center().x,61,14,CREAM)
 		_hit(tab,"martial_hero",i)
+
+func _martial() -> void:
+	_fill(FULL,Color("#0b1120ce"))
+	_panel(Rect2(70,26,500,305),true)
+	_text("准备武学",91,67,26,CREAM,SERIF)
+	var label := "心法" if g.touch_ui() else ("RB  心法" if g.using_joypad else "G  心法")
+	_gear_tab(Rect2(235,41,95,30),label,false,"cultivation",0)
+	_martial_heroes()
 	var id: String = g.chronicle.martial_id()
-	var learned := Martial.options(id,g.slot.campaign.sword)
+	var learned := []
+	for i in Martial.move_count(id):
+		learned.append(Martial.move_for(g.slot,id,i))
 	var equipped := Martial.prepared(g.slot,id)
 	for i in 2:
 		var box := Rect2(91 + i*229,84,219,30)
@@ -669,11 +707,14 @@ func _martial() -> void:
 	for i in learned.size():
 		var box := Rect2(91,120+i*31,152,28)
 		var ready := Martial.unlocked(g.slot,id,i)
-		_button(learned[i][0],box,i,ready)
+		var move_label: String = learned[i][0] + (" · 精修" if Martial.enhanced(learned[i]) else "")
+		_button(move_label,box,i,ready)
 		if ready:
-			_text("%d 气 · %s" % [learned[i][1],learned[i][5]],257,box.position.y+14,13)
+			_text("%d 气 · %s" % [learned[i][1],learned[i][5]],257,box.position.y+14,12)
 			var styles := _move_styles(learned[i])
-			if not styles.is_empty():
+			if i == Martial.MANUAL_INDEX and not Martial.mastered(g.slot,id):
+				_text("精修 · " + Martial.mastery_source(id),257,box.position.y+28,10,TEAL)
+			elif not styles.is_empty():
 				_text(styles,257,box.position.y+28,11,TEAL)
 		else:
 			_text(Martial.source(id,i),257,box.position.y+20,12,DIM)
@@ -686,6 +727,39 @@ func _martial() -> void:
 	else:
 		_hit(Rect2(486,290,70,29),"cancel")
 	_text(hint,91,319,12,DIM)
+
+func _cultivation() -> void:
+	_fill(FULL,Color("#0b1120ce"))
+	_panel(Rect2(70,26,500,305),true)
+	_text("修习心法",91,67,26,CREAM,SERIF)
+	_martial_heroes()
+	var id: String = g.chronicle.martial_id()
+	var stances: Array = Martial.CULTIVATION[id]
+	var active := Martial.cultivation_choice(g.slot,id,g.rank())
+	var unlock: bool = g.rank() >= Martial.CULTIVATION_RANK
+	_text("境界 %d 开启 · 每人可运转一种心法" % Martial.CULTIVATION_RANK,91,104,13,TEAL if unlock else DIM)
+	for i in stances.size():
+		var box := Rect2(91,118+56*i,457,48)
+		var is_active: bool = active.get("id","") == stances[i].id
+		_fill(box,Color("#303748") if g.selected == i else INK)
+		_stroke(box,GOLD if g.selected == i else LINE)
+		_text(stances[i].name,104,box.position.y+29,17,CREAM if unlock else DIM,SERIF)
+		_text(stances[i].detail,184,box.position.y+29,13,CREAM if unlock else DIM)
+		if is_active:
+			_right("运转中",534,box.position.y+29,12,TEAL)
+		_hit(box,"menu",i)
+	var note := "精修 · " + Martial.mastery_source(id)
+	var trained := Martial.mastered(g.slot,id)
+	if trained:
+		note = "已精修 · " + Martial.MANUALS[Martial.HERO_MANUALS[id]].move[0]
+	elif g.slot.insights.has(id):
+		note = "已得研习心得 · 习得对应秘籍后即可精修"
+	_text(note,91,252,13,GOLD if trained else DIM)
+	_text(g.cultivation_message,91,303,13,TEAL)
+	var clear := Rect2(333,282,104,30)
+	if not active.is_empty():
+		_gear_tab(clear,"清除心法",g.selected == 2,"menu",2)
+	_gear_tab(Rect2(445,282,103,30),"返回武学",false,"cancel",0)
 
 func _move_styles(move: Array) -> String:
 	var styles := PackedStringArray()
@@ -722,16 +796,21 @@ func _gear() -> void:
 	var top: int = g.gear_page * 6
 	for i in range(top,mini(top+6,ids.size())):
 		var item := ids[i]
-		var ready := item.is_empty() or Equipment.unlocked(g.slot,item)
+		var owned := not item.is_empty() and Equipment.unlocked(g.slot,item)
+		var ready := item.is_empty() or (owned and Equipment.can_wear(g.slot,hero,item))
 		var box := Rect2(81,134+(i-top)*27,150,25)
 		_button("卸下" if item.is_empty() else Equipment.display_name(g.slot,item),box,i,ready)
 		if item.is_empty():
 			_text("恢复此栏基础属性",244,box.position.y+17,12,DIM)
-		elif ready:
-			var effect := Equipment.describe(item,Equipment.level(g.slot,item))
-			_text(effect,244,box.position.y+13,11,CREAM)
+		elif owned:
+			var effect := Equipment.describe_owned(g.slot,item)
+			var at := 10 if SANS.get_string_size(effect,HORIZONTAL_ALIGNMENT_LEFT,-1,11).x > 303 else 11
+			_text(effect,244,box.position.y+12,at,CREAM if ready else DIM)
 			var holder := Equipment.owner(g.slot,item)
-			if not holder.is_empty():
+			var recipe := Equipment.branch(g.slot,item)
+			if not recipe.is_empty():
+				_text("%s专属%s" % [Story.HEROES[Equipment.BRANCHES[recipe].hero].name," · 已装备" if holder == hero else ""],244,box.position.y+24,9,GOLD)
+			elif not holder.is_empty():
 				_text("已装备" if holder == hero else "转交自%s" % Story.HEROES[holder].name,244,box.position.y+24,9,GOLD)
 		else:
 			_text(Equipment.CATALOG[item].source,244,box.position.y+17,12,DIM)
@@ -779,13 +858,17 @@ func _forge() -> void:
 	var account: Dictionary = g.shop_account()
 	_text(forge.title,76,62,24,CREAM,SERIF)
 	_right("银两  %d" % account.silver,564,61,16,GOLD)
-	_text(forge.note,77,81,12,DIM)
+	_text("两式择一 · 改制后仅对应队员可装备" if g.forge_branches else forge.note,77,81,12,DIM)
+	if Economy.forge_count(g.forge_id,true) > 0:
+		var nav := "强化" if g.forge_branches else "分支改制"
+		var key := "" if g.touch_ui() else ("RB " if g.using_joypad else "Tab ")
+		_gear_tab(Rect2(447,72,114,28),key + nav,g.forge_branches,"forge_branches",0)
 	var stock := Economy.material_label(account.materials)
 	_text("材料   " + ("暂无" if stock.is_empty() else stock),77,100,12,TEAL)
-	var count := Economy.forge_count(g.forge_id)
+	var count := Economy.forge_count(g.forge_id,g.forge_branches)
 	var selected: Dictionary = {}
 	for i in count:
-		var row := Economy.forge_offer(g.slot,account,g.forge_id,i)
+		var row := Economy.forge_offer(g.slot,account,g.forge_id,i,g.forge_branches)
 		var box := Rect2(76,108+i*29,487,27)
 		var active: bool = g.selected == i
 		if active:
@@ -793,6 +876,8 @@ func _forge() -> void:
 		_fill(box,Color("#393343") if active else Color("#1a2337"))
 		_stroke(box,GOLD if active else LINE)
 		_text(row.name,85,box.position.y+18,13,CREAM if row.limit.is_empty() else DIM)
+		if g.forge_branches:
+			_text(Story.HEROES[row.hero].name + "专属",158,box.position.y+18,10,GOLD)
 		_text(row.detail,224,box.position.y+11,10,DIM)
 		if row.price > 0:
 			_right("%d 两" % row.price,553,box.position.y+11,12,GOLD)
@@ -804,7 +889,8 @@ func _forge() -> void:
 		message = "点选配方后确认" if g.touch_ui() else ("方向键选配方 · A 确认 · B 返回" if g.using_joypad else "方向键选配方 · Enter 确认 · Esc 返回")
 	_text(message,78,307,12,TEAL if not g.shop_message.is_empty() else DIM)
 	if not selected.is_empty() and selected.limit.is_empty():
-		_gear_tab(Rect2(395,286,80,29),"拓印" if selected.manual else "强化",true,"confirm",0)
+		var action := "改制" if g.forge_branches else ("拓印" if selected.manual else "强化")
+		_gear_tab(Rect2(395,286,80,29),action,true,"confirm",0)
 	_gear_tab(Rect2(482,286,80,29),"离开",g.selected == count,"cancel",0)
 
 func _build_guide() -> void:
@@ -847,7 +933,16 @@ func _gear_tab(box: Rect2, label: String, active: bool, kind: String, index: int
 func _battle() -> void:
 	var battle: RefCounted = g.encounter
 	var view: Dictionary = combat_art.hud()
-	_picture("arenas/" + ("hall" if g.field_key == "returnhall" else String(g.field_key)), Rect2(0,0,640,208))
+	var location: String = "hall" if g.field_key == "returnhall" else g.field_key
+	var arena := Rect2(0,0,640,208)
+	if g.transit.active():
+		var scenery: Texture2D = g.picture("field/" + location)
+		if scenery:
+			g.draw_texture_rect_region(scenery,arena,Rect2(Vector2(g.field_offset()/2.0,53),Vector2(320,104)))
+		else:
+			_picture("arenas/" + g.stage.key,arena)
+	else:
+		_picture("arenas/" + location,arena)
 	_fade(0,118,0.83,true)
 	_fade(116,90,0.48)
 	_dots("dust",0.16)
@@ -1116,7 +1211,7 @@ func _ending() -> void:
 	var legacy: String = g.chronicle.ending_legacy()
 	if not legacy.is_empty():
 		_text(legacy,48,222,14,TEAL)
-	_text("六章旅程已毕   ·   历练 %d" % g.slot.merit,48,245,15,GOLD)
+	_text("风云归渡   ·   历练 %d" % g.slot.merit,48,245,15,GOLD)
 	_menu(Vector2(48,262),197,29,4)
 	_text("改编自电视剧《风云》   原作漫画：马荣成",48,344,12,DIM)
 

@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS palace_sluice has valid collision data
+PASS palace_sluice has a usable entry and connected path
+PASS palace_sluice_gate is reachable on foot
+PASS palace_sluice_guard is reachable on foot
+PASS palace_sluice_map is reachable on foot
+PASS palace_sluice_exit is reachable on foot
+PASS tidal_canal has valid collision data
+PASS tidal_canal has a usable entry and connected path
+PASS canal_tally is reachable on foot
+PASS canal_witness is reachable on foot
+PASS canal_manifest is reachable on foot
+PASS canal_gatehouse is reachable on foot
+PASS canal_exit is reachable on foot
+PASS dragon_waterway has valid collision data
+PASS dragon_waterway has a usable entry and connected path
+PASS waterway_rubbing is reachable on foot
+PASS waterway_worker is reachable on foot
+PASS waterway_scout is reachable on foot
+PASS waterway_signal is reachable on foot
+PASS waterway_order is reachable on foot
+PASS waterway_blood is reachable on foot
+PASS waterway_exit is reachable on foot
+Waterway layouts: 0 failures

@@ -1,0 +1,11 @@
+Android 16 API 36, x86_64 hardware-accelerated emulator, landscape 2400 × 1080
+Touch coordinates are derived from the Android SurfaceView bounds and Godot UI rectangles.
+APK SHA-256 12c40fbca796de8d747cf25e027476e92612e2ad33f3569b47c7afe03c9fa61c
+PASS 3.0.0 / 30000 replaces 2.8.0 / 20800 and preserves both save files
+PASS touch selects Cloud 凝云 and commits the chosen stance
+PASS touch traverses the wide map, reaches a target at world x1252, and saves the next beat
+PASS the stance remains equipped while traversing the connector
+PASS process restart reopens the exact mid-region save without altering it
+PASS touch route completes and transitions from the mountain exit into Fengxi once
+PASS target build renders and app-filtered logcat has no script or fatal error
+PASS restored the emulator save and backup byte for byte

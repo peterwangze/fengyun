@@ -17,6 +17,9 @@ static func normalize(slot: Dictionary) -> void:
 	slot.gear_grants = Equipment.clean_grants(slot.get("gear_grants"))
 	slot.manual_grants = Martial.clean_grants(slot.get("manual_grants"))
 	slot.gear_levels = Equipment.clean_levels(slot, slot.get("gear_levels"))
+	slot.gear_branches = Equipment.clean_branches(slot, slot.get("gear_branches"))
+	slot.cultivation = Martial.clean_cultivation(slot.get("cultivation"))
+	slot.insights = Martial.clean_insights(slot.get("insights"))
 	if slot.has("afterstory"):
 		normalize_tide(slot.afterstory)
 
@@ -145,9 +148,13 @@ static func buy(slot: Dictionary, account: Dictionary, shop: String, index: int)
 
 static func claim(slot: Dictionary, account: Dictionary, source: String, silver: int = 0) -> PackedStringArray:
 	var gains := claim_materials(account,source)
+	var drop: Dictionary = Catalog.DROPS.get(source, {})
+	var hero: String = drop.get("insight","")
+	if not hero.is_empty() and not slot.insights.has(hero):
+		slot.insights[hero] = true
+		gains.append(Story.HEROES[hero].name + " · 武学心得")
 	if account.loot_claims.has(source):
 		return gains
-	var drop: Dictionary = Catalog.DROPS.get(source, {})
 	if drop.is_empty() and silver == 0:
 		return gains
 	account.loot_claims[source] = true
@@ -187,6 +194,8 @@ static func reconcile(slot: Dictionary) -> PackedStringArray:
 	for quest in slot.chronicle.quests:
 		if String(slot.chronicle.quests[quest]).begins_with("done_"):
 			gains.append_array(claim(slot, slot, "quest:" + quest))
+	if slot.chronicle.quests.get("hidden_ledger","") == "done_defend":
+		gains.append_array(claim(slot,slot,"quest:hidden_ledger/defend"))
 	if int(slot.chapter) == 1 and slot.campaign.crossing == "boat":
 		gains.append_array(claim(slot, slot, "progress:ferry"))
 	if slot.has("afterstory") and slot.afterstory.has("material_claims"):
@@ -194,6 +203,8 @@ static func reconcile(slot: Dictionary) -> PackedStringArray:
 		for flag in ["register","seal","gate","aid","chief"]:
 			if account.get(flag,false):
 				gains.append_array(claim_materials(account, "tidal:" + flag))
+		if account.get("dry_store",false):
+			gains.append_array(claim(slot,account,"tidal:dry_store"))
 	return gains
 
 static func recover_unique_drops(slot: Dictionary) -> void:
@@ -218,14 +229,26 @@ static func recover_materials(slot: Dictionary) -> void:
 			claim_materials(slot.afterstory,source)
 	reconcile(slot)
 
+static func recover_advancements(slot: Dictionary) -> void:
+	var current_map: String = Story.CHAPTERS[slot.chapter].key
+	for source in ["battle:palace:2","battle:peak:2"]:
+		if slot.material_claims.has(source):
+			var amount := int(slot.materials.get("star_steel",0))
+			slot.materials.star_steel = mini(MATERIAL_CAP, amount + int(Catalog.DROPS[source].materials.star_steel))
+		elif slot.loot_claims.has(source) or (current_map == source.get_slice(":",1) and slot.cleared.has(2)):
+			claim_materials(slot,source)
+	reconcile(slot)
+
 static func recover_tidal_loot(slot: Dictionary) -> void:
 	var account: Dictionary = slot.afterstory
 	for battle in ["gate", "aid", "chief"]:
 		if account[battle]:
 			claim(slot, account, "tidal:" + battle, 6 if battle == "chief" else 4)
 
-static func forge_offer(slot: Dictionary, account: Dictionary, site: String, index: int) -> Dictionary:
+static func forge_offer(slot: Dictionary, account: Dictionary, site: String, index: int, branches: bool = false) -> Dictionary:
 	var forge: Dictionary = FORGES[site]
+	if branches:
+		return _branch_offer(slot,account,forge.branches[index])
 	var is_manual: bool = index >= forge.gear.size()
 	var id: String = forge.manuals[index-forge.gear.size()] if is_manual else forge.gear[index]
 	var name: String
@@ -243,7 +266,7 @@ static func forge_offer(slot: Dictionary, account: Dictionary, site: String, ind
 		var next := level + 1
 		name = Equipment.display_name(slot,id)
 		if level >= Equipment.MAX_FORGE_LEVEL:
-			detail = Equipment.describe(id,level)
+			detail = Equipment.describe_owned(slot,id)
 			limit = "已强化至顶"
 		else:
 			detail = "+%d 后 · %s" % [next,Equipment.upgrade_description(id,next)]
@@ -261,11 +284,33 @@ static func forge_offer(slot: Dictionary, account: Dictionary, site: String, ind
 				break
 	return {"id":id,"manual":is_manual,"name":name,"detail":detail,"materials":materials,"price":price,"limit":limit}
 
-static func forge_count(site: String) -> int:
+static func _branch_offer(slot: Dictionary, account: Dictionary, recipe: String) -> Dictionary:
+	var branch: Dictionary = Equipment.BRANCHES[recipe]
+	var id: String = branch.item
+	var cost: Dictionary = Catalog.BRANCH_COSTS[id]
+	var selected := Equipment.branch(slot,id)
+	var limit := ""
+	if not selected.is_empty():
+		limit = "已改制" if selected == recipe else "已选另一式"
+	elif Equipment.level(slot,id) < Equipment.MAX_FORGE_LEVEL:
+		limit = "需 " + Equipment.CATALOG[id].name + " +2"
+	elif account.silver < cost.silver:
+		limit = "银两不足"
+	else:
+		for material in cost.materials:
+			if account.materials.get(material,0) < cost.materials[material]:
+				limit = "材料不足"
+				break
+	return {"id":id,"manual":false,"branch":recipe,"hero":branch.hero,"name":branch.name,
+		"detail":Equipment.branch_description(recipe),"materials":cost.materials,"price":cost.silver,"limit":limit}
+
+static func forge_count(site: String, branches: bool = false) -> int:
+	if branches:
+		return FORGES[site].get("branches",[]).size()
 	return FORGES[site].gear.size() + FORGES[site].get("manuals",[]).size()
 
-static func reinforce(slot: Dictionary, account: Dictionary, site: String, index: int) -> String:
-	var row := forge_offer(slot,account,site,index)
+static func reinforce(slot: Dictionary, account: Dictionary, site: String, index: int, branches: bool = false) -> String:
+	var row := forge_offer(slot,account,site,index,branches)
 	if not row.limit.is_empty():
 		return ""
 	account.silver -= row.price
@@ -274,6 +319,12 @@ static func reinforce(slot: Dictionary, account: Dictionary, site: String, index
 	if row.manual:
 		slot.manual_grants[row.id] = true
 		return "习得 · " + Martial.MANUALS[row.id].move[0]
+	if branches:
+		slot.gear_branches[row.id] = row.branch
+		var holder := Equipment.owner(slot,row.id)
+		if not holder.is_empty() and holder != row.hero:
+			Equipment.assign(slot,holder,Equipment.CATALOG[row.id].kind,"")
+		return "改制完成 · " + row.name
 	slot.gear_levels[row.id] = Equipment.level(slot,row.id) + 1
 	return "强化完成 · " + Equipment.display_name(slot,row.id)
 

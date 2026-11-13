@@ -1,0 +1,121 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS rank one keeps ordinary techniques and gear
+PASS rank two opens interrupt with an appropriate technique and accessory
+PASS rank four strengthens both active effects
+PASS transferring the only ring changes both tactical previews
+PASS recipient immediately sees the new style
+PASS unequipped technique cannot enable interrupt
+PASS temporary Devil Blade is counted as the equipped heavy skill
+PASS selected target previews the qualifying Qi refund
+PASS weakness technique breaks a live scout with the signal badge
+PASS interrupt refunds Qi on the successful break
+PASS foe resolve prevents both break and the interrupt refund
+PASS set counter while the other fighter guards
+PASS counter stance takes the forecast hit and gains one bond and 4 Qi despite multiple enemies
+PASS counter stance aimed at the wrong fighter has no affinity payoff
+PASS cover selects a teammate and reads the forecast instead of allowing self-target
+PASS cover takes the blow and grants the equipped defender's affinity
+PASS an external ward and basic guard cannot trigger the prepared-technique reward
+PASS target preview shows the available follow-through and resource cost
+PASS partner opens a gap and the heavy technique exploits it
+PASS follow-through spends only the stated extra Qi
+PASS a heavy strike can still be cast at its base cost without the affinity bonus
+PASS heavy strike does not get the payoff from a break it opens itself
+PASS quest intelligence weakens just the named living enemy without an automatic break
+PASS quest aid applies opening protection and capped bond with visible feedback
+PASS Duan telegraphs the charge and explains how to stop it
+PASS allowing the charge arms the next round's sweep
+PASS ordinary guard softens the fire sweep for both fighters and the charge expires
+PASS interrupt style previews the extra Qi for stopping a boss windup
+PASS breaking the windup prevents the sweep and awards the stated Qi
+PASS optional forge elite pressures immediately before it can light its weapon
+PASS the forge beast shares the charge-up system on an offset turn
+PASS cavern reuse and story difficulty keep their original behavior
+PASS building four corruption telegraphs a Qi-draining sweep before the partner acts
+PASS a reckless attack loses Qi while Dream's healing suppresses the special sweep
+PASS Wind can also suppress the sweep by guarding
+PASS the golden armor attack names its intended target
+PASS guarding with the named target creates an armor gap on the next round
+PASS the gap bypasses armor without relying on the equipped synergy or the combo
+PASS the guarded opening expires after its follow-through round
+PASS equipped counter creates a follow-through opening on an ordinary foe
+PASS the next partner exploits the opening from a defensive build
+PASS the dragon telegraphs its charge before the counterplay window
+PASS the earlier cavern encounter starts with a distinct pressure turn
+PASS the phase announcement and presentation track the armed reversal
+PASS ordinary guards endure the reversal and expose an opening for the next round
+PASS the companion can exploit the protected dragon opening
+PASS the forecast includes the affinity's extra return for stopping dragon breath
+PASS an actual break cancels the charge and emits the interruption cue
+PASS story difficulty retains the familiar dragon behavior
+PASS the opening palm explicitly names its target
+PASS crossing half health visibly enters the shield phase
+PASS the opening palm explicitly names its target
+PASS crossing half health visibly enters the shield phase
+PASS the party combo breaks the shield directly and retains the ending resolution flag
+PASS one break leaves a visible crack in the shield
+PASS the recovery round cannot count as a second break
+PASS a later break clears the shield independently of the combo
+PASS taking the opening palm under guard creates a real damage window
+PASS the first drum order visibly primes a named next-round target
+PASS the first drum order visibly primes a named next-round target
+PASS breaking the drummer cancels the already armed formation and its damage shield
+PASS protecting the marked ally answers the charge and creates a counterattack window
+PASS breaking the chief before the drummer acts prevents rally from arming
+PASS defeating the drummer removes the coordination mechanic
+PASS the fifth technique appends without changing old saved move indices
+PASS old or invalid technique records cannot equip a learned-only move
+PASS manual validation learns only the named hero technique and drops unknown ids
+PASS the normal loadout and source lookup support the new technique
+PASS the equipment list exposes all sixteen items and keeps unearned pieces locked
+PASS only valid newly owned pieces become entitlements
+PASS the acquired accessories work as alternatives in the existing style system
+PASS reed mantle protects against sweeps and heavy-only armor does not
+PASS warehouse vest protects against a targeted heavy technique
+PASS gourd only boosts absorption while a ward is consumed
+PASS Crosswind's windup bonus is identical in preview and execution
+PASS Frost Gate wards its companion only on an actual live-enemy break
+PASS counter manual deals three poise and the forge gear independently raises counter damage
+PASS Needle Transfer targets a partner, healing and restoring Qi while lowering corruption
+PASS Sword Trace increases damage through armor in exchange for weaker break pressure
+PASS old gear without a forge record retains original stats
+PASS normalization limits levels to forgeable owned items and clamps the maximum
+PASS malformed level values do not unlock tiers
+PASS the name, current modifiers and exact next gain can be shown separately
+PASS the forged whistle adds base Qi then enhances the equipped interrupt build
+PASS the combat action receives exactly the forged interrupt refund
+PASS the sword tassel improves broken-target damage without increasing the build bonus
+PASS reinforced mantle helps against a sweep without weakening ordinary attacks
+PASS reinforcement follows the unique item when transferred
+PASS stance validation rejects another hero's style and rank two cannot use cultivation
+PASS Wind's Seeking stance rewards a wind attack against a telegraph
+PASS Wind's Cover stance recovers Qi for actually redirecting a hit
+PASS Cloud's counter stance increases retaliatory poise loss
+PASS switching Cloud to Pursuit adds damage to a real opening
+PASS Frost's Shelter stance strengthens his ward on an ally
+PASS Frost's Shatter stance forecasts and deals an extra poise only with a consumed mark
+PASS Dream's Breathing stance supports the partner's Qi without refunding her own cast
+PASS Dream's Warm Needle gives an actual extra four HP to a critical ally
+PASS Sage's Sword Heart adds one poise only against a telegraphed move
+PASS Sage's Listening Edge increases counter damage by six
+PASS insight waits for the base manual and invalid hero receipts are dropped
+PASS mastered description and source are available before equipping
+PASS mastered Crosswind forecasts and deals two extra poise against a windup
+PASS mastered Cloud Return refunds three Qi on a successful counter
+PASS mastered Frost Gate protects both fighters after a live break
+PASS mastered Needle Transfer restores nine Qi
+PASS mastered Sword Trace uses its published 82% armor factor
+PASS older +2 equipment retains original modifiers and can still be shared
+PASS choosing the Wind-only branch automatically removes the previous incompatible wearer
+PASS exclusive combat modifiers only apply when the named hero equips the crafted form
+PASS repeat crafting and choosing the alternate branch spend no resources
+PASS the other branch is independently craftable and trades the poise modifier for extra interrupt Qi
+PASS the choice is exclusive in either direction
+PASS exclusive branch save writes successfully
+PASS reload preserves chosen branch and paid resource balances
+PASS older earned-elite checkpoint can be written for migration
+PASS new rare materials are recovered from recorded sources without refunding spent old materials or silver
+PASS migration restores only earned insights and keeps a portable legacy +2 item
+PASS saving migrated account makes rare material recovery idempotent
+Builds: 0 failures

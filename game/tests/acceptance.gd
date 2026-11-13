@@ -10,6 +10,9 @@ const Economy = preload("res://scripts/economy.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const FORGING_GEAR := {"interrupt":"tide_whistle", "retaliate":"forge_guard", "exploit":"sword_tassel"}
+const FORGE_BRANCHES := {"interrupt":"wind_break", "retaliate":"cloud_returning", "exploit":"cloud_edge"}
+const MAIN_TRANSITS := ["courtyard_road", "fengxi_lanes", "lantern_pass", "outer_watch",
+	"broken_trestle", "palace_sluice", "dragon_waterway", "dragon_ridge", "summit_steps"]
 var game
 var failures := 0
 var wins := 0
@@ -51,6 +54,13 @@ var learned_casts := {}
 var forging_route := false
 var forging_observations: Array[String] = []
 var reinforced_fights := {}
+var cultivation_route := false
+var cultivation_observations: Array[String] = []
+var alternate_transit := false
+var traversed_maps: Array[Dictionary] = []
+var visited_arcs: Array[int] = []
+var arc_pacing: Array[Dictionary] = []
+var total_distance := 0.0
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -68,6 +78,10 @@ func _run() -> void:
 			market_route = arg.get_slice("=",1)
 	game = MAIN.instantiate()
 	root.add_child(game)
+	if not is_instance_valid(game.screen):
+		push_error("Game scene failed to initialize")
+		quit(1)
+		return
 	var all_encounters := "--all-encounters" in OS.get_cmdline_user_args()
 	var easy := all_encounters and "--standard" not in OS.get_cmdline_user_args()
 	var gear_route := "--gear-route" in OS.get_cmdline_user_args()
@@ -86,6 +100,8 @@ func _run() -> void:
 	counterplay = "--counterplay" in OS.get_cmdline_user_args()
 	quest_carryover = "--quest-carryover" in OS.get_cmdline_user_args()
 	forging_route = "--forging" in OS.get_cmdline_user_args()
+	cultivation_route = "--cultivation" in OS.get_cmdline_user_args()
+	alternate_transit = "--alternate-transit" in OS.get_cmdline_user_args()
 	endgame = "--endgame" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
@@ -147,6 +163,7 @@ func _run() -> void:
 		path_length = 0
 		chapter_battles.clear()
 		_check(int(game.slot.chapter) == chapter and game.mode == "field","chapter %d opens" % (chapter+1))
+		_record_arc([0, 1, 2, 4, 5, 6][chapter])
 		if pacing:
 			_check(not _main_targets().is_empty(), "chapter starts with a main marker %d" % (chapter + 1))
 		if gear_route:
@@ -155,14 +172,27 @@ func _run() -> void:
 			_equip_playtest_build(chapter)
 		if forging_route:
 			_apply_forging_loadout()
+		if cultivation_route and build_route in ROUTE_STYLES and chapter >= 2:
+			await _select_route_cultivation()
 		if market_route == "training" and chapter == 5:
 			_prepare_manual("wind", "crosswind", 1)
 			_equip_owned("wind", "reed_mantle")
 			_prepare_manual("cloud", "cloud_return", 0)
+		if chapter == 2 and not await _walk_transit("lantern_pass", "forge", "pass_done"):
+			quit(1)
+			return
 		if chapter == 5:
+			if not await _walk_transit("dragon_waterway", "cavern", "waterway_done"):
+				quit(1)
+				return
 			await _special("relic","cavern_guard")
 			_do_point("lost_relic")
 			_do_point("shatter_relic")
+			_record_arc(7)
+			_do_point("ridge_road")
+			if not await _walk_transit("dragon_ridge", "cavern", "ridge_done"):
+				quit(1)
+				return
 			await _special("prepare","prepare_guard")
 			await _capture("2-cavern")
 			_do_point("lodge")
@@ -174,7 +204,13 @@ func _run() -> void:
 			if not await _scene_step("bedside","farewell","farewell"):
 				quit(1)
 				return
+			_record_arc(8)
+			if not await _walk_transit("summit_steps", "peak", "summit_done"):
+				quit(1)
+				return
 			_check(game.field_key == "peak","farewell leads to dragon terrace")
+			if cultivation_route and build_route in ROUTE_STYLES:
+				await _resolve_hidden_ledger()
 			if forging_route and build_route in ROUTE_STYLES:
 				await _verify_peak_forge()
 			if alternate and build_route.is_empty():
@@ -213,6 +249,8 @@ func _run() -> void:
 			order.erase(0)
 		if chapter == 2 and all_encounters:
 			order = [0,1,2]
+		if cultivation_route and build_route == "exploit" and chapter == 5 and not order.has(2):
+			order.insert(1,2)
 		if chapter == 3:
 			_do_point("apothecary")
 			_do_point("pool_intro")
@@ -227,6 +265,8 @@ func _run() -> void:
 					await _side_step("remedy",1)
 					await _side_step("remedy")
 				await _side_step("remedy",0)
+			if cultivation_route and build_route in ROUTE_STYLES:
+				await _verify_insight("dream", "moon_needle", 1)
 			if forging_route and build_route in ROUTE_STYLES:
 				_check_material("quest:remedy", "clear_silk", 2)
 				_check_shop_stock("medicine", "clear_silk", 2)
@@ -249,6 +289,13 @@ func _run() -> void:
 			if chapter == 1 and fight != 0 and not game.chronicle.has("ferry_evidence"):
 				await _ferry_evidence()
 				_check(game.storage.read().chronicle.marks.get("ferry_evidence",false),"investigation persists")
+				if game.field_key == "village":
+					_check_main(["fengxi_lanes"], "Fengxi evidence leads to the lanes")
+					_check(not _reach("fight", 1), "Fengxi's main battle waits until the lanes investigation is complete")
+					_do_point("fengxi_lanes")
+				if not await _walk_transit("fengxi_lanes", "village", "lanes_done"):
+					quit(1)
+					return
 			if chapter == 2 and fight == 1 and not await _cross_forge():
 				quit(1)
 				return
@@ -256,7 +303,11 @@ func _run() -> void:
 				if not await _free_prisoner():
 					quit(1)
 					return
-				_do_point("tearoom")
+				if game.field_key == "palace":
+					_do_point("tearoom")
+				if not await _walk_transit("palace_sluice", "tearoom", "sluice_done"):
+					quit(1)
+					return
 				_do_point("tea")
 				if quests:
 					await _side_step("shift",int(alternate))
@@ -267,6 +318,8 @@ func _run() -> void:
 				_do_point("palace_back")
 				if market_route == "training":
 					_prepare_manual("sage", "sword_trace", 0)
+				if cultivation_route and build_route in ROUTE_STYLES:
+					await _verify_insight("sage", "sword_trace", 1)
 			if chapter == 5 and fight == 1 and quests:
 				await _side_step("swordstory")
 			if chapter == 5 and fight == 1 and not await _scene_step("altar","altar","altar"):
@@ -280,6 +333,8 @@ func _run() -> void:
 			if not _check(game.mode == "battle","battle entry %d/%d" % [chapter+1,fight]):
 				quit(1)
 				return
+			if chapter == 2 and fight == 0:
+				_verify_lantern_pass_reward()
 			if quests and chapter == 5 and fight == 1:
 				var aid_kind: String = game.slot.chronicle.quests.swordstory
 				var boss: Dictionary = game.encounter.foes[0]
@@ -289,20 +344,42 @@ func _run() -> void:
 			if quests and chapter == 1 and fight == 1:
 				var paper: Dictionary = game.encounter.foes[0]
 				var proof: bool = game.slot.chronicle.quests.seals == "done_proof"
-				_check(paper.poise == paper.max_poise - int(proof) and (not game.encounter.quest_aid_line.is_empty()) == proof,
-					"seal proof changes the enemy's opening stance on the west bank")
+				var decoy: bool = game.chronicle.has("escape_decoy")
+				var timely_aid: bool = game.chronicle.has("escape_carrier")
+				var frost: Dictionary = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == "frost").front()
+				_check(paper.poise == paper.max_poise - int(proof) - int(decoy) and frost.ward == timely_aid,
+					"seal proof and the down-road decoy independently alter the enemy's opening stance")
 				if proof:
 					print("AID west bank " + game.encounter.quest_aid_line)
 			if quests and chapter == 4 and fight == 1 and game.chronicle.has("courier_contact"):
 				var godless: Dictionary = game.encounter.foes[0]
 				var detained: bool = game.slot.chronicle.quests.courier == "done_fight"
-				var aid_applied: bool = godless.poise == godless.max_poise - 2 if detained else game.encounter.allies[1].ward
+				var trestle_help: bool = game.chronicle.has("trestle_carry")
+				var aid_applied: bool = godless.poise == godless.max_poise - 2 - int(trestle_help) if detained else game.encounter.allies[1].ward
 				_check(aid_applied and not game.encounter.quest_aid_line.is_empty(), "courier follow-up changes the armor fight opening")
 				print("AID palace " + game.encounter.quest_aid_line)
 			if forging_route and chapter == 5 and build_route in ROUTE_STYLES:
 				_verify_battle_reinforcement()
+			if cultivation_route and chapter == 5 and build_route in ROUTE_STYLES:
+				_verify_cultivation_encounter()
+				if fight == 2 and build_route == "exploit":
+					var decoy: bool = game.chronicle.has("summit_guard")
+					_check(game.encounter.bond == 1 and game.encounter.foes[0].poise == game.encounter.foes[0].max_poise - 2 - int(decoy),
+						"ledger ambush and summit decoy reduce the late elite's poise, with one combo charge for the ledger")
 			if market_route == "training":
 				await _verify_training_in_battle(chapter, fight)
+			if cultivation_route and build_route in ROUTE_STYLES:
+				if chapter == 1 and fight == 1 and build_route == "interrupt":
+					_verify_mastered_battle_label("frost")
+				if chapter == 3:
+					_verify_mastered_battle_label("dream")
+				if chapter == 4 and fight == 1:
+					_verify_mastered_battle_label("sage")
+					_exercise_godless_ward()
+				if chapter == 5 and build_route == "interrupt":
+					_verify_mastered_battle_label("wind")
+				if chapter == 5 and build_route == "retaliate":
+					_verify_mastered_battle_label("cloud")
 			if chapter == 0 and fight == 0 and not pacing:
 				await _capture("03-first-battle")
 				_key(KEY_1)
@@ -373,6 +450,9 @@ func _run() -> void:
 				quit(1)
 				return
 			_drain_dialogue()
+			if not await _walk_transit("courtyard_road", "village", "escape_road_done"):
+				quit(1)
+				return
 			_print_pacing(chapter)
 			continue
 		if chapter == 1:
@@ -398,6 +478,7 @@ func _run() -> void:
 				await _side_step("forgework")
 			_do_point("exit")
 			_do_point("lesson")
+			_record_arc(3)
 			if forging_route and build_route in ROUTE_STYLES:
 				_check_shop_stock("forge", "ember_iron", 1)
 			if not market_route.is_empty():
@@ -410,6 +491,9 @@ func _run() -> void:
 				await _verify_swordhall_forge()
 			await _capture("2-swordhall")
 			_do_point("returnhall")
+			if not await _walk_transit("outer_watch", "returnhall", "watch_done"):
+				quit(1)
+				return
 			await _special("first_tyrant","first_tyrant")
 			_choose(int(alternate))
 			_resume()
@@ -444,7 +528,14 @@ func _run() -> void:
 		if chapter == 5:
 			await _capture("05-farewell")
 		_drain_dialogue()
+		if chapter == 0 and not await _walk_transit("courtyard_road", "village", "escape_road_done"):
+			quit(1)
+			return
+		if chapter == 3 and not await _walk_transit("broken_trestle", "palace", "trestle_done"):
+			quit(1)
+			return
 		if chapter == 5:
+			_record_arc(9)
 			_check(game.field_key == "dawn","chapter ends at playable Fengxi dawn")
 			_resume()
 			_check(game.field_key == "dawn","ending walk resumes on the west bank")
@@ -473,8 +564,9 @@ func _run() -> void:
 	if quests:
 		var completed_slot: Dictionary = game.storage.read()
 		var q: Dictionary = completed_slot.chronicle.quests
-		_check(q.size() == 8 and q.values().all(func(value): return String(value).begins_with("done_")),
-			"all eight quests finished and persisted")
+		var expected_count := 9 if cultivation_route and build_route in ROUTE_STYLES else 8
+		_check(q.size() == expected_count and q.values().all(func(value): return String(value).begins_with("done_")),
+			"completed quests persist")
 		print("Quest outcomes: ",q)
 		_check(Equipment.owned(completed_slot).size() >= 10,"all original rewards available after clearing the campaign and quests")
 	if counterplay and not easy:
@@ -482,6 +574,7 @@ func _run() -> void:
 		_check(tactical_counts.mind_suppressed > 0, "suppressed the magic blade to prevent the stronger sweep")
 		_check(tactical_counts.armor_opened > 0, "opened Godless's armor by reacting to the heavy attack")
 		print("TACTICS ", tactical_counts)
+	_close_arc()
 	if tidal and game.mode == "ending":
 		await _verify_afterstory()
 	if not build_route.is_empty():
@@ -507,9 +600,25 @@ func _run() -> void:
 		else:
 			_check(purchased and reinforced_fights.size() >= 2, "reinforcement reaches late main and Tidegate fights")
 		print("FORGING route=%s events=%s active=%s" % [build_route,forging_observations,reinforced_fights])
+	if cultivation_route:
+		if build_route.is_empty():
+			_check(game.slot.get("cultivation",{}).is_empty(), "default route kept its base stance")
+		else:
+			_check(cultivation_observations.size() >= 8, "cultivation route exercised training and exploration decisions")
+		print("CULTIVATION route=%s events=%s" % [build_route,cultivation_observations])
+	if pacing:
+		print("TRANSIT " + JSON.stringify(traversed_maps))
+		print("ARCS " + JSON.stringify(arc_pacing))
+	_check(visited_arcs == range(10), "all ten narrative chapters were reached in order")
+	var expected_transits: Array = MAIN_TRANSITS.duplicate()
+	if tidal:
+		expected_transits.append("tidal_canal")
+	_check(traversed_maps.map(func(segment: Dictionary): return segment.room) == expected_transits,
+		"all required campaign routes were explored in order")
 	_verify_replay()
 	_check(saw_shield and combo_count > 0,"boss shield and combo reached")
-	_check(wins == (18 if all_encounters else 12) - int(rear_route == "quiet") - int(boat_route),"all requested battles won")
+	var extra_win := int(cultivation_route and build_route == "exploit" and not all_encounters)
+	_check(wins == (18 if all_encounters else 12) - int(rear_route == "quiet") - int(boat_route) + extra_win,"all requested battles won")
 	_verify_model()
 	_verify_new_martial()
 	_verify_backup()
@@ -622,6 +731,25 @@ func _print_pacing(chapter: int) -> void:
 	print("PACING " + JSON.stringify({"chapter":chapter + 1,"walk_seconds":snappedf(path_length / 101.0, 0.1),
 		"rank_after":game.rank(),"tonics_after":game.slot.tonics,"encounters":chapter_battles}))
 
+func _record_arc(expected: int) -> void:
+	var arc: int = game.arc_index()
+	_check(arc == expected, "expected narrative chapter %d in %s, got %d" % [expected + 1, game.field_key, arc + 1])
+	_close_arc()
+	visited_arcs.append(arc)
+	arc_pacing.append({"arc":arc + 1, "entry":game.field_key, "distance_start":total_distance, "silver_start":game.slot.silver,
+		"encounters":[], "goals":[]})
+
+func _close_arc() -> void:
+	if arc_pacing.is_empty():
+		return
+	var entry: Dictionary = arc_pacing.back()
+	if not entry.has("distance_start"):
+		return
+	entry.walk_seconds = snappedf((total_distance - entry.distance_start) / 101.0, 0.1)
+	entry.silver_change = game.slot.silver - entry.silver_start
+	entry.erase("distance_start")
+	entry.erase("silver_start")
+
 func _resume() -> void:
 	_key(KEY_ESCAPE)
 	_key(KEY_UP)
@@ -641,7 +769,8 @@ func _verify_afterstory() -> void:
 	if forging_route and build_route == "retaliate":
 		_check_shop_stock("tidegate", "tidal_iron", 0, "核对名册后到货")
 		_check_unowned_forge("tidegate", "granary_vest")
-		await _buy_at("tidegate", "granary_vest")
+		if not cultivation_route:
+			await _buy_at("tidegate", "granary_vest")
 	if quest_carryover and quests and alternate:
 		_check(game.afterstory.state().tonics == opening_tonics + 1 and game.afterstory.state().supplies.guard_powder == opening_powder + 1,
 			"preserving the grain sends medicine on Tidegate's first briefing")
@@ -663,6 +792,8 @@ func _verify_afterstory() -> void:
 	_do_point("seal")
 	_check(not _reach("gate_entry"),"gate route requires both pieces of evidence")
 	_do_point("register")
+	if cultivation_route and build_route in ROUTE_STYLES:
+		await _explore_dry_store()
 	if forging_route:
 		_check_material("tidal:register", "tidal_iron", 1, true)
 		if build_route == "retaliate":
@@ -680,8 +811,12 @@ func _verify_afterstory() -> void:
 			_check(not _reach("sluice_entry"),"watergate entry requires the winch or help from Fengxi")
 			_do_point("sluice")
 		_do_point("sluice_entry")
+		if not await _walk_transit("tidal_canal", "tidal_fort", "canal_done"):
+			return
 	else:
 		_do_point("gate_entry")
+		if not await _walk_transit("tidal_canal", "tidal_fort", "canal_done"):
+			return
 		_check(not game.passable(Vector2(320,205)),"gate line blocks reaching the chief")
 		_do_point("return_ford")
 		_check(game.field_key == "tidal_ford" and not _reach("sluice"),"return to the ford retains route")
@@ -728,9 +863,18 @@ func _verify_afterstory() -> void:
 		return
 	if forging_route and build_route in ROUTE_STYLES:
 		_verify_battle_reinforcement()
+	if cultivation_route and build_route in ROUTE_STYLES:
+		_verify_cultivation_encounter()
 	if endgame and quests and not alternate:
 		var drum: Dictionary = game.encounter.foes[1]
 		_check(drum.poise == drum.max_poise - 2, "public reunion roll makes the tidegate drummer start two poise lower")
+	elif tidal_sluice:
+		var wind: Dictionary = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == "wind").front()
+		_check(wind.ward and game.encounter.quest_aid_line.contains("扛粮护甲"), "canal manifest gives Wind protection at the chief's fight")
+	else:
+		var drum: Dictionary = game.encounter.foes[1]
+		_check(drum.poise == drum.max_poise - 1 and game.encounter.quest_aid_line.contains("卸粮人"),
+			"canal witness reduces the drummer's initial poise when the reunion roll is absent")
 	await _capture("tidal-chief")
 	if endgame and not game.slot.easy:
 		await _exercise_tidal_formation()
@@ -765,7 +909,14 @@ func _verify_afterstory() -> void:
 	_key(KEY_ESCAPE)
 	_check(game.mode == "field" and game.afterstory.state().resolution == "","cancelling the settlement leaves it open")
 	_do_point("report")
-	_choose(int(tidal_sluice))
+	if _check(game.mode == "choice", "the final settlement offers two choices"):
+		if tidal_sluice:
+			_key(KEY_DOWN)
+		_key(KEY_ENTER)
+		var ending_evidence := "船单" if tidal_sluice else "卸粮人"
+		_check(game.mode == "dialogue" and game.lines.any(func(line: Array): return (str(line[0]) + str(line[1])).contains(ending_evidence)),
+			"the chosen canal evidence is present in the settlement")
+		_drain_dialogue()
 	var settlement := "witness" if tidal_sluice else "public"
 	_check(game.afterstory.state().resolution == settlement,"the selected settlement is saved")
 	await _capture("tidal-complete")
@@ -815,8 +966,25 @@ func _special(point: String, id: String, trigger: bool = true) -> void:
 		var expected: bool = beast.poise == beast.max_poise - 2 if shift == "done_fight" else wind.ward
 		_check(expected and not game.encounter.quest_aid_line.is_empty(), "jailer choice carries into the Dragon Cave fight")
 		print("AID cave %s %s" % [shift, game.encounter.quest_aid_line])
+	elif id == "cavern_guard":
+		var marks: Dictionary = game.slot.chronicle.marks
+		if marks.get("waterway_high", false):
+			var wind: Dictionary = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == "wind").front()
+			_check(wind.ward and game.encounter.quest_aid_line.contains("高堤"), "high waterway rescue wards Wind in Dragon Cave")
+		elif marks.get("waterway_low", false):
+			var shade: Dictionary = game.encounter.foes.filter(func(foe: Dictionary): return foe.id == "shade").front()
+			_check(shade.poise == shade.max_poise - 2 and game.encounter.quest_aid_line.contains("火号"), "low waterway route weakens the cave scout")
 	if market_route == "training" and id == "first_tyrant":
 		_cast_learned("cloud_return", 0)
+	if id == "first_tyrant" and market_route != "training":
+		_check(game.encounter.bond == 1 and game.encounter.quest_aid_line.contains("岗门"), "outer watch rescue builds one combo charge")
+	if id == "prepare_guard":
+		if game.chronicle.has("ridge_guide"):
+			var cloud: Dictionary = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == "cloud").front()
+			_check(cloud.ward and game.encounter.quest_aid_line.contains("护肩"), "mountain guide protects Cloud while he guards the medicine")
+		elif game.chronicle.has("ridge_safe"):
+			var elite: Dictionary = game.encounter.foes[0]
+			_check(elite.id == "elite" and elite.poise == elite.max_poise - 1, "defeating the trail patrol weakens the pursuers at the medicine fire")
 	if await _play_battle():
 		if id == "first_tyrant":
 			_check(game.encounter.shield_resolution == "combo","first Tyrant duel requires a real combo")
@@ -837,6 +1005,8 @@ func _ferry_evidence() -> void:
 	_do_point("ferry_evidence")
 	if forging_route and build_route in ROUTE_STYLES:
 		_check_shop_stock("inn", "clear_silk", 0, "渡口解围后到货")
+	if cultivation_route and build_route == "interrupt":
+		await _collect_chase_manual()
 	if not market_route.is_empty():
 		await _visit_inn_market()
 	if quests:
@@ -849,6 +1019,8 @@ func _ferry_evidence() -> void:
 		_do_point("inn")
 		await _side_step("lamps",int(alternate))
 		await _side_step("courier",int(alternate))
+		if cultivation_route and build_route == "interrupt":
+			await _verify_insight("frost", "frost_gate", 0)
 		_do_point("inn_exit")
 	_verify_martial()
 	if market_route == "training":
@@ -862,11 +1034,7 @@ func _visit_inn_market() -> void:
 	_check(game.storage.read().get("manual_grants", {}).has("frost_gate"), "Fengxi crossing unlocks Frost's manual on either route")
 	_check_grant("manual_grants", "frost_gate", "progress:ferry" if boat_route else "battle:village:0")
 	if market_route == "training":
-		if _do_point("seal_chase") and _check(game.mode == "battle", "investigating the inn opens the optional seal fight"):
-			if await _play_battle():
-				_key(KEY_ENTER)
-				_check_grant("manual_grants", "crosswind", "hunt:inn")
-				_check(not game.field_points().any(func(point: Dictionary): return point.id == "seal_chase"), "seal chase reward cannot be farmed")
+		await _collect_chase_manual()
 		await _buy_at("inn", "reed_mantle")
 		_equip_owned("wind", "reed_mantle")
 		_prepare_manual("frost", "frost_gate", 0)
@@ -876,6 +1044,13 @@ func _visit_inn_market() -> void:
 		for extra in range(1, source.count):
 			await _buy_at("inn", "breath_pill")
 		_verify_sold_out("inn", "breath_pill")
+
+func _collect_chase_manual() -> void:
+	if _do_point("seal_chase") and _check(game.mode == "battle", "investigating the inn opens the optional seal fight"):
+		if await _play_battle():
+			_key(KEY_ENTER)
+			_check_grant("manual_grants", "crosswind", "hunt:inn")
+			_check(not game.field_points().any(func(point: Dictionary): return point.id == "seal_chase"), "seal chase reward cannot be farmed")
 
 func _visit_forge_market() -> void:
 	if market_route == "training":
@@ -966,12 +1141,12 @@ func _cast_learned(id: String, wanted: int) -> void:
 	var label: String = Martial.MANUALS[id].move[0]
 	var action := 0
 	for candidate in [1, 2]:
-		if battle.label(candidate) == label:
+		if battle.label(candidate).begins_with(label):
 			action = candidate
 	if not _check(action > 0 and battle.available(action), "learned technique appears in its battle slot " + id):
 		return
 	_perform_action(action, wanted)
-	if _check(not battle.events.is_empty() and battle.events[0].text == label, "learned technique executes " + id):
+	if _check(not battle.events.is_empty() and String(battle.events[0].text).begins_with(label), "learned technique executes " + id):
 		learned_casts[id] = learned_casts.get(id, 0) + 1
 
 func _buy_at(shop: String, id: String) -> void:
@@ -1049,6 +1224,8 @@ func _apply_forging_loadout() -> void:
 	var hero: String = "cloud" if build_route == "retaliate" and game.stage.party.has("cloud") else game.stage.party[0]
 	if build_route == "exploit" and game.stage.party.has("cloud"):
 		hero = "cloud"
+	if cultivation_route and build_route == "interrupt" and game.stage.party.has("wind"):
+		hero = "wind"
 	_equip_owned(hero,id)
 
 func _verify_inn_restock() -> void:
@@ -1068,7 +1245,10 @@ func _verify_swordhall_forge() -> void:
 	await _forge_at("swordhall",id)
 	if build_route == "retaliate":
 		await _forge_at("swordhall", "cloud_return")
-		_prepare_manual("cloud", "cloud_return", 1)
+		if cultivation_route:
+			await _verify_insight("cloud", "cloud_return", 1)
+		else:
+			_prepare_manual("cloud", "cloud_return", 1)
 	_apply_forging_loadout()
 
 func _verify_peak_forge() -> void:
@@ -1077,6 +1257,8 @@ func _verify_peak_forge() -> void:
 		if not await _forge_at("peak", id):
 			return
 	await _reject_max_forge("peak", id)
+	if cultivation_route:
+		await _forge_branch_at("peak",id,FORGE_BRANCHES[build_route])
 	_apply_forging_loadout()
 	if build_route == "retaliate":
 		_prepare_manual("cloud", "cloud_return", 1)
@@ -1087,6 +1269,8 @@ func _verify_tidegate_forge(baseline: Dictionary) -> void:
 	await _forge_at("tidegate","granary_vest")
 	await _forge_at("tidegate","granary_vest")
 	await _reject_max_forge("tidegate", "granary_vest")
+	if cultivation_route:
+		await _forge_branch_at("tidegate","granary_vest","tidal_bank")
 	_equip_owned("wind","granary_vest")
 	var saved: Dictionary = game.storage.read()
 	_check(saved.silver == baseline.silver and saved.materials == baseline.materials,
@@ -1184,7 +1368,16 @@ func _verify_battle_reinforcement() -> void:
 	if build_route == "interrupt":
 		_check(unit.build.interrupt == 6, "refined whistle raises 截势 refund to six before elite bonus")
 	if game.afterstory.active and build_route == "retaliate":
-		_check(game.encounter.allies[0].gear.get("heavy_armor",0) == 12, "locally tempered vest applies twelve heavy reduction")
+		var expected_heavy := 9 if cultivation_route else 12
+		_check(game.encounter.allies[0].gear.get("heavy_armor",0) == expected_heavy, "local vest applies its heavy-hit reduction")
+		if cultivation_route:
+			_check(game.encounter.allies[0].gear.get("sweep_armor",0) == 5, "floodbank branch trades heavy reduction for five sweep reduction")
+	if cultivation_route and build_route == "interrupt":
+		_check(unit.gear.get("weakness_poise",0) == 1, "Wind’s branch applies an extra poise when exploiting a weakness")
+	if cultivation_route and build_route == "retaliate":
+		_check(bonus == 18, "Cloud’s branch applies eighteen counter power")
+	if cultivation_route and build_route == "exploit":
+		_check(bonus == 19, "Cloud’s branch applies nineteen opening damage")
 	reinforced_fights[game.battle_info()[0]] = "%s %+d" % [effect,bonus]
 
 func _verify_forging_migration() -> void:
@@ -1208,6 +1401,143 @@ func _verify_forging_migration() -> void:
 	_check(game.storage.write(restored) and game.storage.read().materials == restored_materials and game.storage.read().silver == restored_silver,
 		"reloading migrated account does not repeat silver or materials")
 	print("FORGING_MIGRATION passed")
+
+func _resolve_hidden_ledger() -> void:
+	await _side_step("hidden_ledger")
+	_check(game.storage.read().chronicle.quests.get("hidden_ledger", "") == "decision", "stone clue follows the copied prison carving")
+	await _capture_tactic("hidden-ledger-stone")
+	var trade := build_route == "exploit"
+	await _side_step("hidden_ledger", int(trade))
+	var expected := "done_trade" if trade else "done_defend"
+	var saved: Dictionary = game.storage.read()
+	_check(saved.chronicle.quests.get("hidden_ledger", "") == expected and saved.material_claims.has("quest:hidden_ledger")
+		and saved.materials.get("star_steel", 0) >= 1, "hidden ledger outcome and rare material are saved together")
+	cultivation_observations.append("ledger:" + expected)
+	if not trade and game.slot.get("manual_grants", {}).has("crosswind"):
+		await _verify_insight("wind", "crosswind", 0)
+
+func _explore_dry_store() -> void:
+	var start: Dictionary = game.afterstory.state().duplicate(true)
+	_do_point("dry_store_hint")
+	_do_point("dry_store")
+	await _capture_tactic("tidal-dry-store-puzzle")
+	_choose(0)
+	_check(not game.afterstory.state().get("dry_store", false) and game.afterstory.state().silver == start.silver
+		and game.afterstory.state().materials == start.materials, "incorrect tide choice grants nothing and may be retried")
+	_do_point("dry_store")
+	_choose(1)
+	var saved: Dictionary = game.storage.read()
+	_check(saved.afterstory.get("dry_store", false) and saved.afterstory.material_claims.has("tidal:dry_store")
+		and saved.afterstory.materials.get("tide_core", 0) > start.materials.get("tide_core", 0),
+		"solving the dry store puzzle persists a tide core")
+	_check(Equipment.unlocked(saved, "granary_vest"), "dry store yields or preserves the owned tide vest")
+	_check(not game.field_points().any(func(point: Dictionary): return point.id == "dry_store"), "solved dry store is not farmable")
+	_resume_afterstory()
+	_check(game.afterstory.state().get("dry_store",false) and game.afterstory.state().materials == saved.afterstory.materials
+		and game.afterstory.state().silver == saved.afterstory.silver, "reopening Tidegate does not pay the store again")
+	cultivation_observations.append("tidal:dry_store")
+
+func _verify_insight(hero: String, manual: String, slot: int) -> void:
+	var saved: Dictionary = game.storage.read()
+	_check(saved.get("insights", {}).get(hero, false) == true, "manual breakthrough is recorded " + hero)
+	_prepare_manual(hero, manual, slot)
+	cultivation_observations.append("insight:" + hero)
+
+func _select_route_cultivation() -> void:
+	var defaults := {"wind":"wind_seek", "cloud":"cloud_pursuit", "frost":"frost_shatter", "dream":"dream_breath", "sage":"sage_cut"}
+	if build_route == "retaliate":
+		defaults.wind = "wind_cover"
+		defaults.cloud = "cloud_counter"
+		defaults.sage = "sage_counter"
+	for hero in game.stage.party:
+		var desired: String = defaults[hero]
+		if game.slot.get("cultivation",{}).get(hero, "") == desired:
+			continue
+		_key(KEY_K)
+		if game.stage.party[0] != hero:
+			_key(KEY_RIGHT)
+		_key(KEY_G)
+		if not _check(game.mode == "cultivation", "cultivation screen opens from martial"):
+			_key(KEY_ESCAPE)
+			continue
+		var index: int = Martial.CULTIVATION[hero].find_custom(func(stance: Dictionary): return stance.id == desired)
+		game.menu_confirm(index)
+		_check(game.storage.read().cultivation.get(hero, "") == desired, "cultivation stance persists " + desired)
+		await _capture_tactic("cultivation-" + hero)
+		_key(KEY_ESCAPE)
+		if game.mode == "martial":
+			_key(KEY_ESCAPE)
+		cultivation_observations.append(desired)
+
+func _verify_cultivation_encounter() -> void:
+	for unit in game.encounter.allies:
+		var selected: Dictionary = Martial.cultivation_choice(game.slot, unit.id, game.rank())
+		_check(not selected.is_empty() and unit.get("stance", "") == selected.id,
+			"battle receives hero's selected cultivation stance " + unit.id)
+
+func _verify_mastered_battle_label(hero: String) -> void:
+	var units: Array = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == hero)
+	if not _check(not units.is_empty(), "mastered hero present " + hero):
+		return
+	var moves: Array = units[0].moves
+	_check(moves.any(func(move: Array): return Martial.enhanced(move)), "mastered technique is visible in battle " + hero)
+
+func _exercise_godless_ward() -> void:
+	var battle: RefCounted = game.encounter
+	if not battle.allies[1].ward:
+		return
+	_perform_action(3, 0)
+	_perform_action(1, 0)
+	if battle.foes[0].opening > 0:
+		tactical_counts.armor_opened += 1
+
+func _forge_branch_at(site: String, id: String, branch: String) -> void:
+	if not _do_point("craft_" + site):
+		return
+	_key(KEY_TAB)
+	var index := -1
+	var alternate_index := -1
+	for at in Economy.forge_count(site, true):
+		var item := Economy.forge_offer(game.slot, game.shop_account(), site, at, true)
+		if item.id == id:
+			if item.branch == branch:
+				index = at
+			else:
+				alternate_index = at
+	if not _check(index >= 0, "late forge offers equipment branch " + branch):
+		_key(KEY_ESCAPE)
+		return
+	var before: Dictionary = game.shop_account().duplicate(true)
+	var offer := Economy.forge_offer(game.slot, game.shop_account(), site, index, true)
+	if _check(offer.limit.is_empty(), "branch is affordable from earned materials " + branch):
+		game.menu_confirm(index)
+		_check(game.mode == "forge_confirm" and game.selected == 0, "branch asks confirmation with safe default")
+		_key(KEY_ENTER)
+		_check(game.mode == "forge" and game.shop_account().silver == before.silver and game.shop_account().materials == before.materials,
+			"default return from confirmation spends no resources")
+		game.menu_confirm(index)
+		await _capture_tactic("forge-confirm-" + branch)
+		game.menu_confirm(1)
+		var saved: Dictionary = game.storage.read()
+		var account: Dictionary = saved.afterstory if game.afterstory.active else saved
+		_check(Equipment.branch(saved,id) == branch and account.silver == before.silver - offer.price,
+			"exclusive branch persists with exact silver charge")
+		for material in offer.materials:
+			_check(account.materials.get(material,0) == before.materials.get(material,0) - offer.materials[material], "branch consumes exact rare material")
+		game.menu_confirm(index)
+		if _check(alternate_index >= 0, "second variant is listed for " + id):
+			var rejected := Economy.forge_offer(game.slot, game.shop_account(), site, alternate_index, true)
+			_check(rejected.limit == "已选另一式", "sibling variant locks after committing a branch")
+			game.menu_confirm(alternate_index)
+		var after_retry: Dictionary = game.storage.read()
+		var after_retry_account: Dictionary = after_retry.afterstory if game.afterstory.active else after_retry
+		_check(after_retry_account.silver == account.silver and after_retry_account.materials == account.materials,
+			"repeat and sibling branch attempts do not charge")
+		await _capture_tactic("forge-branch-" + branch)
+		cultivation_observations.append("branch:" + branch)
+	_key(KEY_ESCAPE)
+	if game.mode == "forge":
+		_key(KEY_ESCAPE)
 
 func _verify_martial() -> void:
 	_key(KEY_K)
@@ -1248,14 +1578,17 @@ func _alternate_loadout() -> void:
 
 func _verify_replay() -> void:
 	var snapshot := FileAccess.get_file_as_string(game.storage.path)
-	game._title()
-	_key(KEY_UP)
-	_key(KEY_UP)
-	_key(KEY_ENTER)
-	_check(game.mode == "review","title opens chapter review")
-	_key(KEY_DOWN)
-	_key(KEY_ENTER)
-	_drain_dialogue()
+	var entries := ["hall", "village", "lantern_pass", "swordhall", "pool", "palace",
+		"dragon_waterway", "dragon_ridge", "summit_steps", "dawn"]
+	for arc in entries.size():
+		if not _open_arc_replay(arc):
+			return
+		_check(game.chronicle.review and game.arc_index() == arc and game.field_key == entries[arc],
+			"chapter replay %d opens at %s" % [arc + 1, entries[arc]])
+		_check(FileAccess.get_file_as_string(game.storage.path) == snapshot, "chapter replay leaves the full save untouched")
+	_verify_arc_replay_boundaries(snapshot)
+	if not _open_arc_replay(1):
+		return
 	_check(game.chronicle.review and game.slot.chapter == 1 and game.field_key == "village","chapter review opens independently")
 	_check(FileAccess.get_file_as_string(game.storage.path) == snapshot,"review does not change main slot")
 	game.slot.chronicle.quests.courier = "watch"
@@ -1267,6 +1600,38 @@ func _verify_replay() -> void:
 	_choose(1)
 	_check(game.mode == "title" and FileAccess.get_file_as_string(game.storage.path) == snapshot,
 		"confirming departure ends chapter review without changing the main slot")
+
+func _open_arc_replay(arc: int) -> bool:
+	game._title()
+	_key(KEY_UP)
+	_key(KEY_UP)
+	_key(KEY_ENTER)
+	if not _check(game.mode == "review" and game.menu_items().size() == 10, "title exposes ten chapter replays"):
+		return false
+	for i in arc:
+		_key(KEY_DOWN)
+	_key(KEY_ENTER)
+	_drain_dialogue()
+	return true
+
+func _verify_arc_replay_boundaries(snapshot: String) -> void:
+	for fixture in [
+		{"arc":2, "room":"swordhall", "point":"lesson", "marks":{}, "campaign":{"sword":true}, "cleared":[0,1]},
+		{"arc":6, "room":"cavern", "point":"shatter_relic", "marks":{"relic":true,"lost_relic":true}, "campaign":{}, "cleared":[]},
+		{"arc":7, "room":"lodge", "point":"bedside", "marks":{"prepare":true,"blood_rite":true}, "campaign":{}, "cleared":[]},
+		{"arc":8, "room":"peak", "point":"exit", "marks":{}, "campaign":{"altar":true}, "cleared":[0,1]},
+	]:
+		if not _open_arc_replay(fixture.arc):
+			return
+		game.slot.journey = {"active":"","step":0,"at":"","done":{}}
+		game.slot.chronicle.marks.merge(fixture.marks, true)
+		game.slot.campaign.merge(fixture.campaign, true)
+		game.slot.cleared.assign(fixture.cleared)
+		game.chronicle.enter(fixture.room)
+		_do_point(fixture.point)
+		_check(game.mode == "title" and FileAccess.get_file_as_string(game.storage.path) == snapshot,
+			"replay stops at chapter %d's real ending without changing the save" % (fixture.arc + 1))
+	print("REPLAY chapter boundaries 3, 7, 8, 9 and main save isolation checked")
 
 func _scene_step(point: String, scene: String, flag: String) -> bool:
 	if not _check(_reach(point),point + " interaction reachable"):
@@ -1363,12 +1728,151 @@ func _free_prisoner() -> bool:
 		await _side_step("shift")
 	if not await _scene_step("cell","rescue","rescued"):
 		return false
+	if cultivation_route and build_route in ROUTE_STYLES:
+		await _side_step("hidden_ledger")
+		_check(game.storage.read().chronicle.quests.get("hidden_ledger", "") == "seeking", "hidden records survive the prison exit")
 	_resume()
 	_check(game.field_key == "jail" and game.slot.campaign.rescued,"prison room and rescue survive reload")
 	if not _check(_reach("jail_exit"),"reach the side stair"):
 		return false
 	_key(KEY_E)
-	return _check(game.field_key == "palace","return to the palace")
+	_drain_dialogue()
+	return _check(game.field_key in ["palace", "palace_sluice"], "prison exit leads back to the palace route")
+
+func _walk_transit(room: String, destination: String, completion: String) -> bool:
+	if not _check(game.field_key == room and game.mode == "field" and game.transit.active(), "fresh campaign enters " + room):
+		return false
+	var start_distance := total_distance
+	var chosen := _transit_choices(room)
+	var visited: Array[String] = []
+	var battled: Array[String] = []
+	var flags: Array[String] = []
+	var quest_before: Dictionary = game.slot.chronicle.quests.duplicate()
+	var route: Dictionary = game.transit.data()
+	var exits: Array = route.steps.back().map(func(point: Dictionary): return point.id)
+	await _capture("transit-" + room + "-entry")
+	for i in 12:
+		if not game.transit.active() or game.field_key != room:
+			break
+		var markers := TrailGuide.main_points(game, game.field_points())
+		if not _check(not markers.is_empty(), room + " has a main marker after " + str(visited)):
+			return false
+		var ids: Array = markers.map(func(marker: Dictionary): return marker.id)
+		var current := 0
+		if ids.size() > 1:
+			current = ids.find(chosen)
+			if not _check(current >= 0, "%s expected route %s in %s" % [room, chosen, ids]):
+				return false
+		var marker: Dictionary = markers[current]
+		var point: String = marker.id
+		var live: Dictionary = game.field_points().filter(func(entry: Dictionary): return entry.id == point).front()
+		_check(not visited.has(point), "transit goals advance without looping " + point)
+		for entry in markers:
+			_check(not String(entry.name).is_empty() and game.passable(entry.pos), "named transit marker is walkable " + String(entry.id))
+		_check(not TrailGuide.objective(game).is_empty(), room + " keeps an on-screen objective")
+		if point not in exits:
+			_check(game.field_points().all(func(entry: Dictionary): return entry.id not in exits or entry.get("optional", false)),
+				room + " gates exits until the preceding objectives are complete")
+		if not _do_point(point):
+			return false
+		visited.append(point)
+		if pacing:
+			print("GUIDE %s step %d %s" % [room, i + 1, str(ids)])
+		if live.has("foes"):
+			if not _check(game.mode == "battle" and game.transit.battle == point and not game.battle_info().is_empty(),
+				room + " opens the correct local encounter " + point):
+				return false
+			if room == "fengxi_lanes" and build_route.is_empty() and market_route.is_empty() and not game.slot.easy:
+				if not _verify_transit_retry(point):
+					return false
+			if not await _play_battle():
+				return false
+			battled.append(point)
+			_key(KEY_ENTER)
+			_drain_dialogue()
+		if live.has("flag"):
+			var saved: Dictionary = game.storage.read()
+			var state: Dictionary = saved.afterstory if game.afterstory.active else saved.chronicle.marks
+			var flag: String = live.flag
+			_check(state.get(flag, false), "transit decision persisted " + flag)
+			flags.append(flag)
+		if game.field_key == room:
+			var state: Dictionary = game.storage.read().journey
+			_check(state.active == room and state.at == point, room + " saved the next stage and safe checkpoint")
+			if i == 1:
+				var before: Dictionary = state.duplicate(true)
+				if game.afterstory.active:
+					_resume_afterstory()
+				else:
+					_resume()
+				if not _check(game.field_key == room and game.mode == "field" and game.slot.journey == before,
+					room + " reload resumes the chosen branch from its latest checkpoint"):
+					return false
+				_check(game.player.distance_to(marker.pos) < 24.0, room + " reload resumes near the completed objective")
+				await _capture("transit-" + room + "-checkpoint")
+	if not _check(game.field_key == destination and game.mode == "field", room + " exits to " + destination):
+		return false
+	var final_save: Dictionary = game.storage.read()
+	_check(final_save.journey.done.get(completion, false) and final_save.journey.active != room, room + " completion persists")
+	var marks: Dictionary = final_save.afterstory if game.afterstory.active else final_save.chronicle.marks
+	for flag in route.get("flags", []):
+		_check(marks.get(flag, false) == flags.has(flag), room + " stores only the chosen branch outcome " + flag)
+	_check(visited.size() >= 3 and visited.back() in exits, room + " requires the authored sequence, including its east exit")
+	_check(quest_before == game.slot.chronicle.quests, room + " leaves voluntary side quests independent")
+	if not chosen.is_empty():
+		_check(chosen in visited, "%s follows required alternative %s" % [room, chosen])
+	var distance := total_distance - start_distance
+	_check(distance >= 1024.0, room + " requires traversal beyond a single field screen")
+	var result := {"room":room, "points":visited, "flags":flags, "battles":battled,
+		"walk_seconds":snappedf(distance / 101.0, 0.1)}
+	traversed_maps.append(result)
+	if not game.afterstory.active:
+		arc_pacing.back().goals.append_array(visited)
+	return true
+
+func _transit_choices(room: String) -> String:
+	match room:
+		"courtyard_road":
+			return "escape_false_tracks" if alternate_transit or build_route in ["interrupt", "exploit"] else "escape_wounded"
+		"lantern_pass":
+			return "pass_scouts" if alternate_transit or build_route in ["interrupt", "exploit"] else "pass_worker"
+		"dragon_waterway":
+			return "waterway_scout" if alternate_transit or build_route in ["interrupt", "exploit"] else "waterway_worker"
+		"broken_trestle":
+			return "trestle_herbs" if alternate_transit or build_route in ["interrupt", "retaliate"] else "trestle_shoal"
+		"dragon_ridge":
+			return "ridge_low" if alternate_transit or build_route in ["retaliate", "exploit"] else "ridge_high"
+		"summit_steps":
+			return "summit_decoy" if alternate_transit or build_route in ["retaliate", "exploit"] else "summit_escort"
+		"tidal_canal":
+			return "canal_manifest" if tidal_sluice else "canal_witness"
+	return ""
+
+func _verify_lantern_pass_reward() -> void:
+	var encounter: RefCounted = game.encounter
+	if game.chronicle.has("pass_help"):
+		var cloud: Dictionary = encounter.allies.filter(func(unit: Dictionary): return unit.id == "cloud").front()
+		_check(cloud.ward and encounter.quest_aid_line.contains("运铁工"), "rescuing the worker protects Cloud at the forge trial")
+	else:
+		var smith: Dictionary = encounter.foes[0]
+		_check(game.chronicle.has("pass_evidence") and smith.id == "smith" and smith.poise == smith.max_poise - 1,
+			"the forged pass makes the first forge opponent start one poise lower")
+
+func _verify_transit_retry(point: String) -> bool:
+	var saved: Dictionary = game.storage.read()
+	if game.encounter.available(4):
+		_perform_action(4, 0)
+	for turn in 180:
+		if game.mode != "battle":
+			break
+		_key(KEY_4)
+	var after: Dictionary = game.storage.read()
+	if not _check(game.mode == "defeat" and after.journey == saved.journey and after.tonics == saved.tonics,
+		"losing a transit fight changes neither checkpoint nor persistent medicine"):
+		return false
+	_key(KEY_ENTER)
+	return _check(game.mode == "battle" and game.transit.battle == point and game.encounter.round_no == 1
+		and game.encounter.tonics == saved.tonics, "retry restores the original transit encounter and inventory")
 
 func _signal_opening() -> void:
 	var b: RefCounted = game.encounter
@@ -1533,7 +2037,9 @@ func _walk_waypoints(points: Array, patrol: bool) -> bool:
 			var dt := minf(0.03,shift.length() / 101.0)
 			var prior: Vector2 = game.player
 			game.walk(shift.normalized(),dt)
-			path_length += prior.distance_to(game.player)
+			var distance := prior.distance_to(game.player)
+			path_length += distance
+			total_distance += distance
 			if patrol:
 				game.first.update(dt)
 			if game.mode != "field":
@@ -1696,7 +2202,9 @@ func _go_to(marker: Vector2, radius: float = 5.0) -> bool:
 		var change := Vector2(node) - Vector2(game.player)
 		var prior: Vector2 = game.player
 		game.walk(change.normalized(),change.length()/101.0)
-		path_length += prior.distance_to(game.player)
+		var distance := prior.distance_to(game.player)
+		path_length += distance
+		total_distance += distance
 	return game.player.distance_to(marker) < radius + 1
 
 func _play_battle() -> bool:
@@ -1788,6 +2296,7 @@ func _play_battle() -> bool:
 			tidal_battles.append(battle_metrics)
 		else:
 			chapter_battles.append(battle_metrics)
+			arc_pacing.back().encounters.append(battle_metrics)
 	return true
 
 func _verify_endgame_counts() -> void:

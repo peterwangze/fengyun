@@ -72,7 +72,15 @@ func has(flag: String) -> bool:
 	return state().marks.get(flag,false)
 
 func opening() -> Array:
+	if enabled() and g.field_key == "lantern_pass":
+		return [
+			["步惊云","凤溪的凭条写的是拜剑山庄。上坡到庄门前，先找运铁人说话。"],
+			["聂风","断浪堵的是铁路，就跟着车辙走。老匠若还在炉边，会给我们留路。"]]
 	if enabled() and g.slot.chapter == 5:
+		if g.field_key == "dragon_waterway":
+			return [
+				["步惊云","秦师兄在火里叫我往西闸追。残拓上，引水渠连着凌云窟。他一定在沿路留了记号。"],
+				["步惊云","风师弟，绝心要你开洞之后，还会用什么困住你？我得在他之前找到你。"]]
 		return [
 			["步惊云","我沿牢里那张图的水道追到凌云窟。风师弟，绝心把你丢在洞门口，他进去了。"],
 			["聂风","我还认得你。刚到洞口，刀声就弱了。扶我一把，咱们得赶在他前头握住龙脉。"]]
@@ -89,6 +97,11 @@ func ending() -> Array:
 		"wait_boat", "done_boat": home = "渡工修好了从浅滩拖回的旧船。第一趟船过桥时，灯还亮着。"
 		"wait_goods", "done_goods": home = "乡亲用救回来的冬粮煮了热粥。邻村的船载人过桥时，灯还亮着。"
 	var ending_lines := [["尾声",home]]
+	match side.state().get(SideStories.HIDDEN_LEDGER,""):
+		"done_defend":
+			ending_lines.append(["尾声","失散的人在渡口照着铁板上的旧名互相寻访。聂风把护步的拓印留给了照看他们的船工。"])
+		"done_trade":
+			ending_lines.append(["尾声","老匠沿石壁暗道带回了最后一批人。如今每次上山运铁，工匠都把这条路留给行人避险。"])
 	match reunion_plan():
 		"roll":
 			ending_lines.append(["尾声","渡口挂出第一张归人名册。潮关来的船工认出了同乡的名字，照着名册送来捎信。"])
@@ -146,6 +159,8 @@ func points() -> Array:
 		"village":
 			if not g.slot.campaign.crossing.is_empty():
 				result.append(_point("inn",97,167,"进西岸客栈"))
+				if has("ferry_evidence") and not g.slot.cleared.has(1) and g.transit.available("fengxi_lanes"):
+					result.append(_point("fengxi_lanes",199,235,"循运铁车辙进渡口雨巷"))
 		"inn":
 			result.append(_point("inn_exit",320,289,"回到西岸"))
 			result.append(_optional_point("shop_inn",Vector2(549,245),"与凤溪行商交易","servant"))
@@ -214,6 +229,8 @@ func points() -> Array:
 				result.append(_point("lost_relic",455,221,"护住秦霜","frost"))
 			elif not has("shatter_relic"):
 				result.append(_point("shatter_relic",320,167,"追到洞口阻止雄霸","boss"))
+			elif g.transit.available("dragon_ridge") and not has("prepare"):
+				result.append(_point("ridge_road",174,220,"从断脉山道转移药担","zhu"))
 			elif not has("prepare"):
 				result.append(_point("prepare",176,220,"守住换血药炉","zhu"))
 			else:
@@ -285,6 +302,7 @@ func objective() -> String:
 			if not has("relic"): return "去洞门前击退守兽，夺取龙脉。"
 			if not has("lost_relic"): return "去东侧接应秦霜。"
 			if not has("shatter_relic"): return "赶回北侧洞门，追上雄霸。"
+			if not has("prepare") and g.transit.available("dragon_ridge"): return "从西侧断脉山道转移药担。"
 			return "去南边的小筑协助第二梦。" if has("prepare") else "去西边替第二梦守住药炉。"
 		"lodge":
 			if not has("blood_rite"): return "在药炉旁协助第二梦，随后与她告别。"
@@ -298,7 +316,7 @@ func encounter_open(index: int) -> bool:
 		return true
 	match g.field_key:
 		"hall": return has("spar")
-		"village": return index == 0 or has("ferry_evidence")
+		"village": return index == 0 or (has("ferry_evidence") and not g.transit.available("fengxi_lanes"))
 		"pool": return has("pool_intro")
 		"palace": return index != 1 or has("tea")
 	return true
@@ -322,6 +340,7 @@ func handle(id: String) -> bool:
 				return true
 			return false
 		"inn": enter("inn")
+		"fengxi_lanes": g.transit.enter("fengxi_lanes")
 		"inn_exit": enter("village","west_spawn")
 		"shop_inn": g._open_shop("inn")
 		"shop_forge": g._open_shop("forge")
@@ -362,7 +381,11 @@ func handle(id: String) -> bool:
 				["无名","你拿到了剑，雄霸的护气仍要两人合力破开。试一遍，排云掌压住对手，风神腿接上。"],
 				["聂风","普攻和武学都能蓄合击。等蓄到四格，我会给你信号。"],
 				["步惊云","喜堂那回我没等你。这回等信号。走，回天下会。"]])
-		"returnhall": enter("returnhall")
+		"returnhall":
+			if g.transit.available("outer_watch") and not has("first_tyrant"):
+				g.transit.enter("outer_watch")
+			else:
+				enter("returnhall")
 		"hall_back": enter("swordhall")
 		"leave_hall": g._next_chapter()
 		"first_tyrant": begin_special("first_tyrant")
@@ -395,7 +418,11 @@ func handle(id: String) -> bool:
 			beat("pool_escape",[
 				["聂风","我听得见你，却分不清眼前是谁。别跟着刀光走，我从另一条路下山。"],
 				["第二梦","我沿山路去找他。给云大哥捎个信，请他立刻去绝宫和无名会合。"]])
-		"tearoom": enter("tearoom")
+		"tearoom":
+			if g.slot.campaign.rescued and not has("tea") and g.transit.available("palace_sluice"):
+				g.transit.enter("palace_sluice")
+			else:
+				enter("tearoom")
 		"palace_back": enter("palace","jail_return")
 		"tea":
 			beat("tea",[
@@ -439,6 +466,7 @@ func handle(id: String) -> bool:
 				["雄霸","我教给你的心法少了最后一段。你把气运到第三重试试，还能不能握得住它。"],
 				["步惊云","雄霸砸碎了龙脉。聂风，听我说，别再去抓那把刀。"],
 				["第二梦","猪皇，把药炉挪到避风处。龙脉只能压住魔血，我要把它换出来。"]])
+		"ridge_road": g.transit.enter("dragon_ridge")
 		"prepare": begin_special("prepare_guard")
 		"lodge": enter("lodge")
 		"blood_rite":
@@ -507,6 +535,7 @@ func finish_chapter() -> bool:
 		return false
 	if g.field_key == "peak":
 		enter("dawn")
+		g._review_finished()
 		return true
 	return false
 
@@ -568,6 +597,8 @@ func beat(flag: String, lines: Array) -> void:
 	speak(lines,func():
 		state().marks[flag] = true
 		g._commit()
+		if g._review_finished():
+			return
 		g._return_to_field()
 		if flag == "invaded":
 			g._next_chapter())

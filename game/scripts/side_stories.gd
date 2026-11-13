@@ -4,9 +4,11 @@ const Equipment = preload("res://scripts/equipment.gd")
 const Items = preload("res://scripts/items.gd")
 const MarketCatalog = preload("res://scripts/market_catalog.gd")
 const Martial = preload("res://scripts/martial.gd")
+const Story = preload("res://scripts/story.gd")
 
 const COURIER_CONTACT_POS := Vector2(208,209)
 const COURIER_CONTACT_NAME := "与凤溪信使会合"
+const HIDDEN_LEDGER := "hidden_ledger"
 const TASKS := {
 	"seals": {
 		"title":"旧账新印",
@@ -69,7 +71,14 @@ const TASKS := {
 			"trail":["peak",398,230,"寻找撤离小径","","小径能通山脚。可先藏好村民，或由另一人把追兵引开。","decision"],
 			"decision":["peak",431,258,"安排村民下山","maid","我会带他们下山。等你招呼，我们再一起过石阶。",[
 				["守住小径接应","escort"],["把追兵引到岔口","fight"]]],
-			"escort":["peak",468,201,"接应下山的村民","servant","最后一个人到了。把石缝里的灯带上吧，船家在山下等我们。","done_escort"]}}
+			"escort":["peak",468,201,"接应下山的村民","servant","最后一个人到了。把石缝里的灯带上吧，船家在山下等我们。","done_escort"]}},
+	"hidden_ledger": {
+		"title":"壁刻遗图",
+		"steps":{
+			"start":["jail",484,259,"细看墙上的刻痕","","三道短痕画的是凌云山起伏的石阶。倒过来的灯刻在向阳石背，最深一刀指着北侧缺口。","seeking"],
+			"seeking":["peak",422,151,"对照石背的倒灯记号","","石后有摞薄铁板，一面压着民籍，另一面刻着不伤随行人的护步。带去东侧石台问老匠。","decision"],
+			"decision":["peak",499,211,"请老匠辨认铁板","guide","星纹钢夹在民籍下。板面还刻着逆风截脉的护步。可拓印给聂兄，或记下背面暗道，先截追兵。",[
+				["留印记，研读护步","done_defend"],["记下暗道，伏截追兵","done_trade"],["暂且留下铁板","defer"]]]}},
 }
 
 const RESULT := {
@@ -81,7 +90,10 @@ const RESULT := {
 	"wait_sage":"无名会把情报送到凌云山。","wait_guard":"守军会在凌云山接应。",
 	"done_sage":"风云练过起手。雄霸决战开场多 1 格合击。","done_guard":"守军疏散山腰百姓，决战开场削雄霸 2 格势。",
 	"done_aid":"药方可用，第二梦交给你针法抄本。","done_stealth":"便门已开。狱卒给聂风留了一次护持。",
-	"done_escort":"村民沿小径平安下山。","done_decoy":"追兵离开，村民已经下山。"
+	"done_escort":"村民沿小径平安下山。","done_decoy":"追兵离开，村民已经下山。",
+	"seeking":"抄下倒灯与北侧缺口。在凌云山找石背。",
+	"done_defend":"民籍抄留。聂风拓下逆风截脉与护步真意。",
+	"done_trade":"老匠会引追兵走暗道，薄铁板留给渡口核对。",
 }
 
 const ROOMS := {
@@ -91,7 +103,11 @@ const ROOMS := {
 	"apothecary":[3,"生死门药庐"], "jail":[4,"绝宫天牢"], "tearoom":[4,"绝宫茶房侧廊"],
 	"peak":[5,"凌云山石阶"], "dawn":[5,"清晨凤溪"],
 }
-const CHAPTERS := ["第一章", "第二章", "第三章", "第四章", "第五章", "第六章"]
+const ROOM_CHAPTERS := {
+	"hall":"第一章", "banquet":"第一章", "village":"第二章", "inn":"第二章",
+	"forge":"第三章", "swordhall":"第三章", "apothecary":"第五章",
+	"jail":"第六章", "tearoom":"第六章", "peak":"第九章", "dawn":"第十章",
+}
 const DECISIONS := {
 	"seals":"带证人走可缩短竹径守卫视线。留口供给秦霜，能让纸探花开场少 1 格势。",
 	"lamps":"拖船能复航，潮关有渡工开水栅。救粮能保住冬粮，潮关可获乡亲补给。",
@@ -100,6 +116,7 @@ const DECISIONS := {
 	"remedy":"结合脉象和温补药渣，判断哪件事更紧急。",
 	"shift":"两路都开便门。潜行保住护心镜，交手可夺铜哨，均可用于凌云窟。",
 	"stairs":"守住小径需等到最后一人下山。把追兵引开要打一场。",
+	"hidden_ledger":"两路均得星纹钢。拓印得逆风截脉与真意，暗道可先伏截山上残部。",
 }
 const CONSEQUENCES := {
 	"seals":"缩短竹径巡哨视线，或让纸探花开局少 1 格势",
@@ -110,6 +127,7 @@ const CONSEQUENCES := {
 	"remedy":"学会护心针与针渡清脉，可配合治疗与回气。",
 	"shift":"打开撤离便门。龙脉战可护持聂风或削守兽 2 格势",
 	"stairs":"村民在尾声回到凤溪",
+	"hidden_ledger":"按墙刻找到民籍，再决定研究护步或利用暗道。",
 }
 
 var g
@@ -120,18 +138,30 @@ func _init(game: Node2D) -> void:
 func state() -> Dictionary:
 	return g.slot.chronicle.quests
 
+func journal_ids() -> Array:
+	var ids := TASKS.keys()
+	if not state().has(HIDDEN_LEDGER):
+		ids.erase(HIDDEN_LEDGER)
+	return ids
+
 func courier_contact_available() -> bool:
 	return int(g.slot.chapter) == 4 and g.chronicle.enabled() and not g.slot.cleared.has(1) \
 		and not g.chronicle.has("courier_contact") and state().get("courier","") in ["done_quiet","done_fight"]
 
 func battle_aid(room: String, encounter_index: int, special_id: String) -> Dictionary:
 	var quests := state()
+	if room == "peak" and encounter_index == 2 and special_id.is_empty() and quests.get(HIDDEN_LEDGER) == "done_trade":
+		return {"foe":"elite","poise":2,"bond":1,"line":"老匠引开残兵，领头人少 2 格势，风云多 1 格合击。"}
 	if special_id == "cavern_guard" and room == "cavern":
 		match quests.get("shift",""):
 			"done_stealth":
 				return {"ward":"wind","line":"狱卒的护心镜让聂风获得一次护持。"}
 			"done_fight":
 				return {"foe":"beast","poise":2,"line":"铜哨引开守兽视线，火麟幻影开场少 2 格势。"}
+		if g.chronicle.has("waterway_high"):
+			return {"ward":"wind","line":"从高堤背面接回聂风，他开场获得护持。"}
+		if g.chronicle.has("waterway_low"):
+			return {"foe":"shade","poise":2,"line":"追兵的火号被截，洞口密探开场少 2 格势。"}
 	if not special_id.is_empty() or encounter_index != 1:
 		return {}
 	match room:
@@ -161,6 +191,8 @@ func points() -> Array:
 		var node: Array = task.steps.get(step,[])
 		if node.is_empty() or not _reachable(node[0]):
 			continue
+		if id == HIDDEN_LEDGER and step == "start" and not g.slot.campaign.rescued:
+			continue
 		if node[0] == g.field_key:
 			result.append({"id":"side_"+id,"name":_action(id,step,node),"pos":Vector2(node[1],node[2]),"index":-1,
 				"sprite":node[4],"optional":true})
@@ -182,19 +214,28 @@ func handle(id: String) -> bool:
 	var node: Array = task.steps[step]
 	var speaker: String = "手记" if node[4].is_empty() else String(node[3]).substr(0,8)
 	var dialogue: String = node[5]
+	if key == HIDDEN_LEDGER and step == "decision" and g.slot.cleared.has(2):
+		dialogue = "星纹钢夹在民籍下。残部已经散了，背面暗道可留作撤离用。把逆风截脉的护步印记交给聂兄吧。"
 	if key == "swordstory" and _duel_finished():
 		match step:
 			"wait_sage": dialogue = "旧剑的刻痕是天下会的起手次序。如今雄霸已倒，留下这柄剑，也好记得这门武艺还能用来救人。"
 			"wait_guard": dialogue = "见剑认人。我已沿侧坡把落单的人接下山。下回有人拿这柄剑来，我还认得路。"
 	g.chronicle.speak([[speaker,dialogue]],func():
 		if node[6] is Array:
-			g.chronicle.choose(task.title,node[6],func(outcome): _finish(key,outcome),DECISIONS[key])
+			var choices: Array = node[6]
+			var note: String = DECISIONS[key]
+			if key == HIDDEN_LEDGER and g.slot.cleared.has(2):
+				choices = choices.filter(func(choice): return choice[1] != "done_trade")
+				note = "残部已退。聂风仍可拓印逆风截脉，收下星纹钢。"
+			g.chronicle.choose(task.title,choices,func(outcome): _finish(key,outcome),note)
 		else:
 			_finish(key,node[6]))
 	return true
 
 func _finish(key: String, outcome: String) -> void:
 	match outcome:
+		"defer":
+			g._return_to_field()
 		"fight":
 			var battles := {"courier":"courier_guard","shift":"shift_guard","stairs":"stairs_guard"}
 			g.chronicle.begin_special(battles[key])
@@ -232,10 +273,12 @@ func journal_entry(key: String) -> Dictionary:
 			and (int(g.slot.chapter) < 4 or courier_contact_available()):
 			entry.status = "待回访"
 			entry.action = COURIER_CONTACT_NAME
-			entry.place = "第五章 · 绝宫茶房侧廊" if int(g.slot.chapter) < 4 else "绝宫茶房侧廊"
+			entry.place = "第六章 · 绝宫茶房侧廊" if int(g.slot.chapter) < 4 else "绝宫茶房侧廊"
 			entry.deadline = "破金身前"
 			if g.field_key == "tearoom":
 				entry.point = COURIER_CONTACT_POS
+		if key == HIDDEN_LEDGER and step == "done_defend":
+			entry.reward += "、逆风截脉抄本、聂风真意"
 		return entry
 	var node: Array = task.steps[step]
 	var room: String = node[0]
@@ -256,7 +299,7 @@ func journal_entry(key: String) -> Dictionary:
 		return entry
 	if int(g.slot.chapter) < chapter:
 		entry.status = "后续章节" if step == "start" else "待回访"
-		entry.place = CHAPTERS[chapter] + " · " + String(entry.place)
+		entry.place = ROOM_CHAPTERS[room] + " · " + String(entry.place)
 		if g.chronicle.review:
 			entry.deadline = "正式旅程才能跨章回访"
 		return entry
@@ -271,6 +314,9 @@ func journal_entry(key: String) -> Dictionary:
 		entry.status = "待交付"
 	else:
 		entry.status = "进行中"
+	if key == HIDDEN_LEDGER and step == "seeking":
+		entry.action = "找北侧向阳石背的倒灯"
+		entry.payoff = "三道短痕是石阶，最深一刀指向北侧缺口。"
 	if _behind_crossing(room):
 		entry.place += "（需先过河）"
 	elif room == g.field_key and _reachable(room):
@@ -289,6 +335,8 @@ func _quest_reward(key: String) -> String:
 	var drop: Dictionary = MarketCatalog.DROPS.get(source,{})
 	if drop.has("manual"):
 		pieces.append(Martial.MANUALS[drop.manual].move[0] + "抄本")
+	if drop.has("insight"):
+		pieces.append(Story.HEROES[drop.insight].name + "真意")
 	var materials: Dictionary = drop.get("materials",{})
 	for id in materials:
 		pieces.append("%s ×%d" % [MarketCatalog.MATERIALS[id].name,materials[id]])
@@ -306,6 +354,8 @@ func _dawn_entry(entry: Dictionary, label: String, position: Vector2) -> Diction
 	return entry
 
 func _result_line(key: String, step: String) -> String:
+	if key == HIDDEN_LEDGER and step == "decision":
+		return "找到刻着护步与暗道的铁板，去请老匠辨认。"
 	if key == "shift" and step == "done_fight":
 		return "便门已开。夺来的铜哨能引开守兽。"
 	if key == "swordstory" and _duel_finished():
@@ -329,6 +379,11 @@ func _settled_payoff(key: String, step: String) -> String:
 			if _duel_finished():
 				return "凌云山的约定已完成。"
 			return "多一格合击可更早使用风云合璧。" if step == "done_sage" else "可走山腰小径，守军会先带一批村民下山。"
+		HIDDEN_LEDGER:
+			if step == "done_defend":
+				return "聂风的秘籍可配合行装进一步研修。"
+			return "老匠已用暗道引开山上残部。" if g.slot.cleared.has(2) or g.field_key == "dawn" \
+				else "残部截杀开场首敌少 2 格势，合击多 1 格。"
 	return CONSEQUENCES[key]
 
 func _duel_finished() -> bool:
@@ -352,9 +407,10 @@ func _missed(room: String) -> bool:
 
 func _deadline(room: String) -> String:
 	match room:
+		"swordhall": return "从剑庐出发前"
 		"peak": return "从凌云山下山前"
 		"dawn": return "与步惊云离开前"
-	return CHAPTERS[ROOMS[room][0]] + "结束前"
+	return ROOM_CHAPTERS[room] + "结束前"
 
 func expiring(allowed_at_destination: String = "") -> Array[String]:
 	var result: Array[String] = []
@@ -381,3 +437,8 @@ static func valid_state(key: String, step: Variant) -> bool:
 		if next is String and next == step:
 			return step.begins_with("done_")
 	return (step == "done_fight" and key in ["courier","shift"]) or (step == "done_decoy" and key == "stairs")
+
+static func valid_chapter(key: String, step: String, chapter: int) -> bool:
+	if key != HIDDEN_LEDGER:
+		return true
+	return chapter >= (4 if step == "seeking" else 5)

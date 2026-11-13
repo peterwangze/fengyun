@@ -7,6 +7,7 @@ const Equipment = preload("res://scripts/equipment.gd")
 const Items = preload("res://scripts/items.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
 const Economy = preload("res://scripts/economy.gd")
+const Transit = preload("res://scripts/transit.gd")
 const FILE := "user://jianghu.json"
 const SETTINGS := "user://settings.json"
 const VERSION := 1
@@ -26,6 +27,7 @@ func fresh(easy: bool) -> Dictionary:
 	slot["chronicle"] = _initial_chronicle(0)
 	slot["supplies"] = Items.fresh()
 	slot["supply_claims"] = {}
+	slot["journey"] = Transit.initial()
 	Economy.normalize(slot)
 	return slot
 
@@ -71,9 +73,12 @@ func read() -> Dictionary:
 			var tidal: Dictionary = slot.get("afterstory", {})
 			var before_forging := not slot.has("material_claims") or (not tidal.is_empty() and not tidal.has("material_claims"))
 			var old_tidegate := not tidal.is_empty() and not tidal.has("loot_claims") and not tidal.has("silver")
+			var before_advancements := not slot.has("insights")
 			Economy.normalize(slot)
 			slot.supplies = Items.clean(slot.get("supplies", Items.fresh(int(slot.chapter))))
 			slot.supply_claims = Items.clean_claims(slot.get("supply_claims", {}))
+			if before_advancements:
+				Economy.recover_advancements(slot)
 			if legacy:
 				Economy.recover_unique_drops(slot)
 				Economy.reconcile(slot)
@@ -130,6 +135,8 @@ func _valid(slot: Dictionary) -> bool:
 		return false
 	if slot.has("afterstory") and (not slot.finished or not Afterstory.valid(slot.afterstory)):
 		return false
+	if slot.has("journey") and not Transit.valid(slot):
+		return false
 	return not slot.finished or (slot.chapter == 5 and seen.has(0) and seen.has(1))
 
 func _valid_chronicle(value: Variant, chapter: int) -> bool:
@@ -142,14 +149,14 @@ func _valid_chronicle(value: Variant, chapter: int) -> bool:
 		if not value.get(section) is Dictionary:
 			return false
 	for flag in value.marks:
-		if not Chronicle.FLAGS.has(flag) or value.marks[flag] != true:
+		if (not Chronicle.FLAGS.has(flag) and not Transit.is_story_flag(flag)) or value.marks[flag] != true:
 			return false
 	var public_roll: bool = value.marks.has("reunion_roll")
 	var neighbor_aid: bool = value.marks.has("reunion_aid")
 	if (public_roll or neighbor_aid) and (chapter != 5 or not value.marks.has("dawn_lamp") or (public_roll and neighbor_aid)):
 		return false
 	for quest in value.quests:
-		if not SideStories.valid_state(quest,value.quests[quest]):
+		if not SideStories.valid_state(quest,value.quests[quest]) or not SideStories.valid_chapter(quest,value.quests[quest],chapter):
 			return false
 	for hero in value.loadout:
 		var moves: Variant = value.loadout[hero]

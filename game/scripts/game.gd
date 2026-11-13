@@ -14,7 +14,8 @@ const Equipment = preload("res://scripts/equipment.gd")
 const Economy = preload("res://scripts/economy.gd")
 const Items = preload("res://scripts/items.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
-const SideStories = preload("res://scripts/side_stories.gd")
+const Transit = preload("res://scripts/transit.gd")
+const Arcs = preload("res://scripts/campaign_arcs.gd")
 const FOLLOW_GAP := 32.0
 const MENU_STICK_PRESS := 0.65
 const MENU_STICK_RELEASE := 0.30
@@ -24,6 +25,7 @@ var first: RefCounted
 var campaign: RefCounted
 var chronicle: RefCounted
 var afterstory: RefCounted
+var transit: Transit
 var storage: RefCounted
 var music := AudioStreamPlayer.new()
 var effects := AudioStreamPlayer.new()
@@ -41,6 +43,7 @@ var hazards: Array[PackedVector2Array] = []
 var ground := PackedVector2Array()
 var mode := "title"
 var back_mode := "title"
+var review_arc := -1
 var elapsed := 0.0
 var player := Vector2.ZERO
 var follower := Vector2.ZERO
@@ -87,6 +90,9 @@ var gear_guide := false
 var gear_page := 0
 var shop_id := ""
 var forge_id := ""
+var forge_branches := false
+var pending_recipe := -1
+var cultivation_message := ""
 var shop_message := ""
 var battle_loot := PackedStringArray()
 var battle_loot_note := ""
@@ -114,6 +120,7 @@ func _ready() -> void:
 	campaign = Campaign.new(self)
 	chronicle = Chronicle.new(self)
 	afterstory = Afterstory.new(self)
+	transit = Transit.new(self)
 	_reset_gear_rewards()
 	screen = Screen.new(self)
 	if OS.has_feature("android") or "--touch-controls" in OS.get_cmdline_user_args():
@@ -221,10 +228,15 @@ func menu_items() -> Array:
 			return [["回到旅程", true], ["江湖手记", true], ["设置", true], ["准备武学",true],
 				["行装与境界", true], ["回到标题", true]]
 		"martial": return chronicle.martial_items()
+		"cultivation":
+			var stances: Array = Martial.CULTIVATION[chronicle.martial_id()]
+			var result := stances.map(func(stance): return [stance.name,rank() >= Martial.CULTIVATION_RANK])
+			result.append(["清除心法",slot.cultivation.has(chronicle.martial_id())])
+			return result
 		"gear":
 			var items := [["卸下", true]]
 			for id in Equipment.options(gear_kind).slice(1):
-				items.append([Equipment.CATALOG[id].name, Equipment.unlocked(slot, id)])
+				items.append([Equipment.CATALOG[id].name, Equipment.unlocked(slot,id) and Equipment.can_wear(slot,stage.party[gear_hero],id)])
 			return items
 		"shop":
 			var items := []
@@ -235,16 +247,17 @@ func menu_items() -> Array:
 			return items
 		"forge":
 			var items := []
-			for i in Economy.forge_count(forge_id):
-				var row := Economy.forge_offer(slot, shop_account(), forge_id, i)
+			for i in Economy.forge_count(forge_id,forge_branches):
+				var row := Economy.forge_offer(slot, shop_account(), forge_id, i,forge_branches)
 				items.append([row.name, row.limit.is_empty()])
 			items.append(["离开",true])
 			return items
+		"forge_confirm": return [["返回配方",true],["确认改制",true]]
 		"choice": return chronicle.options.map(func(option): return [option[0],true])
 		"review":
 			var chapters := []
-			for at in Story.CHAPTERS.size():
-				chapters.append([Story.CHAPTERS[at].title,at <= slot.chapter])
+			for at in Arcs.ARCS.size():
+				chapters.append([Arcs.ARCS[at].title,at <= arc_index()])
 			return chapters
 		"settings":
 			var items := [["声音  %s" % ("关" if settings.mute else "开"), true],
@@ -273,6 +286,7 @@ func _set_mode(next: String, choice: int = 0) -> void:
 
 func _title() -> void:
 	seal_chase = false
+	transit.battle = ""
 	chronicle.review = false
 	chronicle.special = ""
 	afterstory.reset()
@@ -331,9 +345,15 @@ func menu_confirm(index: int) -> void:
 				4: _open_gear("pause")
 				5: _title()
 		"martial": chronicle.equip(index)
+		"cultivation": _choose_cultivation(index)
 		"gear": _equip_gear(index)
 		"shop": _buy_good(index)
 		"forge": _forge_item(index)
+		"forge_confirm":
+			var recipe := pending_recipe
+			_set_mode("forge",recipe)
+			if index == 1:
+				_apply_recipe(recipe)
 		"choice": chronicle.select_choice(index)
 		"review":
 			_start_review(index,slot.easy)
@@ -347,6 +367,7 @@ func menu_confirm(index: int) -> void:
 			_apply_settings()
 		"victory":
 			_finish_result_audio()
+			transit.battle = ""
 			if chronicle.special.is_empty():
 				_return_to_field()
 			else:
@@ -357,6 +378,7 @@ func menu_confirm(index: int) -> void:
 				_start_battle()
 			else:
 				chronicle.special = ""
+				transit.battle = ""
 				_return_to_field()
 		"ending":
 			if index == 1:
@@ -371,10 +393,24 @@ func _new_game(easy: bool) -> void:
 	_enter_chapter(true)
 
 func _start_review(chapter: int, easy: bool) -> void:
-	slot = storage.replay(chapter,easy)
+	var arc: Dictionary = Arcs.ARCS[chapter]
+	slot = storage.replay(arc.region,easy)
+	Arcs.setup_review(slot,chapter)
 	_reset_gear_rewards()
 	chronicle.review = true
-	_enter_chapter(true)
+	review_arc = chapter
+	_enter_chapter(not arc.has("room") and arc.id != "finale")
+	if arc.id == "sword":
+		transit.enter("lantern_pass")
+	elif arc.id == "dragon":
+		transit.enter("dragon_waterway")
+	elif arc.id == "blood":
+		transit.enter("dragon_ridge")
+	elif arc.id == "finale":
+		transit.enter("summit_steps")
+
+func arc_index() -> int:
+	return Arcs.index(slot)
 
 func rank() -> int:
 	if afterstory.active:
@@ -384,6 +420,8 @@ func rank() -> int:
 func _enter_chapter(intro: bool) -> void:
 	stage = Story.CHAPTERS[int(slot.chapter)]
 	first.reset_scene()
+	if transit.resume():
+		return
 	var entry: Array = chronicle.entry()
 	if entry.is_empty():
 		entry = [slot.hall.room,"spawn"] if first.active() else campaign.field_entry()
@@ -447,6 +485,12 @@ func _commit() -> bool:
 		if id not in known_gear and not slot.gear_grants.has(id):
 			gear_rewards.append("获得 · " + Equipment.CATALOG[id].name)
 	known_gear = available
+	return true
+
+func _review_finished() -> bool:
+	if not chronicle.review or arc_index() <= review_arc:
+		return false
+	_title()
 	return true
 
 func _reset_gear_rewards() -> void:
@@ -551,7 +595,7 @@ func _place_follower() -> void:
 		trail.push_front(follower)
 
 func passable(point: Vector2) -> bool:
-	if not Rect2(17, 61, 606, 254).has_point(point):
+	if not Rect2(17,61,field_width()-34,254).has_point(point):
 		return false
 	if not Geometry2D.is_point_in_polygon(point, ground):
 		return false
@@ -561,16 +605,26 @@ func passable(point: Vector2) -> bool:
 	for polygon in hazards:
 		if Geometry2D.is_point_in_polygon(point, polygon):
 			return false
+	if transit.active():
+		return true
 	if afterstory.active:
 		return not afterstory.blocked(point)
 	if not first.active() and campaign.blocked(point):
 		return false
 	return true
 
+func field_width() -> int:
+	return int(map.get("width",320)) * 2
+
+func field_offset() -> float:
+	return roundf(clampf(player.x - 320.0,0.0,field_width()-640.0))
+
 func _held(first: Key, second: Key) -> bool:
 	return Input.is_physical_key_pressed(first) or Input.is_physical_key_pressed(second)
 
 func field_points() -> Array:
+	if transit.active():
+		return transit.points()
 	var points: Array
 	if afterstory.active:
 		points = afterstory.points()
@@ -611,6 +665,9 @@ func interact() -> void:
 	if spot.is_empty():
 		return
 	sfx("confirm")
+	if transit.active():
+		transit.handle(spot)
+		return
 	if afterstory.active:
 		afterstory.handle(spot.id)
 		return
@@ -691,6 +748,10 @@ func _next_chapter(confirmed: bool = false) -> void:
 	if chronicle.review and slot.chapter < 5:
 		_title()
 		return
+	var connector: String = {0:"courtyard_road",3:"broken_trestle"}.get(int(slot.chapter),"")
+	if not connector.is_empty() and transit.available(connector):
+		transit.enter(connector)
+		return
 	if int(slot.chapter) == Story.CHAPTERS.size() - 1:
 		if field_key == "peak" and not confirmed and chronicle.warn_departure(_next_chapter.bind(true),"lamps"):
 			return
@@ -706,6 +767,13 @@ func _next_chapter(confirmed: bool = false) -> void:
 	slot.intro_seen = false
 	slot.cleared = []
 	slot.tonics = mini(9, int(slot.tonics) + 1)
+	var approach: String = {2:"lantern_pass",5:"dragon_waterway"}.get(int(slot.chapter),"")
+	if not approach.is_empty() and transit.available(approach):
+		stage = Story.CHAPTERS[int(slot.chapter)]
+		transit.enter(approach)
+		var opening: Array = chronicle.opening()
+		_talk(stage.opening if opening.is_empty() else opening,_finish_intro)
+		return
 	_commit()
 	_enter_chapter(true)
 
@@ -728,6 +796,8 @@ func visible_encounter(index: int) -> bool:
 	return first.courtyard_fight(index) if first.active() else campaign.can_show_fight(index)
 
 func battle_info() -> Array:
+	if not transit.battle.is_empty() and transit.active():
+		return transit.encounter()
 	if seal_chase:
 		return TrailGuide.SEAL_CHASE
 	if afterstory.active:
@@ -750,19 +820,22 @@ func _start_battle() -> void:
 	var prepared := {}
 	var gear := {}
 	var builds := {}
+	var training := {}
 	for id in stage.party:
 		prepared[id] = Martial.prepared(slot,id)
 		gear[id] = Equipment.modifiers(slot,id)
 		builds[id] = Martial.synergies(slot,id,rank())
+		training[id] = Martial.training(slot,id,rank())
 	var stock: int = afterstory.state().tonics if afterstory.active else slot.tonics
 	var supplies: Dictionary = afterstory.state().get("supplies", Items.fresh(2)) if afterstory.active else slot.supplies
 	encounter = Battle.new(stage.party, battle_info()[1], rank(),
-		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies,builds)
+		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies,builds,training)
 	encounter.seal_chase = seal_chase
 	if afterstory.active:
 		encounter.apply_quest_aid(afterstory.battle_aid())
 	elif not seal_chase and chronicle.enabled():
 		encounter.apply_quest_aid(chronicle.side.battle_aid(field_key,active_battle,chronicle.special))
+		encounter.apply_quest_aid(transit.battle_aid(active_battle,chronicle.special))
 	pending_action = -1
 	bag_open = false
 	bag_index = 0
@@ -820,6 +893,12 @@ func _battle_act(action: int, at: int) -> void:
 		cue = "signal"
 	sfx(cue)
 	if encounter.result == "victory":
+		if not transit.battle.is_empty() and transit.active():
+			transit.won()
+			debrief = "路已打通，往下一处地标走。"
+			result_cue = "win"
+			_set_mode("victory")
+			return
 		if afterstory.active:
 			afterstory.state().supplies = encounter.supplies
 			_record_battle_loot(afterstory.state(), "tidal:" + afterstory.battle, 6 if afterstory.battle == "chief" else 4)
@@ -892,6 +971,8 @@ func cancel() -> void:
 			else:
 				_set_mode(back_mode)
 		"shop", "forge": _return_to_field()
+		"forge_confirm": _set_mode("forge",pending_recipe)
+		"cultivation": _set_mode("martial")
 		"settings", "journal", "martial": _set_mode(back_mode)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
@@ -928,7 +1009,7 @@ func _navigate(dx: int, dy: int) -> void:
 	if mode == "gear" and gear_guide:
 		return
 	if mode == "journal" and not afterstory.active and dy != 0:
-		journal_index = posmod(journal_index + dy, SideStories.TASKS.size() + 1)
+		journal_index = posmod(journal_index + dy, chronicle.side.journal_ids().size() + 1)
 		return
 	if mode == "gear" and dx != 0:
 		_select_gear_tab(posmod(gear_hero + dx, stage.party.size()), gear_kind)
@@ -941,9 +1022,10 @@ func _navigate(dx: int, dy: int) -> void:
 			shop_message = ""
 		sfx("select")
 		return
-	if mode == "martial" and dx != 0:
+	if mode in ["martial","cultivation"] and dx != 0:
 		chronicle.martial_hero = posmod(chronicle.martial_hero + dx,stage.party.size())
 		selected = 0
+		cultivation_message = ""
 		return
 	if mode == "battle":
 		if pending_action >= 0:
@@ -1001,6 +1083,9 @@ func click(kind: String, index: int) -> void:
 		"martial_hero":
 			chronicle.martial_hero = index
 			selected = 0
+			cultivation_message = ""
+		"cultivation": _open_cultivation()
+		"forge_branches": _toggle_forge_branches()
 		"gear_kind": _select_gear_tab(gear_hero, index)
 		"gear_hero": _select_gear_tab(index, gear_kind)
 		"gear_guide": _toggle_gear_guide()
@@ -1020,8 +1105,15 @@ func _open_shop(id: String) -> void:
 
 func _open_forge(id: String) -> void:
 	forge_id = id
+	forge_branches = false
 	shop_message = ""
 	_set_mode("forge")
+
+func _toggle_forge_branches() -> void:
+	if Economy.forge_count(forge_id,true) > 0:
+		forge_branches = not forge_branches
+		shop_message = ""
+		_set_mode("forge")
 
 func shop_account() -> Dictionary:
 	return afterstory.state() if afterstory.active else slot
@@ -1041,11 +1133,18 @@ func _buy_good(index: int) -> void:
 	shop_message = "已购入 %s。" % bought
 
 func _forge_item(index: int) -> void:
-	if index == Economy.forge_count(forge_id):
+	if index == Economy.forge_count(forge_id,forge_branches):
 		_return_to_field()
 		return
+	if forge_branches:
+		pending_recipe = index
+		_set_mode("forge_confirm")
+		return
+	_apply_recipe(index)
+
+func _apply_recipe(index: int) -> void:
 	var previous := slot.duplicate(true)
-	var result := Economy.reinforce(slot,shop_account(),forge_id,index)
+	var result := Economy.reinforce(slot,shop_account(),forge_id,index,forge_branches)
 	if result.is_empty():
 		return
 	if not _commit():
@@ -1129,6 +1228,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			JOY_BUTTON_RIGHT_SHOULDER:
 				if mode == "gear":
 					_toggle_gear_guide()
+				elif mode == "martial":
+					_open_cultivation()
+				elif mode == "forge":
+					_toggle_forge_branches()
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -1162,11 +1265,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_G:
 			if mode == "gear":
 				_toggle_gear_guide()
+			elif mode == "martial":
+				_open_cultivation()
 		KEY_TAB:
 			if mode == "martial":
 				chronicle.martial_slot = 1 - chronicle.martial_slot
 			elif mode == "gear" and not gear_guide:
 				_select_gear_tab(gear_hero, 1 - gear_kind)
+			elif mode == "forge":
+				_toggle_forge_branches()
 		KEY_B:
 			if mode == "battle" and pending_action < 0:
 				if bag_open:
@@ -1217,11 +1324,11 @@ func _open_journal() -> void:
 		cancel()
 
 func _show_journal() -> void:
-	journal_index = SideStories.TASKS.keys().find(tracked_quest) + 1
+	journal_index = chronicle.side.journal_ids().find(tracked_quest) + 1
 	_set_mode("journal")
 
 func journal_quest_id() -> String:
-	return "" if journal_index == 0 else SideStories.TASKS.keys()[journal_index - 1]
+	return "" if journal_index == 0 else chronicle.side.journal_ids()[journal_index - 1]
 
 func can_track_quest(id: String) -> bool:
 	return id.is_empty() or chronicle.side.journal_entry(id).status not in ["已完成", "已错过", "后续章节"]
@@ -1231,6 +1338,27 @@ func _open_martial(parent_mode: String) -> void:
 	chronicle.martial_hero = 0
 	chronicle.martial_slot = 0
 	_set_mode("martial")
+
+func _open_cultivation() -> void:
+	cultivation_message = ""
+	var hero: String = chronicle.martial_id()
+	var active := Martial.cultivation_choice(slot,hero,rank())
+	var stances: Array = Martial.CULTIVATION[hero]
+	_set_mode("cultivation",1 if not active.is_empty() and active.id == stances[1].id else 0)
+
+func _choose_cultivation(index: int) -> void:
+	var hero: String = chronicle.martial_id()
+	var stances: Array = Martial.CULTIVATION[hero]
+	var previous: Dictionary = slot.cultivation.duplicate()
+	if index == stances.size():
+		slot.cultivation.erase(hero)
+	else:
+		slot.cultivation[hero] = stances[index].id
+	if not _commit():
+		slot.cultivation = previous
+		cultivation_message = "存档失败，已恢复原心法。"
+		return
+	cultivation_message = "已卸下心法" if index == stances.size() else "已运转 · " + stances[index].name
 
 func _open_gear(parent_mode: String) -> void:
 	back_mode = parent_mode

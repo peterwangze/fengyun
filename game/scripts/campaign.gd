@@ -270,6 +270,11 @@ func _change_palace(room: String, at: String) -> void:
 func _leave_lodge() -> void:
 	state().farewell = true
 	g.slot.chronicle.room = ""
+	if g._review_finished():
+		return
+	if g.transit.available("summit_steps"):
+		g.transit.enter("summit_steps")
+		return
 	g._load_field("peak")
 	g._commit()
 	g._return_to_field()
