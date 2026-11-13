@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS touch sets the stick origin without moving
+PASS small drags stay inside the dead zone
+PASS floating stick supports full-speed diagonal dragging
+PASS empty action area does not activate or drop movement
+PASS stick stops on release
+PASS movement starts near the bottom-left edge
+PASS backgrounding releases held movement
+PASS bottom menu opens with the other finger and clears movement
+PASS Android back returns from the journal to the menu
+PASS bottom back button resumes exploration
+PASS Android back pauses exploration
+PASS player has a nearby interaction
+PASS old action position does not trigger a nearby interaction
+PASS bottom action triggers the nearby interaction
+PASS touching a target changes the preview without committing the technique
+PASS canceling target selection preserves Qi
+PASS touch confirm executes the selected technique
+Touch controls: 0 failures

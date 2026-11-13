@@ -38,6 +38,10 @@ var battle_metrics := {}
 var counterplay := false
 var quest_carryover := false
 var tactical_counts := {"fire_blocked":0, "fire_guarded":0, "mind_suppressed":0, "armor_opened":0}
+var endgame := false
+var endgame_counts := {}
+var endgame_build_counts := {}
+var tidal_battles: Array[Dictionary] = []
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -70,6 +74,7 @@ func _run() -> void:
 	pacing = "--pacing" in OS.get_cmdline_user_args()
 	counterplay = "--counterplay" in OS.get_cmdline_user_args()
 	quest_carryover = "--quest-carryover" in OS.get_cmdline_user_args()
+	endgame = "--endgame" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
 		quit(1)
@@ -294,6 +299,8 @@ func _run() -> void:
 				await _tutorial_combat()
 			if chapter == 5 and fight == 1:
 				await _capture("04-final-battle")
+			if endgame and not game.slot.easy and chapter == 5 and fight == 0:
+				await _exercise_dragon_opening()
 			if chapter == 1 and fight == 1 and (not pacing or build_route.is_empty()):
 				await _signal_opening()
 			if chapter == 3 and fight == 0:
@@ -396,7 +403,16 @@ func _run() -> void:
 			_check(game.field_key == "dawn","ending walk resumes on the west bank")
 			if quests:
 				await _side_step("lamps")
+				if endgame:
+					_do_point("dawn_witness")
+					_do_point("dawn_courier")
 			_do_point("dawn_lamp")
+			if quests and endgame:
+				_do_point("dawn_reunion")
+				_choose(int(alternate))
+				var legacy: String = "reunion_aid" if alternate else "reunion_roll"
+				_check(game.storage.read().chronicle.marks.get(legacy, false), "Fengxi reunion choice is saved")
+				print("REUNION %s" % game.chronicle.ending_legacy())
 			await _capture("2-dawn")
 			_do_point("dawn_exit")
 		_print_pacing(chapter)
@@ -414,6 +430,13 @@ func _run() -> void:
 			"all eight quests finished and persisted")
 		print("Quest outcomes: ",q)
 		_check(Equipment.owned(completed_slot).size() == 10,"all ten rewards available after clearing the campaign and quests")
+	if counterplay and not easy:
+		_check(tactical_counts.fire_blocked + tactical_counts.fire_guarded > 0, "played at least one response to Duan Lang")
+		_check(tactical_counts.mind_suppressed > 0, "suppressed the magic blade to prevent the stronger sweep")
+		_check(tactical_counts.armor_opened > 0, "opened Godless's armor by reacting to the heavy attack")
+		print("TACTICS ", tactical_counts)
+	if tidal and game.mode == "ending":
+		await _verify_afterstory()
 	if not build_route.is_empty():
 		print("Build activations during real battles: ",build_triggers)
 		if build_route == "mix":
@@ -422,13 +445,8 @@ func _run() -> void:
 			var primary: String = ROUTE_STYLES[build_route]
 			_check(build_triggers[primary] > 0 and build_triggers.values().count(0) == 2,
 				"only the selected build activated during campaign combat")
-	if counterplay and not easy:
-		_check(tactical_counts.fire_blocked + tactical_counts.fire_guarded > 0, "played at least one response to Duan Lang")
-		_check(tactical_counts.mind_suppressed > 0, "suppressed the magic blade to prevent the stronger sweep")
-		_check(tactical_counts.armor_opened > 0, "opened Godless's armor by reacting to the heavy attack")
-		print("TACTICS ", tactical_counts)
-	if tidal and game.mode == "ending":
-		await _verify_afterstory()
+	if endgame and not easy:
+		_verify_endgame_counts()
 	_verify_replay()
 	_check(saw_shield and combo_count > 0,"boss shield and combo reached")
 	_check(wins == (18 if all_encounters else 12) - int(rear_route == "quiet") - int(boat_route),"all requested battles won")
@@ -560,6 +578,18 @@ func _verify_afterstory() -> void:
 		_check(game.afterstory.state().tonics == opening_tonics + 1 and game.afterstory.state().supplies.guard_powder == opening_powder + 1,
 			"preserving the grain sends medicine on Tidegate's first briefing")
 		print("AID Tidegate grain +1 tonic and +1 ward powder")
+	if endgame and quests:
+		var before_tonics: int = game.afterstory.state().tonics
+		var before_powder: int = game.afterstory.state().supplies.guard_powder
+		_do_point("fengxi_contact")
+		var received: int = int(alternate)
+		_check(game.storage.read().afterstory.fengxi_contact and game.afterstory.state().tonics == before_tonics + received
+			and game.afterstory.state().supplies.guard_powder == before_powder + received,
+			"Tidegate contact consumes the stored reunion choice exactly once")
+		_do_point("fengxi_contact")
+		_check(game.afterstory.state().tonics == before_tonics + received and game.afterstory.state().supplies.guard_powder == before_powder + received,
+			"contact remains revisitable without repeating the benefit")
+		print("AID Tidegate reunion %s" % ("supplies" if alternate else "opening poise"))
 	_do_point("seal")
 	_check(not _reach("gate_entry"),"gate route requires both pieces of evidence")
 	_do_point("register")
@@ -616,8 +646,13 @@ func _verify_afterstory() -> void:
 	if not _check(game.mode == "battle" and game.encounter.intent(game.encounter.foes[1]).contains("擂鼓"),
 		"boss fight previews the drummer support action"):
 		return
+	if endgame and quests and not alternate:
+		var drum: Dictionary = game.encounter.foes[1]
+		_check(drum.poise == drum.max_poise - 2, "public reunion roll makes the tidegate drummer start two poise lower")
 	await _capture("tidal-chief")
-	if tidal_sluice:
+	if endgame and not game.slot.easy:
+		await _exercise_tidal_formation()
+	elif tidal_sluice:
 		_key(KEY_2)
 		_key(KEY_RIGHT)
 		_key(KEY_ENTER)
@@ -659,6 +694,8 @@ func _verify_afterstory() -> void:
 	for key in ["chapter","cleared","campaign","merit","tonics","hall"]:
 		_check(current[key] == baseline[key],"Tidegate preserves the main campaign's " + key)
 	print("PASS Tidegate route=%s rescue=%s ending=%s" % [selected_route,str(current.afterstory.aid),settlement])
+	if pacing:
+		print("TIDAL " + JSON.stringify({"route":selected_route, "ending":settlement, "encounters":tidal_battles}))
 
 func _resume_afterstory() -> void:
 	_key(KEY_ESCAPE)
@@ -1115,7 +1152,8 @@ func _key(key: Key) -> void:
 		return
 	if measured_encounter != battle:
 		measured_encounter = battle
-		battle_metrics = {"actions":0,"lowest_hp_pct":100,"tonics_start":battle.tonics}
+		battle_metrics = {"actions":0,"lowest_hp_pct":100,"tonics_start":battle.tonics,
+			"supplies_start":battle.supplies.duplicate()}
 	var before := [battle.round_no, battle.actor, battle.result]
 	game._unhandled_input(event)
 	if before != [battle.round_no, battle.actor, battle.result]:
@@ -1265,6 +1303,8 @@ func _play_battle() -> bool:
 					action = candidate
 					best = score
 		var foe_before := {"opening": enemy.get("opening", 0), "pattern": b._pattern(enemy)}
+		if endgame and not b.story_mode and enemy.id == "boss" and enemy.shield:
+			await _capture_tactic("tyrant-shield")
 		if counterplay and not b.story_mode:
 			if foe_before.pattern == "fire_sweep" and tactical_counts.fire_blocked + tactical_counts.fire_guarded == 0:
 				await _capture_tactic("duan-fire-sweep")
@@ -1273,11 +1313,11 @@ func _play_battle() -> bool:
 		var acting: int = b.actor
 		var wanted: int = heal_index if action == 4 else (selection.target if selection.get("action") == action else foe_index)
 		_perform_action(action, wanted)
-		match action:
-			1,2: used_actions.techniques += 1
-			3: used_actions.guard += 1
-			4: used_actions.tonics += 1
-			5: used_actions.combo += 1
+		if endgame and not b.story_mode and enemy.id == "boss" and _battle_phase(b, "归元气破"):
+			_record_tactic("tyrant_transition")
+			await _capture_tactic("tyrant-shield-broken")
+		if endgame and not b.story_mode and foe_before.pattern == "tyrant_palm" and enemy.get("opening", 0) > foe_before.opening:
+			_record_tactic("tyrant_palm_opened")
 		if counterplay and not b.story_mode:
 			if foe_before.pattern in ["kindle", "fire_sweep"] and b.events.any(func(event: Dictionary):
 				return event.kind == "break" and event.side == "foe" and event.index == foe_index):
@@ -1290,10 +1330,6 @@ func _play_battle() -> bool:
 				await _capture_tactic("godless-armor-opening")
 			if tactical.get("action") == action:
 				print("RESPONSE %s %s %s" % [enemy.id, foe_before.pattern, b.allies[acting].name])
-		if not build_route.is_empty() and not b.synergy_feedback.is_empty():
-			var style_name: String = b.synergy_feedback.get_slice(" ",0)
-			if build_triggers.has(style_name):
-				build_triggers[style_name] += 1
 		if visual and not b.events.is_empty():
 			var style: String = b.events[0].style
 			await _capture_effect("combo-" + b.pair if style == "combo" else style)
@@ -1304,11 +1340,121 @@ func _play_battle() -> bool:
 	if pacing:
 		battle_metrics.merge({"fight":game.battle_info()[0],"rounds":b.round_no,
 			"tonics_used":battle_metrics.tonics_start - b.tonics,
+			"supplies_used":battle_metrics.supplies_start.keys().filter(func(id: String):
+				return battle_metrics.supplies_start[id] > b.supplies[id]),
 			"qi_left":b.allies.map(func(unit: Dictionary): return int(unit.qi))})
-		chapter_battles.append(battle_metrics)
+		if game.afterstory.active:
+			tidal_battles.append(battle_metrics)
+		else:
+			chapter_battles.append(battle_metrics)
 	return true
 
+func _verify_endgame_counts() -> void:
+	print("ENDGAME tactics ", endgame_counts)
+	print("ENDGAME build activations ", endgame_build_counts)
+	if build_route == "interrupt" or build_route.is_empty():
+		_check(endgame_counts.get("dragon_stopped", 0) > 0, "dragon draw interrupted by a real player command")
+		_check(endgame_counts.get("formation_cancelled", 0) > 0, "the formed Tidegate attack can be broken")
+	else:
+		_check(endgame_counts.get("dragon_opened", 0) > 0, "defending dragon reflux exposes an opening")
+		_check(endgame_counts.get("formation_opened", 0) > 0, "defending the coordinated assault exposes an opening")
+	_check(endgame_counts.get("tyrant_transition", 0) > 0, "Tyrant exposes a new attack once his shield falls")
+	if ROUTE_STYLES.has(build_route):
+		var primary: String = ROUTE_STYLES[build_route]
+		_check(endgame_build_counts.get("tidal_" + primary, 0) > 0, "the exclusive build also activates in the Tidegate story")
+
+func _record_tactic(key: String) -> void:
+	endgame_counts[key] = endgame_counts.get(key, 0) + 1
+
+func _record_build_trigger(battle: RefCounted, style_name: String) -> void:
+	if not build_triggers.has(style_name):
+		return
+	build_triggers[style_name] += 1
+	if game.afterstory.active or (game.field_key == "peak" and battle.foes[0].id in ["dragon", "boss"]):
+		var region := "tidal" if game.afterstory.active else battle.foes[0].id as String
+		var trigger_key := region + "_" + style_name
+		endgame_build_counts[trigger_key] = endgame_build_counts.get(trigger_key, 0) + 1
+
+func _battle_phase(battle: RefCounted, label: String) -> bool:
+	return battle.events.any(func(event: Dictionary): return event.get("phase_change", false) and event.text == label)
+
+func _exercise_dragon_opening() -> void:
+	var battle: RefCounted = game.encounter
+	var enemy: Dictionary = battle.foes[0]
+	_check(battle._pattern(enemy) == "dragon_draw" and battle.intent(enemy).contains("龙息"), "dragon draw is advertised on its own panel")
+	await _capture_tactic("dragon-draw")
+	if build_route in ["retaliate", "exploit", "mix"]:
+		_perform_action(3, 0)
+		_perform_action(3, 1)
+		_check(enemy.get("flow", false) and battle._pattern(enemy) == "dragon_reflux", "uninterrupted breath queues the stronger reflux")
+		await _capture_tactic("dragon-reflux")
+		_defend_late_attack(battle, 0, 1)
+		_check(enemy.get("opening", 0) > 0, "a defended reflux creates a dragon opening")
+		if enemy.get("opening", 0) > 0:
+			_record_tactic("dragon_opened")
+		await _capture_tactic("dragon-opened")
+	else:
+		var first_action: int = 2 if battle.available(2) and Martial.interrupt_move(battle.allies[battle.actor].moves[1]) else 1
+		_perform_action(first_action, 0)
+		var action: int = 2 if battle.available(2) and battle.poise_preview(2, 0).begins_with("可破势") else 1
+		if not battle.poise_preview(action, 0).begins_with("可破势") and battle.available(Battle.FIRST_SUPPLY + 2):
+			action = Battle.FIRST_SUPPLY + 2
+		_perform_action(action, 0)
+		var stopped := _battle_phase(battle, "龙息中断")
+		if not stopped and battle.result == "":
+			_check(enemy.get("flow", false) and battle._pattern(enemy) == "dragon_reflux", "unspent breath prepares the reflux before the break")
+			_perform_action(1, 0)
+			stopped = _battle_phase(battle, "龙息中断")
+		_check(stopped and not enemy.get("flow", false), "interrupting dragon draw prevents reflux")
+		if stopped:
+			_record_tactic("dragon_stopped")
+		await _capture_tactic("dragon-stopped")
+
+func _exercise_tidal_formation() -> void:
+	var battle: RefCounted = game.encounter
+	var chief: Dictionary = battle.foes[0]
+	_perform_action(3, 0)
+	_perform_action(3, 1)
+	_check(chief.get("formation", false) and battle._pattern(chief) == "tidal_advance", "the drum advertises and creates a coordinated assault")
+	await _capture_tactic("tidal-formation")
+	if build_route in ["retaliate", "exploit", "mix"]:
+		_defend_late_attack(battle, 0, battle._threat_target(chief))
+		_check(chief.get("opening", 0) > 0, "defending the coordinated assault opens the commander")
+		if chief.get("opening", 0) > 0:
+			_record_tactic("formation_opened")
+		await _capture_tactic("tidal-opened")
+	else:
+		_perform_action(1, 1)
+		var action: int = 1
+		if not battle.poise_preview(action, 1).begins_with("可破势") and battle.available(Battle.FIRST_SUPPLY + 2):
+			action = Battle.FIRST_SUPPLY + 2
+		var stopped := _battle_phase(battle, "鼓令瓦解")
+		if battle.result == "" and chief.get("formation", false):
+			_perform_action(action, 1)
+			stopped = _battle_phase(battle, "鼓令瓦解")
+		_check(stopped and not chief.get("formation", false), "breaking the drum cancels the prepared attack")
+		if stopped:
+			_record_tactic("formation_cancelled")
+		await _capture_tactic("tidal-cancelled")
+
+func _defend_late_attack(battle: RefCounted, foe: int, protected: int) -> void:
+	for turn in 2:
+		var chosen := 3 if battle.actor == protected else 0
+		if build_route in ["retaliate", "mix"]:
+			var unit: Dictionary = battle.allies[battle.actor]
+			for action in [1, 2]:
+				if not battle.available(action) or not Martial.protection_move(unit.moves[action - 1]):
+					continue
+				var kind: String = unit.moves[action - 1][6]
+				if kind == "counter" and battle.actor == protected or kind == "cover" and battle.actor != protected:
+					chosen = action
+					break
+		_perform_action(chosen, protected if chosen in [1, 2] else foe)
+		if battle.result != "":
+			break
+
 func _perform_action(action: int, wanted: int) -> void:
+	var battle: RefCounted = game.encounter
 	if action >= Battle.FIRST_SUPPLY:
 		_key(KEY_B)
 		for next in range(action - Battle.FIRST_SUPPLY + 1):
@@ -1320,6 +1466,13 @@ func _perform_action(action: int, wanted: int) -> void:
 		if game.target != wanted:
 			_key(KEY_RIGHT)
 		_key(KEY_ENTER)
+	match action:
+		1,2: used_actions.techniques += 1
+		3: used_actions.guard += 1
+		4: used_actions.tonics += 1
+		5: used_actions.combo += 1
+	if not build_route.is_empty() and not battle.synergy_feedback.is_empty():
+		_record_build_trigger(battle, battle.synergy_feedback.get_slice(" ", 0))
 
 func _boss_response(b: RefCounted, enemy: Dictionary, foe_index: int, build_selection: Dictionary) -> Dictionary:
 	if enemy.broken:

@@ -108,6 +108,11 @@ func draw() -> void:
 		if event.kind == "cast" and event.style == "combo":
 			_combo(t, event.text, motion)
 			continue
+		if event.get("phase_change",false):
+			if motion and t >= IMPACT and t < 0.60:
+				var progress := (t - IMPACT) / (0.60 - IMPACT)
+				_ring(base - Vector2(0,27),30.0 + 44.0 * progress,color,(1.0 - progress) * 0.64)
+			continue
 		if event.kind in ["cast","stance"]:
 			if motion and event.text == "擂鼓":
 				_burst(base-Vector2(0,24),color,clampf(t/0.28,0.0,1.0),9,28)

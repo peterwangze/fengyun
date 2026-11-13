@@ -726,7 +726,9 @@ func _start_battle() -> void:
 	encounter = Battle.new(stage.party, battle_info()[1], rank(),
 		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies,builds)
 	encounter.seal_chase = seal_chase
-	if not afterstory.active and not seal_chase and chronicle.enabled():
+	if afterstory.active:
+		encounter.apply_quest_aid(afterstory.battle_aid())
+	elif not seal_chase and chronicle.enabled():
 		encounter.apply_quest_aid(chronicle.side.battle_aid(field_key,active_battle,chronicle.special))
 	pending_action = -1
 	bag_open = false

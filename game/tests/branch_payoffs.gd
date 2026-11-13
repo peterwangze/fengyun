@@ -25,7 +25,10 @@ func _run() -> void:
 	_test_shift()
 	_test_sword()
 	_test_dawn()
+	_test_dawn_reunion()
+	_test_reunion_save()
 	_test_tidegate_carryover()
+	_test_reunion_tidegate()
 	_test_journal_fit()
 	for suffix in ["",".bak",".tmp"]:
 		var file: String = game.storage.path + suffix
@@ -199,6 +202,98 @@ func _test_dawn() -> void:
 		_check(saved.finished and saved.chronicle.quests.lamps == pair[0] and pair[2] in game.chronicle.ending()[0][1],
 			"finishing without the optional revisit still records the chosen ending")
 
+func _test_dawn_reunion() -> void:
+	_dawn({})
+	_visit("dawn_lamp")
+	_drain_dialogue()
+	_check(not _has_point("dawn_reunion") and game.chronicle.ending_legacy().is_empty(),
+		"a direct main route retains the original ending without an empty settlement")
+	_dawn({"seals":"done_guide","courier":"done_quiet"})
+	_check(not _has_point("dawn_reunion"),"reunion is optional and appears after the lamp")
+	_visit("dawn_witness")
+	_check("竹径" in game.lines[0][1], "the guided witness is now visible running a stop for displaced travelers")
+	_drain_dialogue()
+	_visit("dawn_courier")
+	_check("药棚" in game.lines[0][1], "the quiet courier route has an actual village clinic to visit")
+	_drain_dialogue()
+	_check(game.storage.read().chronicle.marks.get("dawn_witness") and game.storage.read().chronicle.marks.get("dawn_courier"),
+		"both optional callbacks record their own visits")
+	_visit("dawn_lamp")
+	_drain_dialogue()
+	_visit("dawn_reunion")
+	_check(game.chronicle.options.map(func(option): return option[1]) == ["reunion_roll",""],
+		"the public roll stays available without the aid resources")
+	game.menu_confirm(1)
+	_check(game.mode == "field" and game.chronicle.reunion_plan().is_empty(), "touch-friendly defer leaves the choice open")
+	_dawn({"seals":"done_proof","courier":"done_fight","lamps":"done_goods"})
+	_visit("dawn_witness")
+	_check("口供" in game.lines[0][1], "the recorded witness presents the published evidence")
+	_drain_dialogue()
+	_visit("dawn_courier")
+	_check("州府" in game.lines[0][1], "the seized password closes the story of the freed boatman")
+	_drain_dialogue()
+	_visit("dawn_lamp")
+	_drain_dialogue()
+	_visit("dawn_reunion")
+	_check(game.chronicle.options.map(func(option): return option[1]) == ["reunion_roll","reunion_aid",""],
+		"the winter-grain branch opens a distinct aid plan")
+	game.menu_confirm(1)
+	_drain_dialogue()
+	game.slot = game.storage.read()
+	game._enter_chapter(false)
+	_check(game.chronicle.reunion_plan() == "aid" and not game.chronicle.has("reunion_roll")
+		and game.chronicle.ending_legacy() == "凤溪·邻里接济", "the aid ending is mutually exclusive and persists on reload")
+	_visit("dawn_reunion")
+	_check(game.mode == "dialogue" and "粮棚" in game.lines[0][1], "revisiting shows the chosen arrangement without opening the choice again")
+	_drain_dialogue()
+	_visit("dawn_exit")
+	_drain_dialogue()
+	_check(game.storage.read().finished and "潮关" in game.lines[1][1], "ending playback describes the chosen connection to Tidegate")
+	_dawn({"stairs":"done_decoy"})
+	_visit("dawn_lamp")
+	_drain_dialogue()
+	_visit("dawn_reunion")
+	_check(game.chronicle.options[1][1] == "reunion_aid", "the mountain rescue also opens the aid alternative")
+	game.menu_confirm(0)
+	_drain_dialogue()
+	_check(game.chronicle.ending_legacy() == "凤溪·渡口公示" and "归人名册" in game.chronicle.ending()[1][1],
+		"choosing the public roll produces its own visible ending")
+
+func _dawn(quests: Dictionary) -> void:
+	_chapter(5,quests)
+	game.slot.cleared = [0,1]
+	game.slot.campaign.farewell = true
+	game.slot.campaign.altar = true
+	game.chronicle.enter("dawn")
+
+func _test_reunion_save() -> void:
+	_dawn({"lamps":"done_goods"})
+	var dawn_save: Dictionary = game.slot.duplicate(true)
+	for plan in ["reunion_roll","reunion_aid"]:
+		var planned: Dictionary = dawn_save.duplicate(true)
+		planned.chronicle.marks.dawn_lamp = true
+		planned.chronicle.marks[plan] = true
+		_check(game.storage.write(planned) and game.storage.read().chronicle.marks.get(plan) == true,
+			"each reunion plan is individually valid and round-trips through the existing save")
+		planned.chronicle.marks.erase("dawn_lamp")
+		_check(not game.storage.write(planned), "a reunion choice recorded before the lamp is rejected")
+	var contradictory: Dictionary = dawn_save.duplicate(true)
+	contradictory.chronicle.marks.merge({"dawn_lamp":true,"reunion_roll":true,"reunion_aid":true},true)
+	_check(not game.storage.write(contradictory), "the save cannot contain both mutually exclusive reunion plans")
+	var old: Dictionary = dawn_save.duplicate(true)
+	old.finished = true
+	old.chronicle.room = ""
+	old.afterstory = Afterstory.initial()
+	_check(game.storage.write(old) and game.storage.read().afterstory.get("fengxi_contact") == null,
+		"an older Tidegate slot is still readable without the optional contact field")
+	old.afterstory.fengxi_contact = true
+	_check(not game.storage.write(old), "a Tidegate contact claim requires the briefing")
+	old.afterstory.brief = true
+	_check(game.storage.write(old) and game.storage.read().afterstory.fengxi_contact,
+		"the Tidegate contact boolean persists after the briefing")
+	old.afterstory.fengxi_contact = "true"
+	_check(not game.storage.write(old), "the Tidegate contact cannot use a string in place of the saved boolean")
+
 func _test_journal_fit() -> void:
 	var fits := true
 	for note in SideStories.DECISIONS.values():
@@ -267,6 +362,44 @@ func _test_tidegate_carryover() -> void:
 	game.afterstory.resume()
 	_check(game.storage.read().afterstory.sluice and game.afterstory.state().route == "",
 		"older boat saves get crew aid only when the evidence is complete and the route is undecided")
+
+func _test_reunion_tidegate() -> void:
+	for plan: String in ["roll","aid"]:
+		_chapter(5,{"lamps":"done_goods"})
+		game.slot.finished = true
+		game.slot.cleared = [0,1]
+		game.slot.chronicle.marks = {"dawn_lamp":true}
+		game.slot.chronicle.marks["reunion_" + plan] = true
+		game.afterstory.resume()
+		_check(not _has_point("fengxi_contact"), "the Tidegate contact follows the basic briefing")
+		_visit("brief")
+		_drain_dialogue()
+		var stock: Dictionary = game.afterstory.state().duplicate(true)
+		_visit("fengxi_contact")
+		_check(game.lines[0][0] == ("船工" if plan == "roll" else "渔户"), "the plans bring different people into Tidegate")
+		_drain_dialogue()
+		game.slot = game.storage.read()
+		game.afterstory.resume()
+		_visit("fengxi_contact")
+		_drain_dialogue()
+		var flags: Dictionary = game.afterstory.state()
+		_check(flags.get("fengxi_contact",false) and flags.tonics == stock.tonics + int(plan == "aid")
+			and flags.supplies.guard_powder == stock.supplies.guard_powder + int(plan == "aid"),
+			"the lodging network grants its supply once, independently of the winter-grain briefing")
+		for point in ["register","seal","sluice","sluice_entry"]:
+			_visit(point)
+			_drain_dialogue()
+		_visit("chief")
+		_drain_dialogue()
+		_check(game.encounter.foes[1].id == "tidal_drum" and game.encounter.foes[1].poise == (2 if plan == "roll" else 4),
+			"the public roll creates a real opening to interrupt the drum encounter")
+		_retry()
+		_check(game.encounter.foes[1].poise == (2 if plan == "roll" else 4), "retry reuses the correct contact outcome")
+		game.afterstory.state().merge({"chief":true,"ledger":true,"resolution":"public"},true)
+		game.afterstory._enter("tidal_ford")
+		_visit("fengxi_contact")
+		_check(("领粮单" if plan == "roll" else "热锅") in game.lines[0][1], "Tidegate public settlement has a plan-specific aftermath")
+		_drain_dialogue()
 
 func _line_count(value: String, width: float, size: int) -> int:
 	var line := ""

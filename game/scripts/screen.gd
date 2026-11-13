@@ -587,11 +587,11 @@ func _journal() -> void:
 	if g.afterstory.active:
 		_text("潮关余事",69,106,15,GOLD)
 		_line(Vector2(68,116),Vector2(573,116),LINE)
-		var row := 144
+		var row := 139
 		for entry in g.afterstory.journal():
-			_text(entry[0],70,row,15,CREAM)
-			_text(entry[1],215,row,14,DIM)
-			row += 26
+			_text(entry[0],70,row,14,CREAM)
+			_text(entry[1],215,row,13,DIM)
+			row += 22
 		_journal_back()
 		return
 	var ids := SideStories.TASKS.keys()
@@ -779,6 +779,11 @@ func _battle() -> void:
 	_text("回合 %02d" % view.round,23,54,13,GOLD)
 	if int(g.slot.chapter) == 3:
 		_text("魔念 %d / 6" % view.corruption,105,54,12,RED if view.corruption >= 4 else DIM)
+	var phase: String = view.foe[0].get("phase_label", "")
+	if not phase.is_empty():
+		var phase_width := SANS.get_string_size(phase,HORIZONTAL_ALIGNMENT_LEFT,-1,11).x
+		_fill(Rect2(95,41,phase_width+16,18),Color("#393145"))
+		_text(phase,103,54,11,GOLD)
 	var combat_status: String = "境界 6    ·    合击" if g.afterstory.active else "历练  %d    ·    合击" % g.slot.merit
 	_right(combat_status,544,29,13,DIM)
 	for i in 4:
@@ -1023,6 +1028,9 @@ func _ending() -> void:
 	_text("凤溪灯火",43,130,51,CREAM,SERIF)
 	var closing: String = "天光落在渡口。那盏灯还在桥上。" if g.chronicle.has("dawn_lamp") else "他将一盏灯放在桥栏上，待雨轻了，才随同伴走进山里。"
 	_paragraph(closing,48,177,243,18,CREAM,26)
+	var legacy: String = g.chronicle.ending_legacy()
+	if not legacy.is_empty():
+		_text(legacy,48,222,14,TEAL)
 	_text("六章旅程已毕   ·   历练 %d" % g.slot.merit,48,245,15,GOLD)
 	_menu(Vector2(48,262),197,29,4)
 	_text("改编自电视剧《风云》   原作漫画：马荣成",48,344,12,DIM)

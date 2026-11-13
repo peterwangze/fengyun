@@ -1,0 +1,19 @@
+--------- beginning of main
+11-13 13:49:38.148  5445  5445 V Godot   : Initializing Godot plugin registry
+11-13 13:49:38.149  5445  5445 V Godot   : InitEngine with params: [--xr_mode_regular, --xr-mode, off, --fullscreen, --background_color, #000000]
+11-13 13:49:38.196  5445  5445 V Godot   : Godot native layer initialization completed: true
+11-13 13:49:38.196  5445  5445 V Godot   : Setting up native layer with params: [--xr-mode, off, --fullscreen]
+11-13 13:49:38.216  5445  5445 V Godot   : Godot native layer setup completed
+11-13 13:49:38.216  5445  5445 V Godot   : OnInitRenderView: GodotFragment{2289f82} (361a15f7-b67e-4709-a28d-a80455a3059a id=0x7f07002c)
+11-13 13:49:38.228  5445  5445 D Godot   : Render view should be transparent: false
+11-13 13:49:38.229  5445  5445 D Godot   : renderingDevice: opengl3 (ProjectSettings)
+11-13 13:49:38.229  5445  5445 D Godot   : 			renderer: gl_compatibility (ProjectSettings)
+11-13 13:49:38.235  5445  5445 V Godot   : OnStart: GodotFragment{2289f82} (361a15f7-b67e-4709-a28d-a80455a3059a id=0x7f07002c)
+11-13 13:49:38.238  5445  5445 V Godot   : OnResume: GodotFragment{2289f82} (361a15f7-b67e-4709-a28d-a80455a3059a id=0x7f07002c)
+11-13 13:49:38.336  5445  5466 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+11-13 13:49:38.387  5445  5466 E godot   : WARNING: Failed to load cached shader, recompiling.
+11-13 13:49:38.395  5445  5466 E godot   :    at: _load_from_cache (drivers/gles3/shader_gles3.cpp:615)
+11-13 13:49:38.840  5445  5466 I godot   : OpenGL API OpenGL ES 3.1 (4.5.0 NVIDIA 595.95) - Compatibility - Using Device: Google (NVIDIA Corporation) - Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 5060 Laptop GPU/PCIe/SSE2)
+11-13 13:49:38.852  5445  5466 I godot   :
+11-13 13:49:39.215  5445  5466 V Godot   : OnGodotSetupCompleted
+11-13 13:49:39.218  5445  5466 V Godot   : OnGodotMainLoopStarted

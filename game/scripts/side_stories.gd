@@ -224,6 +224,11 @@ func journal_entry(key: String) -> Dictionary:
 	if step.begins_with("done_"):
 		entry.action = _result_line(key,step)
 		entry.payoff = _settled_payoff(key,step)
+		if g.field_key == "dawn" and not g.slot.finished:
+			if key == "seals" and not g.chronicle.has("dawn_witness"):
+				return _dawn_entry(entry,"回访撤离的证人",g.chronicle.DAWN_WITNESS)
+			if key == "courier" and not g.chronicle.has("dawn_courier"):
+				return _dawn_entry(entry,"回访凤溪药棚" if step == "done_quiet" else "会见获释的船工",g.chronicle.DAWN_COURIER)
 		if key == "courier" and not g.slot.finished and not g.chronicle.has("courier_contact") \
 			and (int(g.slot.chapter) < 4 or courier_contact_available()):
 			entry.status = "待回访"
@@ -271,6 +276,15 @@ func journal_entry(key: String) -> Dictionary:
 		entry.place += "（需先过河）"
 	elif room == g.field_key and _reachable(room):
 		entry.point = Vector2(node[1],node[2])
+	return entry
+
+func _dawn_entry(entry: Dictionary, label: String, position: Vector2) -> Dictionary:
+	entry.status = "待回访"
+	entry.action = label
+	entry.place = "清晨凤溪"
+	entry.deadline = "与步惊云离开前"
+	entry.point = position
+	entry.payoff = "看看先前的选择怎样改变了渡口。"
 	return entry
 
 func _result_line(key: String, step: String) -> String:

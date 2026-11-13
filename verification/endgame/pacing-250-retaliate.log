@@ -1,0 +1,58 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS injected joypad menu navigation, drift rejection and reconnect latch
+PASS added encounter spar
+PASS chapter 1 encounter 0 rounds 2 tonics 3 qi 步惊云 13/30,聂风 16/34
+GUIDE Banquet after speaking to Kong Ci ["ceremony"]
+GUIDE Wedding escape routes ["court_door", "garden_door"]
+PASS wedding, both evacuations, and room reload
+PASS chapter 1 encounter 1 rounds 2 tonics 4 qi 步惊云 13/30,聂风 12/34
+PACING {"chapter":1,"encounters":[{"actions":3,"fight":"同门切磋","lowest_hp_pct":100,"qi_left":[29,27],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":0,"stagger_needle":0},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"守门执事","lowest_hp_pct":76,"qi_left":[13,16],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":0,"stagger_needle":0},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"飞云堂伏兵","lowest_hp_pct":76,"qi_left":[13,12],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":4,"tonics_used":0}],"rank_after":2,"tonics_after":5,"walk_seconds":26.4}
+Build loadout chapter 2: ["wind 守反", "frost 守反"]
+PASS chapter 2 encounter 0 rounds 2 tonics 5 qi 聂风 22/36,秦霜 23/30
+GUIDE Fengxi bridge unlocked ["stone_bridge", "mooring"]
+PASS chapter 2 encounter 1 rounds 2 tonics 5 qi 聂风 22/36,秦霜 30/30
+PACING {"chapter":2,"encounters":[{"actions":4,"fight":"渡口密探","lowest_hp_pct":96,"qi_left":[22,23],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":0},"supplies_used":[],"tonics_start":5,"tonics_used":0},{"actions":3,"fight":"天池杀手","lowest_hp_pct":100,"qi_left":[22,30],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":5,"tonics_used":0}],"rank_after":3,"tonics_after":6,"walk_seconds":29.5}
+Build loadout chapter 3: ["cloud ", "wind 守反"]
+PASS chapter 3 encounter 0 rounds 2 tonics 6 qi 步惊云 14/34,聂风 27/34
+GUIDE Forge crossings available ["winch", "north_ledge"]
+GUIDE Forge sluice opened ["sluice_bridge", "north_ledge"]
+RESPONSE duan kindle 步惊云
+RESPONSE duan kindle 聂风
+RESPONSE duan fire_sweep 步惊云
+RESPONSE duan fire_sweep 聂风
+PASS chapter 3 encounter 1 rounds 4 tonics 6 qi 步惊云 27/34,聂风 13/34
+PASS added encounter first_tyrant
+PACING {"chapter":3,"encounters":[{"actions":4,"fight":"剑池试炼","lowest_hp_pct":96,"qi_left":[14,27],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":6,"tonics_used":0},{"actions":8,"fight":"火麟争锋","lowest_hp_pct":88,"qi_left":[27,13],"rounds":4,"supplies_start":{"breath_pill":2,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":6,"tonics_used":0},{"actions":6,"fight":"风云初合","lowest_hp_pct":78,"qi_left":[22,28],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":2,"stagger_needle":3},"supplies_used":[],"tonics_start":6,"tonics_used":0}],"rank_after":4,"tonics_after":7,"walk_seconds":30.0}
+Build loadout chapter 4: ["wind ", "dream "]
+GUIDE Medicine hut after receiving instructions ["pool_back"]
+PASS chapter 4 encounter 0 rounds 2 tonics 7 qi 聂风 18/40,第二梦 37/45
+PASS chapter 4 encounter 1 rounds 5 tonics 7 qi 聂风 5/40,第二梦 36/45
+GUIDE Magic pool after the demon fight ["pool_gate"]
+GUIDE Magic pool fence opened ["pool_escape"]
+GUIDE Magic pool farewell complete ["exit"]
+PACING {"chapter":4,"encounters":[{"actions":3,"fight":"试刀魔念","lowest_hp_pct":80,"qi_left":[18,37],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":3},"supplies_used":[],"tonics_start":7,"tonics_used":0},{"actions":9,"fight":"入魔之影","lowest_hp_pct":60,"qi_left":[5,36],"rounds":5,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":3},"supplies_used":[],"tonics_start":7,"tonics_used":0}],"rank_after":5,"tonics_after":8,"walk_seconds":18.5}
+Build loadout chapter 5: ["cloud 守反", "sage 守反"]
+PASS chapter 5 encounter 0 rounds 2 tonics 8 qi 步惊云 28/38,无名 35/42
+AID palace 信使带来的护脉散护住无名，可挡下一次重击。
+PASS chapter 5 encounter 1 rounds 4 tonics 8 qi 步惊云 21/38,无名 32/42
+PACING {"chapter":5,"encounters":[{"actions":4,"fight":"天牢卫队","lowest_hp_pct":95,"qi_left":[28,35],"rounds":2,"supplies_start":{"breath_pill":2,"guard_powder":4,"stagger_needle":3},"supplies_used":[],"tonics_start":8,"tonics_used":0},{"actions":6,"fight":"不灭金身","lowest_hp_pct":91,"qi_left":[21,32],"rounds":4,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":4},"supplies_used":[],"tonics_start":8,"tonics_used":0}],"rank_after":6,"tonics_after":9,"walk_seconds":32.2}
+Build loadout chapter 6: ["wind 守反", "cloud 守反"]
+AID cave done_stealth 狱卒的护心镜让聂风获得一次护持。
+PASS added encounter cavern_guard
+PASS added encounter prepare_guard
+PASS chapter 6 encounter 0 rounds 4 tonics 9 qi 聂风 37/44,步惊云 22/36
+AID final done_sage 无名教的起手已用上，风云开场多 1 格合击。
+PASS chapter 6 encounter 1 rounds 7 tonics 8 qi 聂风 10/44,步惊云 11/36
+PASS final shield combo
+PACING {"chapter":6,"encounters":[{"actions":8,"fight":"夺回龙脉","lowest_hp_pct":78,"qi_left":[24,22],"rounds":4,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":4},"supplies_used":[],"tonics_start":9,"tonics_used":0},{"actions":5,"fight":"守住药庐","lowest_hp_pct":87,"qi_left":[44,29],"rounds":3,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":4},"supplies_used":[],"tonics_start":9,"tonics_used":0},{"actions":7,"fight":"龙脉戾影","lowest_hp_pct":78,"qi_left":[37,22],"rounds":4,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":4},"supplies_used":[],"tonics_start":9,"tonics_used":0},{"actions":14,"fight":"末路雄霸","lowest_hp_pct":26,"qi_left":[10,11],"rounds":7,"supplies_start":{"breath_pill":2,"guard_powder":5,"stagger_needle":5},"supplies_used":[],"tonics_start":9,"tonics_used":1}],"rank_after":7,"tonics_after":8,"walk_seconds":29.3}
+Quest outcomes: { "courier": "done_quiet", "forgework": "done_rack", "lamps": "done_boat", "remedy": "done_aid", "seals": "done_guide", "shift": "done_stealth", "stairs": "done_escort", "swordstory": "done_sage" }
+Build activations during real battles: { "截势": 0, "守反": 15, "乘隙": 0 }
+TACTICS { "fire_blocked": 1, "fire_guarded": 1, "mind_suppressed": 1, "armor_opened": 1 }
+AID Tidegate boat opened the waterway
+PASS Tidegate route=gate rescue=true ending=public
+TIDAL {"encounters":[{"actions":5,"fight":"潮关守卒","lowest_hp_pct":92,"qi_left":[27,29],"rounds":3,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":4,"fight":"粮棚截押","lowest_hp_pct":94,"qi_left":[34,29],"rounds":2,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":3,"tonics_used":0},{"actions":12,"fight":"潮关夺账","lowest_hp_pct":68,"qi_left":[20,29],"rounds":6,"supplies_start":{"breath_pill":1,"guard_powder":1,"stagger_needle":1},"supplies_used":[],"tonics_start":5,"tonics_used":0}],"ending":"public","route":"gate"}
+PASS partner combos, delayed reinforcement and ally-targeted protection
+PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery
+Connected physical controllers: []
+RESULT wins=12 combos=17 failures=0 actions={ "tonics": 1, "techniques": 80, "guard": 6, "combo": 17 }

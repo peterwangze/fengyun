@@ -1,14 +1,14 @@
 # 风云：山河劫
 
-简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。当前为 2.5.0，包含六章、潮关外篇、境界成长和武学行装搭配。
+简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。当前为 2.6.0，包含六章、潮关外篇、境界成长和武学行装搭配。
 
 ## 开始游戏
 
-**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 2.5.0 APK](https://github.com/peterwangze/fengyun/releases/download/v2.5.0/Fengyun-2.5.0-android.apk)
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 2.6.0 APK](https://github.com/peterwangze/fengyun/releases/download/v2.6.0/Fengyun-2.6.0-android.apk)
 
-**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 2.5.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v2.5.0/Fengyun-2.5.0-windows-x64-setup.exe)
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 2.6.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v2.6.0/Fengyun-2.6.0-windows-x64-setup.exe)
 
-[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v2.5.0) · [第三方许可](Windows/Licenses)
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v2.6.0) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
@@ -54,8 +54,10 @@ Windows 手柄映射与 Android 一致。屏幕提示随键鼠和手柄输入切
 - 主线每累计四点历练提高一重境界。「行装与境界」显示当前属性与下次提升所需历练。护具和佩物各一栏，同一件可在队员间转交。行装来自开篇、境界、主线地点和支线，面板显示未取得行装的来源。
 - 境界 2 开启搭配，境界 4 强化效果。截势打断首领重招时多回真气；守反接住攻击时可以制造空门并积攒合击；乘隙用重招打空门时追加消耗 3 真气来提高威力。武学页标出每招适用的打法，选敌时可预览收益与代价。
 - 标准难度中，断浪蓄火后横扫全队；入魔之影会随魔念增强并吸走真气；被绝无神点名的队员可以固守或接受护持，接下金身重击便能打开空门。
+- 标准难度的龙脉逆流可以打断，也可以护住队友来造空门。雄霸的护气可用合璧或两次破势拆开，护气散后留意点名掌击和全体气浪。潮关的鼓令可从韩朔或鼓手任一侧打断。
 - 支线后果会延伸到后续章节。「旧账新印」可改变凤溪鸣哨战，「换岗的灯」改变龙脉战开场，「一柄未开锋的剑」的交接可影响终战或打开山路。渡口运送和石阶救援会在尾声得到回应。
 - 完成「雨夜押书」后，可在绝宫茶房找到信使接应。凤溪保船或保粮的选择会延续到潮关，改变进粮仓的通路或开场补给，并在分粮时得到回应。
+- 凤溪尾声可回访证人、药棚或获释船工。点灯后可以商议安置归人，早先保粮或帮助山民会解锁粮棚接济。安置决定会显示在结局，并在潮关渡口带来对应的联系人。
 - 第一章完成婚宴与撤离目标后可以走正门或竹径。后续章节按上方目标解锁路线、剧情和出口。金色标记表示可选战或支线。手记记录进度，离开章节前会提示进行中的限章任务。
 - 胜利、开箱、石灯、武学装配和关键剧情会写入存档。继续旅程从最近的章节安全点恢复。旧版存档保留进度，新增历史场景可从章节回看体验。败阵可原地重试。
 - 标准与轻松两种难度在开档时选择。声音与动态特效可在设置中切换，Windows 另有窗口模式。
@@ -90,14 +92,14 @@ $godot = 'D:/AI/dev_toolchain/godot_tool_list/app/Godot_v4.7.2-stable_win64_cons
 & $godot --headless --path game --export-release 'Windows Desktop' (Join-Path $PWD 'Windows/Fengyun.exe')
 ```
 
-Windows 安装程序使用 Inno Setup 6.5.4 构建。完成 Windows 导出后，用已安装的 `ISCC.exe` 编译 `Windows/Fengyun.iss`，生成 `Windows/Fengyun-2.5.0-windows-x64-setup.exe`。[Inno Setup](https://jrsoftware.org/isinfo.php)
+Windows 安装程序使用 Inno Setup 6.5.4 构建。完成 Windows 导出后，用已安装的 `ISCC.exe` 编译 `Windows/Fengyun.iss`，生成 `Windows/Fengyun-2.6.0-windows-x64-setup.exe`。[Inno Setup](https://jrsoftware.org/isinfo.php)
 
 Android 使用 `Android` 导出预设。安装 OpenJDK 17、Android SDK 和匹配的 Godot 4.7.2 Android 模板，并在编辑器的 Android 设置里填入 JDK 和 SDK 路径。发布导出从环境变量 `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`、`GODOT_ANDROID_KEYSTORE_RELEASE_USER` 与 `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` 读取签名配置。覆盖安装时需保持相同包名和签名证书。[Godot Android 导出文档](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html)
 
 ```powershell
 New-Item -ItemType Directory -Force Android
-& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.5.0-android.apk')
+& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-2.6.0-android.apk')
 ```
 
-查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[2.5.0 验收](verification/combat-depth/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。
+查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[2.6.0 验收](verification/endgame/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。
 

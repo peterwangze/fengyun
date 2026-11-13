@@ -286,6 +286,10 @@ try {
     }
     Press-Key 0x44 3240
     Press-Key 0x45
+    for ($i = 0; $i -lt 4 -and (Read-Slot).hall.staff.Count -lt 2; $i++) {
+        Press-Key 0x44 330
+        Press-Key 0x45
+    }
     $slot = Get-Content -Raw -LiteralPath $savePath | ConvertFrom-Json
     if ($slot.hall.staff.Count -ne 2 -or $slot.tonics -ne 4) {
         Save-Screenshot 'windows-servant-failure' -Direct
@@ -413,7 +417,15 @@ try {
         Press-Key 0x45
         Save-Screenshot '17-windows-altar' -Direct
         for ($i = 0; $i -lt 3; $i++) { Press-Key 0x0D }
-        if (-not (Read-Slot).campaign.altar) { throw 'Altar scene did not save.' }
+        for ($i = 0; $i -lt 5 -and -not (Read-Slot).campaign.altar; $i++) {
+            Press-Key 0x44 185
+            Press-Key 0x45
+            for ($line = 0; $line -lt 3; $line++) { Press-Key 0x0D }
+        }
+        if (-not (Read-Slot).campaign.altar) {
+            Save-Screenshot 'windows-altar-interaction-failure' -Direct
+            throw 'Altar scene did not save.'
+        }
         Assert-NoRuntimeErrors $altarLog
         $later += 'Play farewell and open the altar confrontation'
         if ($Expansion) {
@@ -489,6 +501,9 @@ try {
         Press-Key 0x34
         Start-Sleep -Milliseconds 740
         Save-Screenshot '26-windows-tidal-ward' -Direct
+        if ($PlaySystems -and $versionInfo.ProductMinorPart -ge 6) {
+            Save-Screenshot '35-windows-tidegate-phase' -Direct
+        }
         Assert-NoRuntimeErrors $tidalLog
 
         Close-Game $game

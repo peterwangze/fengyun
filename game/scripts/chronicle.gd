@@ -18,7 +18,11 @@ const SPECIALS := {
 }
 const FLAGS := ["spar","kindness","orders","ferry_evidence","dream_intro","lesson","first_tyrant",
 	"forge_rescue","forge_pursue","invaded","pool_intro","pool_gate","pool_escape","tea","fire_signal","evacuated",
-	"relic","lost_relic","shatter_relic","prepare","blood_rite","dawn_lamp","courier_contact"]
+	"relic","lost_relic","shatter_relic","prepare","blood_rite","dawn_lamp","courier_contact",
+	"reunion_roll","reunion_aid","dawn_witness","dawn_courier"]
+const DAWN_WITNESS := Vector2(111,240)
+const DAWN_COURIER := Vector2(177,267)
+const DAWN_REUNION := Vector2(225,195)
 
 var g
 var side: RefCounted
@@ -84,9 +88,39 @@ func ending() -> Array:
 	match side.state().get("lamps",""):
 		"wait_boat", "done_boat": home = "渡工修好了从浅滩拖回的旧船。第一趟船过桥时，灯还亮着。"
 		"wait_goods", "done_goods": home = "乡亲用救回来的冬粮煮了热粥。邻村的船载人过桥时，灯还亮着。"
-	return [
-		["尾声",home],
-		["尾声","两个旅人沿着山路走远。路过的船看见桥上的光，就知道已经到家了。"]]
+	var ending_lines := [["尾声",home]]
+	match reunion_plan():
+		"roll":
+			ending_lines.append(["尾声","渡口挂出第一张归人名册。潮关来的船工认出了同乡的名字，照着名册送来捎信。"])
+		"aid":
+			ending_lines.append(["尾声","粮棚留着两张空床和一锅粥。潮关来的渔户在此借宿，回去时也带上了给邻人的一袋米。"])
+	ending_lines.append(["尾声","两个旅人沿着山路走远。路过的船看见桥上的光，就知道已经到家了。"])
+	return ending_lines
+
+func reunion_plan() -> String:
+	if has("reunion_roll"):
+		return "roll"
+	return "aid" if has("reunion_aid") else ""
+
+func ending_legacy() -> String:
+	match reunion_plan():
+		"roll": return "凤溪·渡口公示"
+		"aid": return "凤溪·邻里接济"
+	return ""
+
+func dawn_witness_available() -> bool:
+	return not g.slot.get("finished",false) and side.state().get("seals","") in ["done_guide","done_proof"]
+
+func dawn_courier_available() -> bool:
+	return not g.slot.get("finished",false) and side.state().get("courier","") in ["done_quiet","done_fight"]
+
+func dawn_reunion_available() -> bool:
+	return not g.slot.get("finished",false) and (dawn_witness_available() or dawn_courier_available() \
+		or dawn_aid_available() or side.state().get("lamps","") in ["wait_boat","done_boat"])
+
+func dawn_aid_available() -> bool:
+	var quests: Dictionary = side.state()
+	return quests.get("lamps","") in ["wait_goods","done_goods"] or quests.get("stairs","") in ["done_escort","done_decoy"]
 
 func entry() -> Array:
 	if not enabled():
@@ -182,8 +216,18 @@ func points() -> Array:
 			if side.state().get("swordstory","") == "done_guard":
 				result.append(_point("mountain_path",202,263,"走守军留下的小径"))
 		"dawn":
+			if dawn_witness_available():
+				var witnessed: bool = side.state().get("seals","") == "done_guide"
+				result.append(_dawn_point("dawn_witness",DAWN_WITNESS,"探望引路的证人" if witnessed else "查看证人的公示","maid"))
+			if dawn_courier_available():
+				var quiet: bool = side.state().get("courier","") == "done_quiet"
+				result.append(_dawn_point("dawn_courier",DAWN_COURIER,"回访凤溪药棚" if quiet else "会见获释的船工",
+					"servant" if quiet else "boatman_front"))
 			if has("dawn_lamp"):
 				result.append(_point("dawn_exit",423,201,"与步惊云离开"))
+				if dawn_reunion_available():
+					result.append(_dawn_point("dawn_reunion",DAWN_REUNION,"商议安置归人" if reunion_plan().is_empty()
+						else "查看凤溪安置安排","guard" if reunion_plan() == "roll" else "boatman_front"))
 			else:
 				result.append(_point("dawn_lamp",298,201,"点亮桥栏的灯"))
 	return result
@@ -234,7 +278,9 @@ func objective() -> String:
 			return "去南边的小筑协助第二梦。" if has("prepare") else "去西边替第二梦守住药炉。"
 		"lodge":
 			if not has("blood_rite"): return "在药炉旁协助第二梦，随后与她告别。"
-		"dawn": return "沿石桥向东，与步惊云离开。" if has("dawn_lamp") else "去桥栏点灯，兑现和第二梦的约定。"
+		"dawn":
+			if not has("dawn_lamp"): return "去桥栏点灯，兑现和第二梦的约定。"
+			return "可先在西岸安置归人，或沿石桥离开。" if dawn_reunion_available() and reunion_plan().is_empty() else "沿石桥向东，与步惊云离开。"
 	return ""
 
 func encounter_open(index: int) -> bool:
@@ -402,6 +448,18 @@ func handle(id: String) -> bool:
 		"dawn_exit":
 			if not warn_departure(_finish_dawn):
 				_finish_dawn()
+		"dawn_witness":
+			if g.field_key != "dawn" or not dawn_witness_available():
+				return false
+			_dawn_witness()
+		"dawn_courier":
+			if g.field_key != "dawn" or not dawn_courier_available():
+				return false
+			_dawn_courier()
+		"dawn_reunion":
+			if g.field_key != "dawn" or not has("dawn_lamp") or not dawn_reunion_available():
+				return false
+			_dawn_reunion()
 		_: return false
 	return true
 
@@ -444,6 +502,44 @@ func on_first_departure() -> Array:
 
 func _point(id: String, x: int, y: int, label: String, sprite: String = "") -> Dictionary:
 	return {"id":id,"name":label,"pos":Vector2(x,y),"index":-1,"sprite":sprite,"optional":false}
+
+func _dawn_point(id: String, pos: Vector2, label: String, sprite: String) -> Dictionary:
+	return {"id":id,"name":label,"pos":pos,"index":-1,"sprite":sprite,"optional":true}
+
+func _dawn_witness() -> void:
+	var dialogue := [["证人","你们带我从竹径下了山。现在我替同乡守着渡口，失散的人来了就有地方落脚。"]]
+	if side.state().get("seals","") == "done_proof":
+		dialogue = [["证人","那份口供已经贴在渡口。两家人认出了封门令上的印，来认领当晚被带走的人。"]]
+	beat("dawn_witness",dialogue)
+
+func _dawn_courier() -> void:
+	var dialogue := [["信使","你们送来的药师留下了。几户渡工正轮流给药棚送水，夜里也有人照看伤者。"]]
+	if side.state().get("courier","") == "done_fight":
+		dialogue = [["船工","信使记下你们问出的口令。州府照他的线索搜了船屋，我今早头一回用自己的名字领粮。"]]
+	beat("dawn_courier",dialogue)
+
+func _dawn_reunion() -> void:
+	var plan := reunion_plan()
+	if not plan.is_empty():
+		var notice := "名册已经挂好。邻村来问，就让他们照着找人。" if plan == "roll" else "粮棚今晚留灯。先到的人歇脚，明早再去接下一批。"
+		g._talk([["渡工",notice]],g._return_to_field)
+		return
+	var choices := [["立渡口归人册","reunion_roll"]]
+	var note := "公开登记来往人名，让失散家人能在渡口寻访。"
+	if dawn_aid_available():
+		choices.append(["在粮棚留铺留粮","reunion_aid"])
+		note = "归人册让各村公开寻亲。粮棚留铺留粮，让无处安身的人先过夜。"
+	choices.append(["稍后再议",""])
+	choose("凤溪如何安置归人",choices,_settle_dawn,note)
+
+func _settle_dawn(flag: String) -> void:
+	if flag.is_empty():
+		g._return_to_field()
+		return
+	var outcome := [["渡工","我把名册挂在船埠。家人找不到人的，写下名字和来处，我让过往船工带给沿岸各村。"]]
+	if flag == "reunion_aid":
+		outcome = [["渡工","乡亲把空粮棚扫出来了。我今晚守灯，带着孩子的先进屋，明早给他们煮粥。"]]
+	beat(flag,outcome)
 
 func speak(lines: Array, finish: Callable) -> void:
 	staged = true

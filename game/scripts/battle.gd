@@ -10,10 +10,14 @@ const INTENTS = {
 	"sweep": "横扫 · 全体", "brace": "架势 · 减伤", "signal":"预备鸣哨 · 召援",
 	"rally":"擂鼓 · 护韩朔", "escape":"携印逃走 · 可破势打断",
 	"kindle":"引火蓄刃 · 可打断", "fire_sweep":"火刃横扫 · 全体",
-	"mind_sweep":"魔念横扫 · 伤血耗气", "armor_bash":"金身重击"
+	"mind_sweep":"魔念横扫 · 伤血耗气", "armor_bash":"金身重击",
+	"dragon_draw":"蓄龙息 · 可打断", "dragon_reflux":"龙息逆流 · 全体",
+	"tyrant_palm":"归元掌", "tyrant_sweep":"气浪横扫 · 全体", "tidal_advance":"鼓令突进"
 }
-const ELITE_WINDUPS := ["kindle", "fire_sweep", "mind_sweep", "armor_bash"]
+const ELITE_WINDUPS := ["kindle", "fire_sweep", "mind_sweep", "armor_bash",
+	"dragon_draw", "dragon_reflux", "tyrant_palm", "tyrant_sweep", "tidal_advance"]
 const STANDARD_ELITE_HP := {"duan":202, "beast":178, "demon":260, "godless":310}
+const LATE_ELITES := ["dragon", "beast", "boss", "tidal_chief", "tidal_drum"]
 
 var allies: Array[Dictionary] = []
 var foes: Array[Dictionary] = []
@@ -81,11 +85,14 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 		var hp: int = info[1]
 		if _has_elite_pattern(id):
 			hp = STANDARD_ELITE_HP[id]
+		elif id == "dragon" and _has_late_pattern(id):
+			hp = 216
 		foes.append({"id": id, "name": info[0], "hp": hp, "max_hp": hp,
 			"attack": info[2], "poise": info[3], "max_poise": info[3], "weak": info[4],
 			"sprite": info[5], "cycle": info[6], "phase": info[7], "broken": false,
 			"awakened": false, "shield": false, "cracks": 0, "offset": foes.size(), "dormant":false,
-			"frost":0,"resolve":false,"rallied":false,"kindle":false,"opening":0})
+			"frost":0,"resolve":false,"rallied":false,"kindle":false,"opening":0,
+			"flow":false,"formation":false})
 	if chapter == 1 and opponents == ["paper","claw"]:
 		signal_state = "ready"
 		foes[1].hp = 0
@@ -177,8 +184,8 @@ func intent(enemy: Dictionary) -> String:
 	var pattern := _pattern(enemy)
 	if enemy.id == "demon" and advanced and pattern == "sweep" and corruption >= 4:
 		return "随魔念横扫 · 全体"
-	if pattern in ["strike", "charge", "armor_bash"]:
-		var move: String = {"strike":"快斩", "charge":"重击", "armor_bash":"金身重击"}[pattern]
+	if pattern in ["strike", "charge", "armor_bash", "tyrant_palm", "tidal_advance"]:
+		var move: String = {"strike":"快斩", "charge":"重击"}.get(pattern, INTENTS[pattern])
 		return "%s › %s" % [move, allies[_threat_target(enemy)].name]
 	return INTENTS[pattern]
 
@@ -186,7 +193,13 @@ func tactical_hint(view: Dictionary) -> String:
 	for i in foes.size():
 		var enemy := foes[i]
 		var shown: Dictionary = view.foe[i]
-		if not _has_elite_pattern(enemy.id) or shown.hp <= 0:
+		if shown.hp <= 0:
+			continue
+		if _has_late_pattern(enemy.id):
+			var late_hint := _late_tactical_hint(enemy.id, shown)
+			if not late_hint.is_empty():
+				return late_hint
+		if not _has_elite_pattern(enemy.id):
 			continue
 		if shown.broken or shown.opening > 0:
 			return "敌人露出空门。趁这回合用重招。"
@@ -203,8 +216,40 @@ func tactical_hint(view: Dictionary) -> String:
 				return "被点名的人固守或受护持，接下重击便露空门。" if "金身重击" in shown.intent else "可破势或用双剑开阵打开金身。"
 	return ""
 
+func _late_tactical_hint(id: String, shown: Dictionary) -> String:
+	if shown.shield:
+		return "合璧可破护气，也可分两回合各破势一次。"
+	if shown.broken or shown.opening > 0:
+		return "敌人露出空门。趁这回合用重招。"
+	match id:
+		"dragon", "beast":
+			if shown.flow:
+				return "龙息将扫全队。破势可打断，或护住一人制造空门。"
+			if "蓄龙息" in shown.intent:
+				return "龙息尚未成形。现在破势可阻止逆流。"
+			return "趁它尚未蓄息，削势或回气。"
+		"boss":
+			if "归元掌" in shown.intent:
+				return "接住点名掌击便露空门。用固守、护持或代挡。"
+			if "气浪" in shown.intent:
+				return "气浪扫向全队。可破势打断，或一起防守。"
+		"tidal_chief":
+			if shown.formation:
+				return "鼓令催阵。破势韩朔或鼓手，或护住突进目标。"
+			return "破势鼓手可止擂鼓，击倒他可拆掉鼓阵。"
+	return ""
+
 func _has_elite_pattern(id: String) -> bool:
 	return advanced and not story_mode and STANDARD_ELITE_HP.has(id) and (id != "beast" or chapter_index == 2)
+
+func _has_late_pattern(id: String) -> bool:
+	return advanced and not story_mode and chapter_index == 5 and id in LATE_ELITES
+
+func _tidal_drum_index() -> int:
+	for i in foes.size():
+		if foes[i].id == "tidal_drum" and foes[i].hp > 0:
+			return i
+	return -1
 
 func _threat_target(enemy: Dictionary) -> int:
 	var target := (round_no + int(enemy.offset)) % allies.size()
@@ -216,7 +261,24 @@ func _pattern(enemy: Dictionary) -> String:
 	if enemy.id == "paper" and signal_state == "ready":
 		return "signal"
 	if enemy.id == "tidal_drum":
+		if _has_late_pattern(enemy.id) and foes[0].id == "tidal_chief" and foes[0].broken:
+			return "strike"
 		return "rally" if foes[0].id == "tidal_chief" and foes[0].hp > 0 and round_no % 2 == 1 else "strike"
+	if _has_late_pattern(enemy.id):
+		match enemy.id:
+			"dragon", "beast":
+				if enemy.flow:
+					return "dragon_reflux"
+				return "dragon_draw" if (round_no % 2 == 1) == (enemy.id == "dragon") else "charge"
+			"boss":
+				if not enemy.awakened:
+					return "tyrant_palm" if round_no % 2 else "brace"
+				if enemy.shield:
+					return "charge" if round_no % 2 else "sweep"
+				return "tyrant_palm" if round_no % 2 else "tyrant_sweep"
+			"tidal_chief":
+				if enemy.formation:
+					return "tidal_advance"
 	if _has_elite_pattern(enemy.id):
 		match enemy.id:
 			"duan", "beast":
@@ -263,7 +325,23 @@ func presentation() -> Dictionary:
 func _foe_stats(enemy: Dictionary) -> Dictionary:
 	return {"hp":enemy.hp,"poise":enemy.poise,"broken":enemy.broken,"shield":enemy.shield,
 		"cracks":enemy.cracks,"dormant":enemy.dormant,"frost":enemy.frost,"rallied":enemy.rallied,
-		"kindle":enemy.kindle,"opening":enemy.opening}
+		"kindle":enemy.kindle,"opening":enemy.opening,"flow":enemy.flow,"formation":enemy.formation,
+		"awakened":enemy.awakened,"phase_label":_phase_label(enemy)}
+
+func _phase_label(enemy: Dictionary) -> String:
+	if not _has_late_pattern(enemy.id):
+		return ""
+	match enemy.id:
+		"dragon", "beast": return "龙息逆流" if enemy.flow else "龙脉蓄势"
+		"boss":
+			if enemy.shield:
+				return "三分归元气"
+			return "归元气已破" if enemy.awakened else "雄霸试掌"
+		"tidal_chief":
+			if enemy.formation:
+				return "鼓令成阵"
+			return "韩朔独战" if _tidal_drum_index() < 0 else "韩朔与鼓手"
+	return ""
 
 func act(action: int, target: int) -> bool:
 	if not available(action):
@@ -515,7 +593,10 @@ func _apply_combo(unit: Dictionary) -> void:
 		if foes[i].shield:
 			foes[i].shield = false
 			shield_resolution = "combo"
-			_effect("break","foe",i,0,"break","护气已破")
+			if _has_late_pattern(foes[i].id):
+				_phase_change(i, 0, "cloud", "归元气破")
+			else:
+				_effect("break","foe",i,0,"break","护气已破")
 		if advanced and pair == "cloud_sage" and foes[i].phase == "armor":
 			foes[i].poise = 1
 			foes[i].resolve = false
@@ -546,6 +627,26 @@ func _effect(kind: String, side: String, index: int, beat: int, style: String, c
 			"protector":allies[index].protector} if side == "ally" else _foe_stats(foes[index])
 	events.append(event)
 
+func _phase_change(index: int, beat: int, style: String, caption: String) -> void:
+	_effect("stance", "foe", index, beat, style, caption)
+	events.back().phase_change = true
+
+func _collapse_formation(beat: int) -> void:
+	if foes[0].id != "tidal_chief" or not foes[0].formation:
+		return
+	foes[0].formation = false
+	foes[0].rallied = false
+	_phase_change(0, beat, "guard", "鼓令瓦解")
+	_note("鼓令被截断，韩朔无法依阵突进。")
+
+func _on_drummer_falls(beat: int) -> void:
+	if foes[0].id != "tidal_chief" or foes[0].hp <= 0:
+		return
+	if foes[0].formation:
+		_collapse_formation(beat)
+	else:
+		_phase_change(0, beat, "guard", "韩朔独战")
+
 func _hit_foe(index: int, base: int, break_power: int, element: String, style: String, beat: int = 0) -> void:
 	var enemy := foes[index]
 	var weak: bool = element == enemy.weak
@@ -575,8 +676,11 @@ func _hit_foe(index: int, base: int, break_power: int, element: String, style: S
 	var points := maxi(1, roundi(damage))
 	var previous_hp: int = enemy.hp
 	var first_clash: bool = enemy.id == "first_tyrant"
-	enemy.hp = maxi(1 if enemy.shield or (first_clash and not enemy.awakened) else 0, enemy.hp - points)
+	var must_awaken: bool = first_clash or (enemy.id == "boss" and _has_late_pattern(enemy.id))
+	enemy.hp = maxi(1 if enemy.shield or (must_awaken and not enemy.awakened) else 0, enemy.hp - points)
 	_effect("damage", "foe", index, beat, style, "%d%s" % [previous_hp - enemy.hp, " 克" if weak else ""])
+	if enemy.hp <= 0 and enemy.id == "tidal_drum" and _has_late_pattern(enemy.id):
+		_on_drummer_falls(beat)
 	if enemy.hp <= 0 or enemy.awakened or enemy.hp * 2 > enemy.max_hp:
 		return
 	enemy.awakened = true
@@ -591,8 +695,12 @@ func _hit_foe(index: int, base: int, break_power: int, element: String, style: S
 		enemy.shield = true
 		enemy.attack += 6
 		enemy.cycle = ["charge","strike","sweep"] if advanced else ["charge","sweep"]
-		_effect("stance","foe",index,beat,"guard","三分归元气" if advanced else "龙脉护气")
-		_note("雄霸以护气挡住要害，合璧可破！")
+		if _has_late_pattern(enemy.id):
+			_phase_change(index, beat, "guard", "三分归元气")
+			_note("雄霸护住要害。合璧可破，或分两回合各破势一次。")
+		else:
+			_effect("stance","foe",index,beat,"guard","三分归元气" if advanced else "龙脉护气")
+			_note("雄霸以护气挡住要害，合璧可破！")
 
 func _reduce_poise(index: int, points: int, beat: int) -> void:
 	var enemy := foes[index]
@@ -605,6 +713,13 @@ func _reduce_poise(index: int, points: int, beat: int) -> void:
 		if enemy.kindle or _pattern(enemy) == "kindle":
 			_note("%s引火被打断，火刃未能横扫。" % enemy.name)
 		enemy.kindle = false
+	if _has_late_pattern(enemy.id):
+		if enemy.id in ["dragon", "beast"] and (enemy.flow or _pattern(enemy) == "dragon_draw"):
+			enemy.flow = false
+			_phase_change(index, beat, "dark", "龙息中断")
+			_note("龙息被打散，逆流未能成形。")
+		elif enemy.id in ["tidal_chief", "tidal_drum"]:
+			_collapse_formation(beat)
 	enemy.broken = true
 	if enemy.id == "paper" and signal_state == "ready":
 		signal_state = "blocked"
@@ -616,6 +731,8 @@ func _reduce_poise(index: int, points: int, beat: int) -> void:
 		if enemy.cracks >= 2:
 			enemy.shield = false
 			shield_resolution = "poise"
+			if _has_late_pattern(enemy.id):
+				_phase_change(index, beat, "cloud", "归元气破")
 			_note("护气散尽。")
 
 func _heal(index: int, points: int) -> void:
@@ -626,6 +743,7 @@ func _heal(index: int, points: int) -> void:
 
 func _enemy_turn() -> void:
 	var beat := 0
+	var chief_interrupted: bool = foes[0].id == "tidal_chief" and foes[0].broken
 	for index in foes.size():
 		var enemy := foes[index]
 		if enemy.hp <= 0:
@@ -639,6 +757,8 @@ func _enemy_turn() -> void:
 			_note("%s气息散乱，未能出手。" % enemy.name)
 			continue
 		var attack := _pattern(enemy)
+		if attack == "rally" and chief_interrupted and _has_late_pattern(enemy.id):
+			attack = "strike"
 		enemy.resolve = false
 		beat += 1
 		if attack == "escape":
@@ -650,8 +770,13 @@ func _enemy_turn() -> void:
 		if attack == "rally":
 			foes[0].rallied = true
 			_effect("cast","foe",index,beat,"guard","擂鼓")
-			_effect("stance","foe",0,beat,"guard","鼓阵")
-			_note("鼓阵已起，韩朔下一次受击减伤。")
+			if _has_late_pattern(enemy.id):
+				foes[0].formation = true
+				_phase_change(0, beat, "guard", "鼓令成阵")
+				_note("鼓令成阵。韩朔下回合将点名突进。")
+			else:
+				_effect("stance","foe",0,beat,"guard","鼓阵")
+				_note("鼓阵已起，韩朔下一次受击减伤。")
 			continue
 		if attack == "signal":
 			signal_state = "called"
@@ -663,6 +788,11 @@ func _enemy_turn() -> void:
 			_effect("stance", "foe", index, beat, "blade", "火刃蓄成")
 			_note("%s引火蓄刃，下回合将横扫全队。" % enemy.name)
 			continue
+		if attack == "dragon_draw":
+			enemy.flow = true
+			_phase_change(index, beat, "dark", "龙息蓄起")
+			_note("龙息蓄起。下回合逆流将席卷全队。")
+			continue
 		if attack == "brace":
 			enemy.poise = mini(enemy.max_poise, enemy.poise + 2)
 			_effect("stance", "foe", index, beat, "guard")
@@ -670,7 +800,8 @@ func _enemy_turn() -> void:
 			continue
 		var target := _threat_target(enemy)
 		var style: String = {"sweep":"dark", "charge":"cloud", "strike":"blade", "fire_sweep":"blade",
-			"mind_sweep":"dark", "armor_bash":"cloud"}[attack]
+			"mind_sweep":"dark", "armor_bash":"cloud", "dragon_reflux":"dark", "tyrant_palm":"cloud",
+			"tyrant_sweep":"cloud", "tidal_advance":"blade"}[attack]
 		_effect("cast", "foe", index, beat, style)
 		_note("%s · %s" % [enemy.name, INTENTS[attack]])
 		match attack:
@@ -683,6 +814,18 @@ func _enemy_turn() -> void:
 				enemy.kindle = false
 			"armor_bash":
 				_hurt_ally(target, roundi(enemy.attack * 1.48), beat, style, index, attack)
+			"dragon_reflux", "tyrant_sweep":
+				for i in allies.size():
+					_hurt_ally(i, roundi(enemy.attack * 1.06), beat, style, index, attack)
+				if attack == "dragon_reflux":
+					enemy.flow = false
+					_phase_change(index, beat, "dark", "龙息散去")
+			"tyrant_palm", "tidal_advance":
+				_hurt_ally(target, roundi(enemy.attack * 1.48), beat, style, index, attack)
+				if attack == "tidal_advance":
+					enemy.formation = false
+					enemy.rallied = false
+					_phase_change(index, beat, "guard", "鼓令散去")
 			"charge":
 				_hurt_ally(target, roundi(enemy.attack * 1.56), beat, style,index)
 			_:
@@ -741,6 +884,8 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int, 
 	if attack == "armor_bash" and protected:
 		_open_guard_gap(source, beat)
 		_note("重击被接住，绝无神的金身露出空门。")
+	if protected and attack in ["dragon_reflux", "tyrant_palm", "tidal_advance"] and _open_guard_gap(source, beat):
+		_note("护住了这一击，%s露出空门。" % foes[source].name)
 	if attack == "mind_sweep" and not protected:
 		var drained := mini(4, int(unit.qi))
 		if drained > 0:

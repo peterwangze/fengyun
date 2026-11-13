@@ -1,0 +1,28 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "2.6.0.0",
+  "SetupVersion": "2.6.0",
+  "UpdatedFrom": "2.5.0",
+  "Equipment": true,
+  "PlaySystems": true,
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "8b80723d331f7acc8356b755591fa3a44029457d3a051ea22b5d7a67c2f9ce66",
+  "SetupSHA256": "cfd961d2fa6d4003907fb9e575a700a60e21eb9ffcd0155076cf692a955fdcf7",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Launch, Windows keyboard, stagger tutorial, wedding scene, two evacuations, rear route entry, continue",
+  "InstalledGameLaterChapters": [
+    "Ferry, two merit on landing, west-bank continue",
+    "West-bank inn, corroborate the orders, equip a new martial art",
+    "Enter prison, free prisoner, relaunch, leave via side stair",
+    "Play farewell and open the altar confrontation",
+    "Playable dawn, light the lantern and complete the campaign",
+    "Old finished save, Tidegate evidence, watergate path, granary battle opening and room continue",
+    "Tidegate settlement with ledger fixture, main campaign unchanged"
+  ]
+}

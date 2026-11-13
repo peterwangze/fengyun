@@ -16,6 +16,9 @@ func _initialize() -> void:
 	_test_fire_elites()
 	_test_demon()
 	_test_golden_armor()
+	_test_dragon_current()
+	_test_final_tyrant()
+	_test_tidal_formation()
 	print("Builds: %d failures" % failures)
 	quit(1 if failures else 0)
 
@@ -216,6 +219,105 @@ func _test_golden_armor() -> void:
 	linked.act(1, 0)
 	_check(linked.foes[0].opening == 1 and "守反" in linked.synergy_feedback, "equipped counter creates a follow-through opening on an ordinary foe")
 	_check(linked.act(2, 0) and "乘隙" in linked.synergy_feedback, "the next partner exploits the opening from a defensive build")
+
+func _late_battle(enemies: Array, easy: bool = false) -> RefCounted:
+	var slot := _slot()
+	slot.chapter = 5
+	slot.merit = 24
+	slot.campaign.sword = true
+	slot.chronicle.loadout.cloud = [0, 3]
+	Equipment.assign(slot, "cloud", 1, "ferry_knot")
+	Equipment.assign(slot, "wind", 1, "courier_badge")
+	if not easy:
+		return _battle(slot, ["wind", "cloud"], enemies, 6)
+	return Battle.new(["wind", "cloud"], enemies, 6, 2, true, 5, true, {}, true)
+
+func _has_phase_event(battle: RefCounted, caption: String) -> bool:
+	return battle.events.any(func(event: Dictionary): return event.get("phase_change", false) and event.text == caption)
+
+func _test_dragon_current() -> void:
+	var guarded := _late_battle(["dragon"])
+	_check(guarded._pattern(guarded.foes[0]) == "dragon_draw" and "阻止逆流" in guarded.tactical_hint(guarded.presentation()),
+		"the dragon telegraphs its charge before the counterplay window")
+	var cavern := _late_battle(["beast", "shade"])
+	_check(cavern._pattern(cavern.foes[0]) == "charge", "the earlier cavern encounter starts with a distinct pressure turn")
+	guarded.act(3, 0)
+	guarded.act(3, 0)
+	_check(guarded.foes[0].flow and _has_phase_event(guarded, "龙息蓄起") and guarded.presentation().foe[0].phase_label == "龙息逆流",
+		"the phase announcement and presentation track the armed reversal")
+	guarded.act(3, 0)
+	guarded.act(3, 0)
+	_check(guarded.foes[0].opening == 1 and not guarded.foes[0].flow and _has_phase_event(guarded, "龙息散去"),
+		"ordinary guards endure the reversal and expose an opening for the next round")
+	guarded.act(0, 0)
+	_check(guarded.act(2, 0) and "乘隙" in guarded.synergy_feedback, "the companion can exploit the protected dragon opening")
+	var interrupt := _late_battle(["dragon"])
+	interrupt.foes[0].poise = 2
+	_check("截势回气 7" in interrupt.poise_preview(1, 0), "the forecast includes the affinity's extra return for stopping dragon breath")
+	interrupt.act(1, 0)
+	_check(interrupt.foes[0].broken and not interrupt.foes[0].flow and _has_phase_event(interrupt, "龙息中断"),
+		"an actual break cancels the charge and emits the interruption cue")
+	var easy := _late_battle(["dragon"], true)
+	_check(easy._pattern(easy.foes[0]) == "charge" and easy.presentation().foe[0].phase_label.is_empty(),
+		"story difficulty retains the familiar dragon behavior")
+
+func _test_final_tyrant() -> void:
+	var combo := _late_battle(["boss"])
+	var poise := _late_battle(["boss"])
+	for battle in [combo, poise]:
+		var boss: Dictionary = battle.foes[0]
+		_check("归元掌 › 步惊云" == battle.intent(boss), "the opening palm explicitly names its target")
+		boss.hp = boss.max_hp / 2 + 1
+		battle.act(0, 0)
+		_check(boss.shield and _has_phase_event(battle, "三分归元气"), "crossing half health visibly enters the shield phase")
+	combo.bond = 4
+	combo.act(5, 0)
+	_check(not combo.foes[0].shield and combo.shield_resolution == "combo" and _has_phase_event(combo, "归元气破"),
+		"the party combo breaks the shield directly and retains the ending resolution flag")
+	var armored: Dictionary = poise.foes[0]
+	armored.poise = 1
+	poise.act(0, 0)
+	_check(armored.shield and armored.cracks == 1, "one break leaves a visible crack in the shield")
+	poise.act(3, 0)
+	poise.act(3, 0)
+	_check(armored.shield and armored.cracks == 1 and not armored.resolve, "the recovery round cannot count as a second break")
+	armored.poise = 1
+	poise.act(0, 0)
+	_check(not armored.shield and armored.cracks == 2 and poise.shield_resolution == "poise" and _has_phase_event(poise, "归元气破"),
+		"a later break clears the shield independently of the combo")
+	var guarded := _late_battle(["boss"])
+	guarded.act(0, 0)
+	guarded.act(3, 0)
+	_check(guarded.foes[0].opening == 1 and guarded.allies[1].hp < guarded.allies[1].max_hp,
+		"taking the opening palm under guard creates a real damage window")
+
+func _test_tidal_formation() -> void:
+	var defended := _late_battle(["tidal_chief", "tidal_drum"])
+	var stopped := _late_battle(["tidal_chief", "tidal_drum"])
+	for battle in [defended, stopped]:
+		battle.act(3, 0)
+		battle.act(3, 0)
+		_check(battle.foes[0].formation and _has_phase_event(battle, "鼓令成阵") and "鼓令突进 › 聂风" == battle.intent(battle.foes[0]),
+			"the first drum order visibly primes a named next-round target")
+	stopped.foes[1].poise = 1
+	stopped.act(1, 1)
+	_check(not stopped.foes[0].formation and not stopped.foes[0].rallied and _has_phase_event(stopped, "鼓令瓦解"),
+		"breaking the drummer cancels the already armed formation and its damage shield")
+	defended.act(3, 0)
+	defended.act(3, 0)
+	_check(defended.foes[0].opening == 1 and not defended.foes[0].formation and _has_phase_event(defended, "鼓令散去"),
+		"protecting the marked ally answers the charge and creates a counterattack window")
+	var chief := _late_battle(["tidal_chief", "tidal_drum"])
+	chief.foes[0].poise = 1
+	chief.act(0, 0)
+	chief.act(3, 0)
+	_check(not chief.foes[0].formation, "breaking the chief before the drummer acts prevents rally from arming")
+	var kill := _late_battle(["tidal_chief", "tidal_drum"])
+	kill.act(3, 0)
+	kill.act(3, 0)
+	kill.foes[1].hp = 1
+	kill.act(0, 1)
+	_check(not kill.foes[0].formation and kill.presentation().foe[0].phase_label == "韩朔独战", "defeating the drummer removes the coordination mechanic")
 
 func _check(passed: bool, description: String) -> void:
 	print(("PASS " if passed else "FAIL ") + description)

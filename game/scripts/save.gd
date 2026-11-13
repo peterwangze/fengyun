@@ -129,6 +129,10 @@ func _valid_chronicle(value: Variant, chapter: int) -> bool:
 	for flag in value.marks:
 		if not Chronicle.FLAGS.has(flag) or value.marks[flag] != true:
 			return false
+	var public_roll: bool = value.marks.has("reunion_roll")
+	var neighbor_aid: bool = value.marks.has("reunion_aid")
+	if (public_roll or neighbor_aid) and (chapter != 5 or not value.marks.has("dawn_lamp") or (public_roll and neighbor_aid)):
+		return false
 	for quest in value.quests:
 		if not SideStories.valid_state(quest,value.quests[quest]):
 			return false

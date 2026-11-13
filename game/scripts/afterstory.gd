@@ -16,6 +16,7 @@ const ENCOUNTERS := {
 		["步惊云","先听鼓声。鼓手在给他布防。"]]]
 }
 const FLAGS := ["brief","register","seal","sluice","gate","aid","chief","ledger"]
+const FENGXI_CONTACT := Vector2(412,240)
 
 var g
 var active := false
@@ -40,6 +41,8 @@ static func valid(value: Variant) -> bool:
 	for flag in FLAGS:
 		if not value.get(flag) is bool:
 			return false
+	if not value.get("fengxi_contact",false) is bool or (value.get("fengxi_contact",false) and not value.brief):
+		return false
 	if (value.register or value.seal) and not value.brief:
 		return false
 	if (value.sluice or value.route != "") and not (value.register and value.seal):
@@ -64,6 +67,11 @@ func _fengxi_aid() -> String:
 		"wait_boat", "done_boat": return "boat"
 		"wait_goods", "done_goods": return "grain"
 	return ""
+
+func battle_aid() -> Dictionary:
+	if battle == "chief" and state().get("fengxi_contact",false) and g.chronicle.reunion_plan() == "roll":
+		return {"foe":"tidal_drum","poise":2,"line":"名册帮船工认出鼓手，他开战少 2 格势。"}
+	return {}
 
 func title_item() -> String:
 	var saved: Dictionary = g.slot.get("afterstory",{})
@@ -127,10 +135,13 @@ func points() -> Array:
 	var result := []
 	if g.field_key == "tidal_ford":
 		if flags.resolution != "":
-			return [_spot("brief","与陶伯交谈","boatman_front"),_spot("memory","探望渡口人","maid")]
+			result = [_spot("brief","与陶伯交谈","boatman_front"),_spot("memory","探望渡口人","maid")]
+			_add_fengxi_contact(result)
+			return result
 		result.append(_spot("brief","向陶伯问粮票" if not flags.brief else "和陶伯说话","boatman_front"))
 		if not flags.brief:
 			return result
+		_add_fengxi_contact(result)
 		if not flags.register: result.append(_spot("register","核对领粮名册"))
 		if not flags.seal: result.append(_spot("seal","查看旧印封条"))
 		if flags.register and flags.seal:
@@ -149,6 +160,13 @@ func points() -> Array:
 	elif not flags.ledger:
 		result.append(_spot("ledger","收回粮仓账簿"))
 	return result
+
+func _add_fengxi_contact(points: Array) -> void:
+	match g.chronicle.reunion_plan():
+		"roll":
+			points.append({"id":"fengxi_contact","name":"查看归人册的回信","pos":FENGXI_CONTACT,"sprite":"guard","optional":true})
+		"aid":
+			points.append({"id":"fengxi_contact","name":"探望凤溪渔户","pos":FENGXI_CONTACT,"sprite":"servant","optional":true})
 
 func handle(id: String) -> void:
 	var flags := state()
@@ -201,6 +219,47 @@ func handle(id: String) -> void:
 				g._talk([["阿芦","我当时只想给家里带袋米。现在每个来领粮的人都能看见自己的名字。"]],g._return_to_field)
 			else:
 				g._talk([["渡口乡亲","今年总算有粮了。给我们递信的阿芦，还在等粮仓那头的回音。"]],g._return_to_field)
+		"fengxi_contact":
+			_meet_fengxi_contact()
+
+func _meet_fengxi_contact() -> void:
+	var plan: String = g.chronicle.reunion_plan()
+	var flags := state()
+	if flags.resolution != "":
+		var ending: Array
+		if plan == "roll":
+			ending = [["船工","这张潮关领粮单会跟归人册一起送上游，两村失散的人能在同一处互相留信。"]] \
+				if flags.resolution == "public" else [["船工","州府的回执抄在归人册后头了。去城里找人的船有了凭据。"]]
+		else:
+			ending = [["渔户","首批粮已经分出去。我们在这里也留一口热锅，给刚靠岸的人。"]] \
+				if flags.resolution == "public" else [["渔户","州府清点时粮没断。昨晚第一户已经把借粮还给了凤溪粮棚。"]]
+		g._talk(ending,g._return_to_field)
+	elif plan == "roll":
+		var text := "我在归人册上认出了敲鼓的同乡。进粮仓时喊他名字，他会乱一拍，足够你们截住鼓阵。"
+		if flags.chief:
+			text = "打鼓的同乡刚把名字写进册子。他说愿跟船回村，先向领不到粮的人道个歉。"
+		elif flags.get("fengxi_contact",false):
+			text = "进粮仓时喊「蒋六」。他只会犹豫一瞬，等他重新举槌就晚了。"
+		g._talk([["船工",text]],_finish_fengxi_contact)
+	elif plan == "aid":
+		var text := "在凤溪借宿那晚，我们得了一锅粥。这是船上多带的两包药，跟韩朔交手前收着。"
+		if flags.get("fengxi_contact",false):
+			text = "这船的药已经给你们了。我守在这里，回头给等粮的人腾个地方。"
+		g._talk([["渔户",text]],_finish_fengxi_contact)
+
+func _finish_fengxi_contact() -> void:
+	var flags := state()
+	if flags.get("fengxi_contact",false):
+		g._return_to_field()
+		return
+	flags.fengxi_contact = true
+	if g.chronicle.reunion_plan() == "aid":
+		_give_fengxi_medicine()
+	else:
+		g._commit()
+		g._return_to_field()
+		if not flags.chief:
+			g._notice("归人册线索 · 鼓手开场少 2 格势。")
 
 func _brief() -> void:
 	if state().brief:
@@ -208,6 +267,9 @@ func _brief() -> void:
 	if _fengxi_aid() != "grain":
 		_mark("brief")
 		return
+	_give_fengxi_medicine("brief")
+
+func _give_fengxi_medicine(flag: String = "") -> void:
 	var flags := state()
 	var medicine := PackedStringArray()
 	if flags.tonics < 6:
@@ -216,7 +278,11 @@ func _brief() -> void:
 	if flags.supplies.guard_powder < Items.CAP:
 		flags.supplies.guard_powder += 1
 		medicine.append("护脉散")
-	_mark("brief")
+	if flag.is_empty():
+		g._commit()
+		g._return_to_field()
+	else:
+		_mark(flag)
 	g._notice("收到凤溪补给 · " + "、".join(medicine) if not medicine.is_empty() else "药囊已满，陶伯收回药品。")
 
 func _open_crew_sluice() -> bool:
@@ -282,4 +348,7 @@ func journal() -> Array:
 	match _fengxi_aid():
 		"boat": entries.append(["凤溪渡工","水栅已开" if f.sluice else "查齐证据后帮忙抬水栅"])
 		"grain": entries.append(["凤溪乡亲","陶伯已交接药品" if f.brief else "陶伯处有药品"])
+	match g.chronicle.reunion_plan():
+		"roll": entries.append(["渡口归人册","已查看船工回信" if f.get("fengxi_contact",false) else "盐汊渡口可访归人册"])
+		"aid": entries.append(["凤溪粮棚","已获渔户接济" if f.get("fengxi_contact",false) else "盐汊渡口可探望渔户"])
 	return entries

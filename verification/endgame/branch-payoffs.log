@@ -1,0 +1,158 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS retry reapplies the same opening gap without changing maximum poise
+PASS the journal offers a Palace follow-up only after helping the Fengxi courier
+PASS courier quest rewards remain earned, while combat aid requires the rendezvous
+PASS Godless encounter opens with any courier outcome
+PASS quiet courier grants a ward to the heavy target, intercepting opens a poise gap
+PASS retries reproduce exactly one courier aid
+PASS Fengxi lantern scene recalls the courier choice only when its later meeting took place
+PASS the journal offers a Palace follow-up only after helping the Fengxi courier
+PASS courier quest rewards remain earned, while combat aid requires the rendezvous
+PASS the journal points to the reachable contact and gives the deadline
+PASS the courier explains the specific tactical handoff
+PASS reloading after the handoff removes the interaction and preserves the aid
+PASS Godless encounter opens with any courier outcome
+PASS quiet courier grants a ward to the heavy target, intercepting opens a poise gap
+PASS retries reproduce exactly one courier aid
+PASS Fengxi lantern scene recalls the courier choice only when its later meeting took place
+PASS the journal offers a Palace follow-up only after helping the Fengxi courier
+PASS courier quest rewards remain earned, while combat aid requires the rendezvous
+PASS the journal points to the reachable contact and gives the deadline
+PASS the courier explains the specific tactical handoff
+PASS reloading after the handoff removes the interaction and preserves the aid
+PASS Godless encounter opens with any courier outcome
+PASS quiet courier grants a ward to the heavy target, intercepting opens a poise gap
+PASS retries reproduce exactly one courier aid
+PASS Fengxi lantern scene recalls the courier choice only when its later meeting took place
+PASS a courier handoff after the fight is hidden and the journal preserves the earned reward
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS a promise requires a mountain handoff to grant combat aid
+PASS journal explains the deadline for final-battle aid
+PASS mountain handoff persists before the duel
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS a promise requires a mountain handoff to grant combat aid
+PASS journal explains the deadline for final-battle aid
+PASS mountain handoff persists before the duel
+PASS the guard route opens a traversable short path
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS late handoff stays available and describes the resolved duel
+PASS late handoff uses dialogue that acknowledges victory
+PASS late handoff can still settle the quest
+PASS mountain rescue changes the farewell before the player leaves Fengxi
+PASS Fengxi ending reflects the river choice without requiring the optional revisit
+PASS unvisited river follow-up warns before ending
+PASS finishing without the optional revisit still records the chosen ending
+PASS mountain rescue changes the farewell before the player leaves Fengxi
+PASS Fengxi ending reflects the river choice without requiring the optional revisit
+PASS unvisited river follow-up warns before ending
+PASS finishing without the optional revisit still records the chosen ending
+PASS a direct main route retains the original ending without an empty settlement
+PASS reunion is optional and appears after the lamp
+PASS the guided witness is now visible running a stop for displaced travelers
+PASS the quiet courier route has an actual village clinic to visit
+PASS both optional callbacks record their own visits
+PASS the public roll stays available without the aid resources
+PASS touch-friendly defer leaves the choice open
+PASS the recorded witness presents the published evidence
+PASS the seized password closes the story of the freed boatman
+PASS the winter-grain branch opens a distinct aid plan
+PASS the aid ending is mutually exclusive and persists on reload
+PASS revisiting shows the chosen arrangement without opening the choice again
+PASS ending playback describes the chosen connection to Tidegate
+PASS the mountain rescue also opens the aid alternative
+PASS choosing the public roll produces its own visible ending
+PASS each reunion plan is individually valid and round-trips through the existing save
+PASS a reunion choice recorded before the lamp is rejected
+PASS each reunion plan is individually valid and round-trips through the existing save
+PASS a reunion choice recorded before the lamp is rejected
+PASS the save cannot contain both mutually exclusive reunion plans
+PASS an older Tidegate slot is still readable without the optional contact field
+PASS a Tidegate contact claim requires the briefing
+PASS the Tidegate contact boolean persists after the briefing
+PASS the Tidegate contact cannot use a string in place of the saved boolean
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS players without the crew can open the watergate normally
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS players without the crew can open the watergate normally
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS players without the crew can open the watergate normally
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS older boat saves get crew aid only when the evidence is complete and the route is undecided
+PASS the Tidegate contact follows the basic briefing
+PASS the plans bring different people into Tidegate
+PASS the lodging network grants its supply once, independently of the winter-grain briefing
+PASS the public roll creates a real opening to interrupt the drum encounter
+PASS retry reuses the correct contact outcome
+PASS Tidegate public settlement has a plan-specific aftermath
+PASS the Tidegate contact follows the basic briefing
+PASS the plans bring different people into Tidegate
+PASS the lodging network grants its supply once, independently of the winter-grain briefing
+PASS the public roll creates a real opening to interrupt the drum encounter
+PASS retry reuses the correct contact outcome
+PASS Tidegate public settlement has a plan-specific aftermath
+PASS quest choice notes fit in the choice panel
+PASS branch result, follow-up and deadline text fit the journal
+Quest branch payoffs: 0 failures
