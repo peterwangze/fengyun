@@ -9,6 +9,7 @@ const Items = preload("res://scripts/items.gd")
 const Economy = preload("res://scripts/economy.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
+const FORGING_GEAR := {"interrupt":"tide_whistle", "retaliate":"forge_guard", "exploit":"sword_tassel"}
 var game
 var failures := 0
 var wins := 0
@@ -47,6 +48,9 @@ var tidal_battles: Array[Dictionary] = []
 var market_route := ""
 var market_observations: Array[String] = []
 var learned_casts := {}
+var forging_route := false
+var forging_observations: Array[String] = []
+var reinforced_fights := {}
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -81,6 +85,7 @@ func _run() -> void:
 	pacing = "--pacing" in OS.get_cmdline_user_args()
 	counterplay = "--counterplay" in OS.get_cmdline_user_args()
 	quest_carryover = "--quest-carryover" in OS.get_cmdline_user_args()
+	forging_route = "--forging" in OS.get_cmdline_user_args()
 	endgame = "--endgame" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
@@ -148,6 +153,8 @@ func _run() -> void:
 			_equip_route()
 		elif not build_route.is_empty():
 			_equip_playtest_build(chapter)
+		if forging_route:
+			_apply_forging_loadout()
 		if market_route == "training" and chapter == 5:
 			_prepare_manual("wind", "crosswind", 1)
 			_equip_owned("wind", "reed_mantle")
@@ -168,6 +175,8 @@ func _run() -> void:
 				quit(1)
 				return
 			_check(game.field_key == "peak","farewell leads to dragon terrace")
+			if forging_route and build_route in ROUTE_STYLES:
+				await _verify_peak_forge()
 			if alternate and build_route.is_empty():
 				_alternate_loadout()
 		_verify_map(chapter)
@@ -207,6 +216,8 @@ func _run() -> void:
 		if chapter == 3:
 			_do_point("apothecary")
 			_do_point("pool_intro")
+			if forging_route and build_route in ROUTE_STYLES:
+				_check_shop_stock("medicine", "clear_silk", 0, "药庐三问结案后到货")
 			if pacing:
 				_check_main(["pool_back"],"Medicine hut after receiving instructions")
 			if quests:
@@ -216,6 +227,9 @@ func _run() -> void:
 					await _side_step("remedy",1)
 					await _side_step("remedy")
 				await _side_step("remedy",0)
+			if forging_route and build_route in ROUTE_STYLES:
+				_check_material("quest:remedy", "clear_silk", 2)
+				_check_shop_stock("medicine", "clear_silk", 2)
 			if not market_route.is_empty():
 				await _visit_medicine_market()
 			await _capture("2-apothecary")
@@ -285,6 +299,8 @@ func _run() -> void:
 				var aid_applied: bool = godless.poise == godless.max_poise - 2 if detained else game.encounter.allies[1].ward
 				_check(aid_applied and not game.encounter.quest_aid_line.is_empty(), "courier follow-up changes the armor fight opening")
 				print("AID palace " + game.encounter.quest_aid_line)
+			if forging_route and chapter == 5 and build_route in ROUTE_STYLES:
+				_verify_battle_reinforcement()
 			if market_route == "training":
 				await _verify_training_in_battle(chapter, fight)
 			if chapter == 0 and fight == 0 and not pacing:
@@ -339,6 +355,8 @@ func _run() -> void:
 			_key(KEY_ENTER)
 			if not market_route.is_empty():
 				_verify_battle_loot(chapter, fight)
+			if forging_route and chapter == 2:
+				_check_material("battle:forge:%d" % fight, "ember_iron", 1 if fight == 0 else 2)
 			if chapter == 1 and fight == 0:
 				_check(game.slot.campaign.crossing.is_empty(), "bridge battle does not register a landing")
 			if chapter == 2 and fight == 1:
@@ -361,6 +379,8 @@ func _run() -> void:
 			_resume()
 			_check(game.mode == "field" and game.slot.cleared.has(1) and game.player.x < 240,"continue restores west landing")
 			_do_point("inn")
+			if forging_route and build_route in ROUTE_STYLES:
+				await _verify_inn_restock()
 			if _check(_reach("dream_intro"),"Second Dream's first scene reachable"):
 				_key(KEY_E)
 				await _capture("2-inn")
@@ -378,12 +398,16 @@ func _run() -> void:
 				await _side_step("forgework")
 			_do_point("exit")
 			_do_point("lesson")
+			if forging_route and build_route in ROUTE_STYLES:
+				_check_shop_stock("forge", "ember_iron", 1)
 			if not market_route.is_empty():
 				await _visit_forge_market()
 			if quests:
 				await _side_step("forgework")
 				await _side_step("swordstory")
 				await _side_step("swordstory")
+			if forging_route and build_route in ROUTE_STYLES:
+				await _verify_swordhall_forge()
 			await _capture("2-swordhall")
 			_do_point("returnhall")
 			await _special("first_tyrant","first_tyrant")
@@ -476,6 +500,13 @@ func _run() -> void:
 			_check(learned_casts.size() == Martial.MANUALS.size(), "every acquired manual is used in a real encounter")
 		print("MARKET route=%s events=%s" % [market_route, market_observations])
 		print("MANUAL_CASTS ",learned_casts)
+	if forging_route:
+		var purchased: bool = not game.slot.shop_stock.is_empty() or not game.slot.gear_levels.is_empty()
+		if build_route.is_empty():
+			_check(not purchased and game.slot.get("afterstory", {}).get("shop_stock", {}).is_empty(), "no-purchase route never spends or reinforces")
+		else:
+			_check(purchased and reinforced_fights.size() >= 2, "reinforcement reaches late main and Tidegate fights")
+		print("FORGING route=%s events=%s active=%s" % [build_route,forging_observations,reinforced_fights])
 	_verify_replay()
 	_check(saw_shield and combo_count > 0,"boss shield and combo reached")
 	_check(wins == (18 if all_encounters else 12) - int(rear_route == "quiet") - int(boat_route),"all requested battles won")
@@ -485,6 +516,8 @@ func _run() -> void:
 	_verify_legacy()
 	if not market_route.is_empty():
 		_verify_market_legacy()
+	if forging_route:
+		_verify_forging_migration()
 	if failures == 0:
 		print("PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery")
 		if low_motion:
@@ -605,6 +638,10 @@ func _verify_afterstory() -> void:
 	var opening_tonics: int = game.afterstory.state().tonics
 	var opening_powder: int = game.afterstory.state().supplies.guard_powder
 	_do_point("brief")
+	if forging_route and build_route == "retaliate":
+		_check_shop_stock("tidegate", "tidal_iron", 0, "核对名册后到货")
+		_check_unowned_forge("tidegate", "granary_vest")
+		await _buy_at("tidegate", "granary_vest")
 	if quest_carryover and quests and alternate:
 		_check(game.afterstory.state().tonics == opening_tonics + 1 and game.afterstory.state().supplies.guard_powder == opening_powder + 1,
 			"preserving the grain sends medicine on Tidegate's first briefing")
@@ -626,6 +663,10 @@ func _verify_afterstory() -> void:
 	_do_point("seal")
 	_check(not _reach("gate_entry"),"gate route requires both pieces of evidence")
 	_do_point("register")
+	if forging_route:
+		_check_material("tidal:register", "tidal_iron", 1, true)
+		if build_route == "retaliate":
+			_check_shop_stock("tidegate", "tidal_iron", 1)
 	if quest_carryover and quests and not alternate:
 		_check(game.afterstory.state().sluice and game.storage.read().afterstory.sluice,
 			"saving the ferry opens Tidegate's waterway after both clues")
@@ -663,6 +704,8 @@ func _verify_afterstory() -> void:
 			return
 		_key(KEY_ENTER)
 		_check(game.passable(Vector2(320,205)),"winning the gate fight opens the yard")
+		if forging_route:
+			_check_material("tidal:gate", "tidal_iron", 2, true)
 	var selected_route := "sluice" if tidal_sluice else "gate"
 	_resume_afterstory()
 	_check(game.field_key == "tidal_fort" and game.afterstory.state().route == selected_route,
@@ -675,10 +718,16 @@ func _verify_afterstory() -> void:
 		_check(game.afterstory.state().aid and game.afterstory.state().tonics == mini(6,game.encounter.tonics+2),
 			"rescue saves the witness and grants one supply reward")
 		_check(not _reach("aid"),"rescue and supply are single-use")
+		if forging_route:
+			_check_material("tidal:aid", "tidal_iron", 4, true)
+			if build_route == "retaliate":
+				await _verify_tidegate_forge(baseline)
 	_do_point("chief")
 	if not _check(game.mode == "battle" and game.encounter.intent(game.encounter.foes[1]).contains("擂鼓"),
 		"boss fight previews the drummer support action"):
 		return
+	if forging_route and build_route in ROUTE_STYLES:
+		_verify_battle_reinforcement()
 	if endgame and quests and not alternate:
 		var drum: Dictionary = game.encounter.foes[1]
 		_check(drum.poise == drum.max_poise - 2, "public reunion roll makes the tidegate drummer start two poise lower")
@@ -786,6 +835,8 @@ func _side_step(key: String, choice: int = -1) -> void:
 func _ferry_evidence() -> void:
 	_do_point("inn")
 	_do_point("ferry_evidence")
+	if forging_route and build_route in ROUTE_STYLES:
+		_check_shop_stock("inn", "clear_silk", 0, "渡口解围后到货")
 	if not market_route.is_empty():
 		await _visit_inn_market()
 	if quests:
@@ -935,6 +986,7 @@ func _buy_at(shop: String, id: String) -> void:
 	var before := Economy.offer(game.slot, account, shop, index)
 	var money: int = account.silver
 	var old_supply: int = account.supplies.get(id,0)
+	var old_material: int = account.get("materials",{}).get(id,0)
 	if _check(before.limit.is_empty(), "purchase is affordable and has space %s (%s)" % [id,before.limit]):
 		game.menu_confirm(index)
 		var saved: Dictionary = game.storage.read()
@@ -948,6 +1000,8 @@ func _buy_at(shop: String, id: String) -> void:
 				_check(saved.manual_grants.has(id), "purchase grants manual " + id)
 			"supply":
 				_check(saved_account.supplies[id] == old_supply + 1, "purchase increments bag " + id)
+			"material":
+				_check(saved_account.materials.get(id,0) == old_material + 1, "purchase increments material inventory " + id)
 		if goods[index].kind in ["gear", "manual"]:
 			game.menu_confirm(index)
 			var repeated: Dictionary = game.storage.read()
@@ -985,6 +1039,175 @@ func _verify_market_legacy() -> void:
 		and migrated.gear_grants.has("sword_tassel") and migrated.gear_grants.has("tide_whistle"), "completed unique victories recover their drops on migration")
 	_check(game.storage.write(migrated) and game.storage.read().silver == migrated.silver, "migration does not repeat rewards")
 	print("MARKET_MIGRATION passed")
+
+func _apply_forging_loadout() -> void:
+	if not FORGING_GEAR.has(build_route):
+		return
+	var id: String = FORGING_GEAR[build_route]
+	if not Equipment.unlocked(game.slot,id):
+		return
+	var hero: String = "cloud" if build_route == "retaliate" and game.stage.party.has("cloud") else game.stage.party[0]
+	if build_route == "exploit" and game.stage.party.has("cloud"):
+		hero = "cloud"
+	_equip_owned(hero,id)
+
+func _verify_inn_restock() -> void:
+	_check_shop_stock("inn", "clear_silk", 2)
+	await _buy_at("inn","clear_silk")
+	_check_shop_stock("inn", "clear_silk", 1)
+	_check_shop_stock("inn", "clear_silk", 1)
+	forging_observations.append("inn restocked once")
+
+func _verify_swordhall_forge() -> void:
+	_check_material("quest:forgework", "ember_iron", 4)
+	_check_shop_stock("forge", "ember_iron", 2)
+	if build_route == "retaliate":
+		_check_unowned_forge("swordhall", "forge_guard")
+		await _buy_at("forge","forge_guard")
+	var id: String = FORGING_GEAR[build_route]
+	await _forge_at("swordhall",id)
+	if build_route == "retaliate":
+		await _forge_at("swordhall", "cloud_return")
+		_prepare_manual("cloud", "cloud_return", 1)
+	_apply_forging_loadout()
+
+func _verify_peak_forge() -> void:
+	var id: String = FORGING_GEAR[build_route]
+	while Equipment.level(game.slot, id) < Equipment.MAX_FORGE_LEVEL:
+		if not await _forge_at("peak", id):
+			return
+	await _reject_max_forge("peak", id)
+	_apply_forging_loadout()
+	if build_route == "retaliate":
+		_prepare_manual("cloud", "cloud_return", 1)
+
+func _verify_tidegate_forge(baseline: Dictionary) -> void:
+	_do_point("return_ford")
+	_check_shop_stock("tidegate", "guard_powder", 3)
+	await _forge_at("tidegate","granary_vest")
+	await _forge_at("tidegate","granary_vest")
+	await _reject_max_forge("tidegate", "granary_vest")
+	_equip_owned("wind","granary_vest")
+	var saved: Dictionary = game.storage.read()
+	_check(saved.silver == baseline.silver and saved.materials == baseline.materials,
+		"Tidegate upgrades spend only its independent currency and materials")
+	_do_point("gate_entry")
+
+func _check_shop_stock(shop: String, id: String, remaining: int, limit: String = "") -> void:
+	if not _do_point("shop_" + shop):
+		return
+	var goods: Array = Economy.SHOPS[shop].goods
+	var index := goods.find_custom(func(row: Dictionary): return row.id == id)
+	if _check(index >= 0, "merchant lists material or supply " + id):
+		var row := Economy.offer(game.slot, game.shop_account(), shop, index)
+		_check(row.remaining == remaining and (limit.is_empty() or row.limit == limit),
+			"milestone availability %s:%s expected %d %s, got %d %s" % [shop,id,remaining,limit,row.remaining,row.limit])
+	_key(KEY_ESCAPE)
+
+func _check_material(source: String, id: String, minimum: int, local: bool = false) -> void:
+	var saved: Dictionary = game.storage.read()
+	var account: Dictionary = saved.afterstory if local else saved
+	_check(account.material_claims.has(source) and account.materials.get(id,0) >= minimum,
+		"material drop persists %s:%s, at least %d" % [source,id,minimum])
+	forging_observations.append(source)
+
+func _forge_at(site: String, id: String) -> bool:
+	if not _do_point("craft_" + site) or not _check(game.mode == "forge", "workbench is reachable " + site):
+		return false
+	var index := _forge_index(site,id)
+	if not _check(index >= 0, "workbench lists " + id):
+		_key(KEY_ESCAPE)
+		return false
+	var before: Dictionary = game.shop_account().duplicate(true)
+	var level := Equipment.level(game.slot,id)
+	var row := Economy.forge_offer(game.slot, game.shop_account(), site, index)
+	if not _check(row.limit.is_empty(), "forge recipe is affordable %s (%s)" % [id,row.limit]):
+		_key(KEY_ESCAPE)
+		return false
+	game.menu_confirm(index)
+	var saved: Dictionary = game.storage.read()
+	var account: Dictionary = saved.afterstory if game.afterstory.active else saved
+	_check(account.silver == before.silver - row.price, "recipe price debited exactly once " + id)
+	for material in row.materials:
+		_check(account.materials.get(material,0) == before.materials.get(material,0) - row.materials[material],
+			"recipe uses exactly the displayed materials " + id)
+	if row.manual:
+		_check(saved.manual_grants.get(id,false), "crafted transcript is available after reload")
+		game.menu_confirm(index)
+		_check(game.shop_account().silver == account.silver, "known transcript cannot consume resources again")
+	else:
+		_check(Equipment.level(saved,id) == level + 1, "reinforcement persists " + id)
+	forging_observations.append("%s:%s:%s" % [site,id,"learned" if row.manual else str(level + 1)])
+	await _capture_tactic("forge-%s-%s-%d" % [site,id,level + 1])
+	_key(KEY_ESCAPE)
+	return true
+
+func _forge_index(site: String, id: String) -> int:
+	var rows: Array = Economy.FORGES[site].gear.duplicate()
+	rows.append_array(Economy.FORGES[site].get("manuals", []))
+	return rows.find(id)
+
+func _check_unowned_forge(site: String, id: String) -> void:
+	if not _do_point("craft_" + site):
+		return
+	var index := _forge_index(site,id)
+	var before: Dictionary = game.shop_account().duplicate(true)
+	_check(Economy.forge_offer(game.slot, game.shop_account(), site, index).limit.begins_with("尚未取得"), "unowned equipment is explicitly locked")
+	game.menu_confirm(index)
+	_check(Equipment.level(game.slot,id) == 0 and game.shop_account().silver == before.silver
+		and game.shop_account().materials == before.materials, "locked recipe does not mutate the account")
+	_key(KEY_ESCAPE)
+
+func _reject_max_forge(site: String, id: String) -> void:
+	if not _do_point("craft_" + site):
+		return
+	var index := _forge_index(site,id)
+	var before: Dictionary = game.shop_account().duplicate(true)
+	_check(Economy.forge_offer(game.slot, game.shop_account(), site, index).limit == "已强化至顶", "max tier is explicit")
+	game.menu_confirm(index)
+	_check(game.shop_account().silver == before.silver and game.shop_account().materials == before.materials,
+		"an extra forge attempt at max spends nothing")
+	_key(KEY_ESCAPE)
+
+func _verify_battle_reinforcement() -> void:
+	var id: String = FORGING_GEAR[build_route]
+	var owner := Equipment.owner(game.slot,id)
+	var expected := Equipment.item_modifiers(id,Equipment.MAX_FORGE_LEVEL)
+	var effect: String = {"interrupt":"interrupt_qi", "retaliate":"counter_power", "exploit":"broken_damage"}[build_route]
+	var recipients: Array = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == owner)
+	if not _check(not recipients.is_empty(), "active party retains its upgraded item"):
+		return
+	var unit: Dictionary = recipients.front()
+	var bonus: int = unit.gear.get(effect, 0)
+	_check(bonus >= expected[effect] and bonus > Equipment.item_modifiers(id).get(effect,0),
+		"battle applies the tier-two contribution " + id)
+	if build_route == "interrupt":
+		_check(unit.build.interrupt == 6, "refined whistle raises 截势 refund to six before elite bonus")
+	if game.afterstory.active and build_route == "retaliate":
+		_check(game.encounter.allies[0].gear.get("heavy_armor",0) == 12, "locally tempered vest applies twelve heavy reduction")
+	reinforced_fights[game.battle_info()[0]] = "%s %+d" % [effect,bonus]
+
+func _verify_forging_migration() -> void:
+	var prior: Dictionary = game.storage.read()
+	for key in ["materials", "material_claims", "gear_levels"]:
+		prior.erase(key)
+	prior.silver = 27
+	prior.loot_claims["battle:forge:1"] = true
+	prior.loot_claims["quest:forgework"] = true
+	prior.chronicle.quests.forgework = "done_rack"
+	if prior.has("afterstory"):
+		prior.afterstory.erase("materials")
+		prior.afterstory.erase("material_claims")
+	_check(game.storage.write(prior), "older economic save remains valid before a forge migration")
+	var restored: Dictionary = game.storage.read()
+	_check(restored.material_claims.has("battle:forge:1") and restored.material_claims.has("quest:forgework")
+		and restored.materials.get("ember_iron",0) >= 3 and restored.silver == 27,
+		"historical victory and quest recover materials without crediting their already claimed silver")
+	var restored_silver: int = restored.silver
+	var restored_materials: Dictionary = restored.materials.duplicate()
+	_check(game.storage.write(restored) and game.storage.read().materials == restored_materials and game.storage.read().silver == restored_silver,
+		"reloading migrated account does not repeat silver or materials")
+	print("FORGING_MIGRATION passed")
 
 func _verify_martial() -> void:
 	_key(KEY_K)

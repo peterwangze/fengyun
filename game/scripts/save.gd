@@ -68,12 +68,19 @@ func read() -> Dictionary:
 			slot.campaign = slot.get("campaign", _initial_campaign(slot))
 			slot.chronicle = slot.get("chronicle",_initial_chronicle(slot.chapter + 1))
 			var legacy := not slot.has("loot_claims")
+			var tidal: Dictionary = slot.get("afterstory", {})
+			var before_forging := not slot.has("material_claims") or (not tidal.is_empty() and not tidal.has("material_claims"))
+			var old_tidegate := not tidal.is_empty() and not tidal.has("loot_claims") and not tidal.has("silver")
 			Economy.normalize(slot)
 			slot.supplies = Items.clean(slot.get("supplies", Items.fresh(int(slot.chapter))))
 			slot.supply_claims = Items.clean_claims(slot.get("supply_claims", {}))
 			if legacy:
 				Economy.recover_unique_drops(slot)
 				Economy.reconcile(slot)
+			if before_forging:
+				Economy.recover_materials(slot)
+			if old_tidegate:
+				Economy.recover_tidal_loot(slot)
 			slot.gear = Equipment.clean_loadouts(slot, slot.get("gear", {}))
 			return slot
 	return {}

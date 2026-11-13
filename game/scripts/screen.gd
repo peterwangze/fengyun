@@ -186,6 +186,9 @@ func paint() -> void:
 		"shop":
 			_field(false)
 			_shop()
+		"forge":
+			_field(false)
+			_forge()
 		"review":
 			_title(false)
 			_fill(FULL,Color("#0b1120dd"))
@@ -713,7 +716,7 @@ func _gear() -> void:
 	_right("气血 %d    真气 %d    攻击 %d" % [stats.hp, stats.qi, stats.attack],550,87,13,TEAL)
 	for kind in Equipment.CATEGORIES.size():
 		var id := Equipment.equipped(g.slot, hero, kind)
-		var item_name: String = "未装配" if id.is_empty() else Equipment.CATALOG[id].name
+		var item_name := "未装配" if id.is_empty() else Equipment.display_name(g.slot,id)
 		_gear_tab(Rect2(81 + kind*238,96,231,31),"%s · %s" % [Equipment.CATEGORIES[kind],item_name],g.gear_kind == kind,"gear_kind",kind)
 	var ids := Equipment.options(g.gear_kind)
 	var top: int = g.gear_page * 6
@@ -721,11 +724,11 @@ func _gear() -> void:
 		var item := ids[i]
 		var ready := item.is_empty() or Equipment.unlocked(g.slot,item)
 		var box := Rect2(81,134+(i-top)*27,150,25)
-		_button("卸下" if item.is_empty() else Equipment.CATALOG[item].name,box,i,ready)
+		_button("卸下" if item.is_empty() else Equipment.display_name(g.slot,item),box,i,ready)
 		if item.is_empty():
 			_text("恢复此栏基础属性",244,box.position.y+17,12,DIM)
 		elif ready:
-			var effect := Equipment.describe(item)
+			var effect := Equipment.describe(item,Equipment.level(g.slot,item))
 			_text(effect,244,box.position.y+13,11,CREAM)
 			var holder := Equipment.owner(g.slot,item)
 			if not holder.is_empty():
@@ -750,14 +753,14 @@ func _shop() -> void:
 	_paragraph(shop.note,77,87,475,13,DIM,16)
 	for i in shop.goods.size():
 		var row := Economy.offer(g.slot,account,g.shop_id,i)
-		var box := Rect2(76,106+i*35,487,32)
+		var box := Rect2(76,103+i*29,487,27)
 		var active: bool = g.selected == i
 		_fill(box,Color("#393343") if active else Color("#1a2337"))
 		_stroke(box,GOLD if active else LINE)
-		_text(row.name,85,box.position.y+19,14,CREAM if row.limit.is_empty() else DIM)
-		_text(row.detail,226,box.position.y+13,10,DIM)
-		_text("余 %d" % row.remaining if row.limit.is_empty() else row.limit,226,box.position.y+27,10,TEAL if row.limit.is_empty() else DIM)
-		_right("%d 两" % row.price,553,box.position.y+20,13,GOLD)
+		_text(row.name,85,box.position.y+18,13,CREAM if row.limit.is_empty() else DIM)
+		_text(row.detail,226,box.position.y+11,10,DIM)
+		_text("余 %d" % row.remaining if row.limit.is_empty() else row.limit,226,box.position.y+23,10,TEAL if row.limit.is_empty() else DIM)
+		_right("%d 两" % row.price,553,box.position.y+18,13,GOLD)
 		_hit(box,"shop_row",i)
 	var selected: int = g.selected
 	var can_buy: bool = selected < shop.goods.size() and Economy.offer(g.slot,account,g.shop_id,selected).limit.is_empty()
@@ -768,6 +771,41 @@ func _shop() -> void:
 	if can_buy:
 		_gear_tab(Rect2(395,286,80,29),"购入",true,"confirm",0)
 	_gear_tab(Rect2(482,286,80,29),"离开",selected == shop.goods.size(),"cancel",0)
+
+func _forge() -> void:
+	_fill(FULL,Color("#0b1120d9"))
+	_panel(Rect2(54,23,532,308),true)
+	var forge: Dictionary = Economy.FORGES[g.forge_id]
+	var account: Dictionary = g.shop_account()
+	_text(forge.title,76,62,24,CREAM,SERIF)
+	_right("银两  %d" % account.silver,564,61,16,GOLD)
+	_text(forge.note,77,81,12,DIM)
+	var stock := Economy.material_label(account.materials)
+	_text("材料   " + ("暂无" if stock.is_empty() else stock),77,100,12,TEAL)
+	var count := Economy.forge_count(g.forge_id)
+	var selected: Dictionary = {}
+	for i in count:
+		var row := Economy.forge_offer(g.slot,account,g.forge_id,i)
+		var box := Rect2(76,108+i*29,487,27)
+		var active: bool = g.selected == i
+		if active:
+			selected = row
+		_fill(box,Color("#393343") if active else Color("#1a2337"))
+		_stroke(box,GOLD if active else LINE)
+		_text(row.name,85,box.position.y+18,13,CREAM if row.limit.is_empty() else DIM)
+		_text(row.detail,224,box.position.y+11,10,DIM)
+		if row.price > 0:
+			_right("%d 两" % row.price,553,box.position.y+11,12,GOLD)
+		_text(Economy.material_budget(row.materials,account.materials),224,box.position.y+23,10,TEAL)
+		_right(row.limit,553,box.position.y+23,10,DIM)
+		_hit(box,"forge_row",i)
+	var message: String = g.shop_message
+	if message.is_empty():
+		message = "点选配方后确认" if g.touch_ui() else ("方向键选配方 · A 确认 · B 返回" if g.using_joypad else "方向键选配方 · Enter 确认 · Esc 返回")
+	_text(message,78,307,12,TEAL if not g.shop_message.is_empty() else DIM)
+	if not selected.is_empty() and selected.limit.is_empty():
+		_gear_tab(Rect2(395,286,80,29),"拓印" if selected.manual else "强化",true,"confirm",0)
+	_gear_tab(Rect2(482,286,80,29),"离开",g.selected == count,"cancel",0)
 
 func _build_guide() -> void:
 	_text("武学与行装搭配",80,62,24,CREAM,SERIF)
@@ -879,9 +917,9 @@ func _battle() -> void:
 			_panel(Rect2(107,73,426,211),true)
 			_center("战胜",320,119,32,CREAM,SERIF)
 			_center(g.debrief,320,146,13,DIM)
-			_center("战利品 · " + "、".join(g.battle_loot),320,174,15,GOLD)
+			_paragraph("战利品 · " + "、".join(g.battle_loot),127,173,386,13,GOLD,16)
 			if not g.battle_loot_note.is_empty():
-				_center(g.battle_loot_note,320,196,12,TEAL)
+				_center(g.battle_loot_note,320,209,12,TEAL)
 			_menu(Vector2(196,223),248,31,5)
 		else:
 			_panel(Rect2(147,87,346,183),true)

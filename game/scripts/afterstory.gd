@@ -18,6 +18,7 @@ const ENCOUNTERS := {
 const FLAGS := ["brief","register","seal","sluice","gate","aid","chief","ledger"]
 const FENGXI_CONTACT := Vector2(412,240)
 const TIDEGATE_SHOP := Vector2(474,268)
+const TIDEGATE_FORGE := Vector2(514,259)
 
 var g
 var active := false
@@ -143,6 +144,7 @@ func points() -> Array:
 		if not flags.brief:
 			return result
 		result.append({"id":"shop_tidegate","name":"查看盐汊杂货","pos":TIDEGATE_SHOP,"sprite":"guide","optional":true})
+		result.append({"id":"craft_tidegate","name":"使用盐汊锻台","pos":TIDEGATE_FORGE,"sprite":"guard","optional":true})
 		_add_fengxi_contact(result)
 		if not flags.register: result.append(_spot("register","核对领粮名册"))
 		if not flags.seal: result.append(_spot("seal","查看旧印封条"))
@@ -188,8 +190,10 @@ func handle(id: String) -> void:
 					["步惊云","先把扣粮的人和印找出来。"]],_brief)
 		"shop_tidegate":
 			g._open_shop("tidegate")
+		"craft_tidegate":
+			g._open_forge("tidegate")
 		"register":
-			g._talk([["聂风","名册上签收的是阿芦。她那一栏写着二十户，一户还没划掉。"]],_mark.bind("register"))
+			g._talk([["聂风","阿芦名下二十户都没领粮。账台下还压着块盐淬铁，带去锻台能用。"]],_mark.bind("register"))
 		"seal":
 			g._talk([["步惊云","箱上盖的是废了的旧关印。粮进了仓，账却还在韩朔手里。"]],_mark.bind("seal"))
 		"sluice":

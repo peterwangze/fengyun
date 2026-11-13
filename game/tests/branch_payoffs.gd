@@ -32,6 +32,7 @@ func _run() -> void:
 	_test_reunion_tidegate()
 	_test_journal_fit()
 	_test_market_placement()
+	_test_craft_placement()
 	for suffix in ["",".bak",".tmp"]:
 		var file: String = game.storage.path + suffix
 		if FileAccess.file_exists(file):
@@ -354,6 +355,54 @@ func _check_market_point(id: String, label: String) -> void:
 	if game.has_method("_open_shop"):
 		game.interact()
 		_check(game.mode == "shop", id + " merchant opens the shop via normal interaction")
+		game.cancel()
+
+func _test_craft_placement() -> void:
+	for site in MarketCatalog.FORGES:
+		var forge: Dictionary = MarketCatalog.FORGES[site]
+		_check(_line_count(forge.note,270,13) <= 2, site + " forge note fits the panel")
+		for id in forge.gear:
+			_check(MarketCatalog.UPGRADE_COSTS.get(id,[]).size() == 2, id + " has two bounded upgrade tiers")
+	_chapter(2,{})
+	game.chronicle.enter("swordhall")
+	_check(not _has_point("craft_swordhall"), "the Swordhall forge opens after the lesson")
+	_visit("lesson")
+	_drain_dialogue()
+	_check_craft_point("swordhall")
+	_chapter(3,{})
+	game.chronicle.enter("apothecary")
+	_check(not _has_point("craft_apothecary"), "the apothecary bench opens after meeting the healers")
+	_visit("pool_intro")
+	_drain_dialogue()
+	_check_craft_point("apothecary")
+	_chapter(4,{})
+	game.slot.cleared = [0]
+	_visit("jail_door")
+	_check(not _has_point("craft_palace"), "the Palace bench opens after rescuing the prisoner")
+	_visit("cell")
+	_drain_dialogue()
+	_check_craft_point("palace")
+	_chapter(5,{})
+	game.slot.campaign.farewell = true
+	game._enter_chapter(false)
+	_check_craft_point("peak")
+	game.slot.finished = true
+	game.slot.cleared = [0,1]
+	game.afterstory.resume()
+	_check(not _has_point("craft_tidegate"), "the Salt Ford forge opens after the briefing")
+	_visit("brief")
+	_drain_dialogue()
+	_check_craft_point("tidegate")
+
+func _check_craft_point(site: String) -> void:
+	var point := _field_point("craft_" + site)
+	if not _check(not point.is_empty() and point.get("optional"), site + " bench is an optional interaction"):
+		return
+	_check(_walk_to(point.pos), site + " bench is reachable via ordinary collision")
+	_check(game.nearest().get("id") == point.id, site + " bench is distinct from nearby interactions")
+	if game.has_method("_open_forge"):
+		game.interact()
+		_check(game.mode == "forge", site + " bench opens via ordinary interaction")
 		game.cancel()
 
 func _walk_to(destination: Vector2) -> bool:

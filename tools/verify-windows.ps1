@@ -543,6 +543,51 @@ try {
         Assert-NoRuntimeErrors $settlementLog
         $later += 'Tidegate settlement with ledger fixture, main campaign unchanged'
     }
+    if ($PlaySystems -and $versionInfo.ProductMajorPart -eq 2 -and $versionInfo.ProductMinorPart -ge 8) {
+        Close-Game $game
+        Set-ChapterFixture 2 10 @(0,1) -Expanded -Room 'swordhall'
+        $forgeFixture = Get-Content -Raw -LiteralPath $savePath | ConvertFrom-Json -AsHashtable
+        $forgeFixture.chronicle.marks.lesson = $true
+        $forgeFixture.silver = 30
+        $forgeFixture.gear_grants = @{tide_whistle=$true}
+        $forgeFixture.materials = @{ember_iron=3}
+        $forgeFixture.loot_claims = @{}
+        $forgeFixture.material_claims = @{}
+        [IO.File]::WriteAllText($savePath, ($forgeFixture | ConvertTo-Json -Depth 8 -Compress))
+        $forgeLog = Join-Path $ReportDirectory 'windows-forge.log'
+        $game = Open-Game $forgeLog
+        Press-Key 0x0D
+        Press-Key 0x44 1950
+        Press-Key 0x45
+        [FengyunTestKeyboard]::Click($game.MainWindowHandle, 114, 180)
+        Start-Sleep -Milliseconds 160
+        Press-Key 0x0D
+        $forged = Read-Slot
+        if ($forged.gear_levels.tide_whistle -ne 1 -or $forged.silver -ne 23 -or $forged.materials.ember_iron -ne 2) {
+            Save-Screenshot 'windows-forge-failure' -Direct
+            throw 'The installed game did not apply the first forge recipe.'
+        }
+        Save-Screenshot '36-windows-forge' -Direct
+        Assert-NoRuntimeErrors $forgeLog
+
+        Close-Game $game
+        $resumeForgeLog = Join-Path $ReportDirectory 'windows-forge-resume.log'
+        $game = Open-Game $resumeForgeLog
+        Press-Key 0x0D
+        Press-Key 0x44 1950
+        Press-Key 0x45
+        [FengyunTestKeyboard]::Click($game.MainWindowHandle, 114, 180)
+        Start-Sleep -Milliseconds 160
+        Press-Key 0x0D
+        Press-Key 0x0D
+        $forged = Read-Slot
+        if ($forged.gear_levels.tide_whistle -ne 2 -or $forged.silver -ne 11 -or $forged.materials.ember_iron -ne 0) {
+            Save-Screenshot 'windows-forge-resume-failure' -Direct
+            throw 'The installed game did not preserve the upgrade or enforce the maximum level.'
+        }
+        Assert-NoRuntimeErrors $resumeForgeLog
+        $later += 'Swordhall forge keyboard/mouse, two upgrades across restart, exact material and silver costs'
+    }
     [PSCustomObject]@{
         Result = 'passed'
         Executable = $Executable

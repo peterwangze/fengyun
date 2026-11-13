@@ -89,7 +89,8 @@ func _test_apothecary() -> void:
 	_visit("apothecary",Vector2(112,185))
 	_check(game.field_key == "apothecary" and game.chronicle.side.journal_entry("remedy").has("point"), "optional remedy remains reachable after the main-story briefing")
 	var reward: String = game.chronicle.side.journal_entry("remedy").reward
-	_check("针渡清脉抄本" in reward and "银两 ×4" in reward, "medicinal quest advertises its new manual and silver")
+	_check("针渡清脉抄本" in reward and "韧丝 ×2" in reward and "银两 ×4" in reward,
+		"medicinal quest advertises its manual, forging materials and silver")
 
 func _has_point(id: String) -> bool:
 	return game.chronicle.side.points().any(func(spot): return spot.id == id)

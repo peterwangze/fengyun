@@ -289,6 +289,9 @@ func _quest_reward(key: String) -> String:
 	var drop: Dictionary = MarketCatalog.DROPS.get(source,{})
 	if drop.has("manual"):
 		pieces.append(Martial.MANUALS[drop.manual].move[0] + "抄本")
+	var materials: Dictionary = drop.get("materials",{})
+	for id in materials:
+		pieces.append("%s ×%d" % [MarketCatalog.MATERIALS[id].name,materials[id]])
 	if drop.has("silver"):
 		pieces.append("银两 ×%d" % drop.silver)
 	return "、".join(pieces)

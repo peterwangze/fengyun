@@ -2,6 +2,15 @@ extends RefCounted
 
 const Story = preload("res://scripts/story.gd")
 const CATEGORIES := ["护具", "佩物"]
+const MAX_FORGE_LEVEL := 2
+const FORGE_BONUSES := {
+	"reed_mantle":[{"sweep_armor":2}, {"sweep_armor":2}],
+	"forge_guard":[{"counter_power":3}, {"counter_power":3}],
+	"granary_vest":[{"heavy_armor":2}, {"heavy_armor":2}],
+	"tide_whistle":[{"qi":2}, {"interrupt_qi":1}],
+	"sword_tassel":[{"broken_damage":2}, {"broken_damage":3}],
+	"apothecary_gourd":[{"heal":2}, {"ward_armor":2}],
+}
 const CATALOG := {
 	"travel_coat": {"kind":0,"name":"行旅布衣","source":"开篇自带","mods":{"hp":8,"attack":-2}},
 	"scale_vest": {"kind":0,"name":"鳞纹背心","source":"达到境界 2","merit":4,"mods":{"hp":14,"qi":-4}},
@@ -24,6 +33,7 @@ const EFFECTS := {
 	"hp":"气血", "qi":"真气", "attack":"攻击", "armor":"受击减伤",
 	"guard_qi":"固守回气", "broken_damage":"对破势目标的武学伤害", "weakness_poise":"克制招式削势", "heal":"治疗武学",
 	"sweep_armor":"横扫减伤", "counter_power":"反击威力", "heavy_armor":"重击减伤", "ward_armor":"护持额外减伤",
+	"interrupt_qi":"截势回气",
 }
 
 static func unlocked(slot: Dictionary, id: String) -> bool:
@@ -60,6 +70,32 @@ static func clean_grants(value: Variant) -> Dictionary:
 
 static func style(id: String) -> String:
 	return CATALOG.get(id, {}).get("style", "")
+
+static func forgeable(id: String) -> bool:
+	return FORGE_BONUSES.has(id)
+
+static func level(slot: Dictionary, id: String) -> int:
+	var levels: Variant = slot.get("gear_levels")
+	return _stored_level(levels.get(id)) if forgeable(id) and levels is Dictionary else 0
+
+static func clean_levels(slot: Dictionary, value: Variant) -> Dictionary:
+	var clean := {}
+	if value is Dictionary:
+		for id in FORGE_BONUSES:
+			var stored := _stored_level(value.get(id))
+			if stored > 0 and unlocked(slot, id):
+				clean[id] = stored
+	return clean
+
+static func _stored_level(value: Variant) -> int:
+	if (value is int or value is float) and is_finite(float(value)) and value == floorf(value):
+		return int(clampf(value, 0, MAX_FORGE_LEVEL))
+	return 0
+
+static func display_name(slot: Dictionary, id: String) -> String:
+	var name: String = CATALOG[id].name
+	var current := level(slot, id)
+	return "%s +%d" % [name, current] if current > 0 else name
 
 static func clean_loadouts(slot: Dictionary, stored: Variant) -> Dictionary:
 	var clean := {}
@@ -106,9 +142,19 @@ static func modifiers(slot: Dictionary, hero: String) -> Dictionary:
 	var total := {}
 	for id in slot.gear.get(hero, []):
 		if not id.is_empty():
-			for effect in CATALOG[id].mods:
-				total[effect] = total.get(effect, 0) + CATALOG[id].mods[effect]
+			_merge_mods(total, item_modifiers(id, level(slot, id)))
 	return total
+
+static func item_modifiers(id: String, at_level: int = 0) -> Dictionary:
+	var mods: Dictionary = CATALOG[id].mods.duplicate()
+	if forgeable(id):
+		for index in clampi(at_level, 0, MAX_FORGE_LEVEL):
+			_merge_mods(mods, FORGE_BONUSES[id][index])
+	return mods
+
+static func _merge_mods(total: Dictionary, mods: Dictionary) -> void:
+	for effect in mods:
+		total[effect] = total.get(effect, 0) + mods[effect]
 
 static func attributes(hero: String, rank: int, mods: Dictionary) -> Dictionary:
 	var base: Dictionary = Story.HEROES[hero]
@@ -116,9 +162,16 @@ static func attributes(hero: String, rank: int, mods: Dictionary) -> Dictionary:
 		"qi":base.qi + (rank - 1) * 2 + mods.get("qi", 0),
 		"attack":base.attack + (rank - 1) * 2 + mods.get("attack", 0)}
 
-static func describe(id: String) -> String:
+static func describe(id: String, at_level: int = 0) -> String:
+	return _describe_mods(item_modifiers(id, at_level))
+
+static func upgrade_description(id: String, next_level: int) -> String:
+	if not forgeable(id) or next_level < 1 or next_level > MAX_FORGE_LEVEL:
+		return ""
+	return _describe_mods(FORGE_BONUSES[id][next_level - 1])
+
+static func _describe_mods(mods: Dictionary) -> String:
 	var parts := PackedStringArray()
-	var mods: Dictionary = CATALOG[id].mods
 	for effect in mods:
 		parts.append("%s %+d" % [EFFECTS[effect], mods[effect]])
 	return "  ·  ".join(parts)

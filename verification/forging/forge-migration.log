@@ -1,0 +1,12 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS pre-economy completed Tidegate file is accepted
+PASS legacy gate, rescue, chief and register reconstruct enough local resources to use the forge
+PASS only documented completed battles are credited
+PASS migrated player can buy and reinforce the armor to +2
+PASS the upgraded migrated file saves
+PASS reinforcement and actual costs survive reload without replenishing spent resources
+PASS legacy recovery and Tidegate purchases leave the main wallet alone
+PASS pre-forge economy file is accepted
+PASS 2.7 paid-out silver remains spent while newly introduced materials are recovered
+Forge migration: 0 failures

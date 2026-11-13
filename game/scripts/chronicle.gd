@@ -160,6 +160,7 @@ func points() -> Array:
 			else:
 				result.append(_point("returnhall",293,191,"返回天下会"))
 				result.append(_optional_point("shop_forge",Vector2(506,199),"向剑庐工匠购置行装","guide"))
+				result.append(_optional_point("craft_swordhall",Vector2(522,246),"使用剑庐锻台","guide"))
 		"returnhall":
 			result.append(_point("hall_back",151,268,"返回剑庐"))
 			if not has("first_tyrant"):
@@ -183,9 +184,13 @@ func points() -> Array:
 				result.append(_point("pool_intro",320,163,"听两位姑娘说来意","dream"))
 			else:
 				result.append(_optional_point("shop_medicine",Vector2(394,235),"向药师购买补给","servant"))
+				result.append(_optional_point("craft_apothecary",Vector2(425,272),"使用药庐修具台","servant"))
 		"palace":
 			if g.slot.cleared.has(0):
 				result.append(_point("tearoom",448,192,"进入茶房侧廊"))
+		"jail":
+			if g.slot.campaign.rescued:
+				result.append(_optional_point("craft_palace",Vector2(358,232),"向老匠借修具箱","guide"))
 		"tearoom":
 			result.append(_point("palace_back",320,289,"返回绝宫"))
 			if g.slot.campaign.rescued and not has("tea"):
@@ -217,6 +222,7 @@ func points() -> Array:
 			if not has("blood_rite"):
 				result.append(_point("blood_rite",311,226,"按第二梦的指示准备换血","zhu"))
 		"peak":
+			result.append(_optional_point("craft_peak",Vector2(203,211),"使用凌云山锻台","guide"))
 			if side.state().get("swordstory","") == "done_guard":
 				result.append(_point("mountain_path",202,263,"走守军留下的小径"))
 		"dawn":
@@ -320,6 +326,10 @@ func handle(id: String) -> bool:
 		"shop_inn": g._open_shop("inn")
 		"shop_forge": g._open_shop("forge")
 		"shop_medicine": g._open_shop("medicine")
+		"craft_swordhall": g._open_forge("swordhall")
+		"craft_apothecary": g._open_forge("apothecary")
+		"craft_palace": g._open_forge("palace")
+		"craft_peak": g._open_forge("peak")
 		"ferry_evidence":
 			var clue := "石桥那面旗和封门令都盖着缺角印。" if g.slot.campaign.crossing == "bridge" else "渡工认出了追兵旗上的缺角印。"
 			var answer := "一边令我们拔刀，一边封门灭口。先回渡口截住持哨的人，我要让云师兄亲眼看这道令。"

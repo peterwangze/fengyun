@@ -22,6 +22,7 @@ func _initialize() -> void:
 	_test_manual_catalog()
 	_test_new_gear()
 	_test_new_manual_actions()
+	_test_forged_loadouts()
 	print("Builds: %d failures" % failures)
 	quit(1 if failures else 0)
 
@@ -403,6 +404,50 @@ func _test_new_manual_actions() -> void:
 	plain.act(1, 0)
 	_check(sword.foes[0].hp < plain.foes[0].hp and sword.foes[0].poise > plain.foes[0].poise,
 		"Sword Trace increases damage through armor in exchange for weaker break pressure")
+
+func _test_forged_loadouts() -> void:
+	var slot := _slot()
+	slot.gear_grants = {"reed_mantle":true, "tide_whistle":true, "sword_tassel":true, "forge_guard":true}
+	Equipment.assign(slot, "wind", 0, "reed_mantle")
+	Equipment.assign(slot, "wind", 1, "tide_whistle")
+	Equipment.assign(slot, "cloud", 0, "forge_guard")
+	Equipment.assign(slot, "cloud", 1, "sword_tassel")
+	slot.chronicle.loadout.cloud = [2, 3]
+	var stock := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	_check(Equipment.level(slot, "tide_whistle") == 0 and Equipment.modifiers(slot,"wind").qi == 4,
+		"old gear without a forge record retains original stats")
+	slot.gear_levels = Equipment.clean_levels(slot, {"reed_mantle":2.0, "tide_whistle":2, "sword_tassel":9,
+		"forge_guard":1, "granary_vest":2, "travel_coat":2, "unknown":2})
+	_check(slot.gear_levels == {"reed_mantle":2, "tide_whistle":2, "sword_tassel":2, "forge_guard":1},
+		"normalization limits levels to forgeable owned items and clamps the maximum")
+	_check(Equipment.clean_levels(slot, {"tide_whistle":1.25, "reed_mantle":true}).is_empty(),
+		"malformed level values do not unlock tiers")
+	_check(Equipment.display_name(slot,"tide_whistle") == "渡口铜哨 +2" and "截势回气 +1" in Equipment.describe("tide_whistle", 2)
+		and Equipment.upgrade_description("tide_whistle", 1) == "真气 +2",
+		"the name, current modifiers and exact next gain can be shown separately")
+	var forged := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	_check(forged.allies[0].max_qi == stock.allies[0].max_qi + 2 and forged.allies[0].build.interrupt == 6,
+		"the forged whistle adds base Qi then enhances the equipped interrupt build")
+	for encounter in [stock, forged]:
+		encounter.foes[0].hp = 280
+		encounter.foes[0].max_hp = 280
+		encounter.foes[0].poise = 1
+		encounter.act(1, 0)
+	_check(forged.synergy_feedback == "截势 · 回气 6" and stock.synergy_feedback == "截势 · 回气 5",
+		"the combat action receives exactly the forged interrupt refund")
+	for encounter in [stock, forged]:
+		encounter.act(2, 0)
+	_check(forged.foes[0].hp < stock.foes[0].hp and forged.allies[1].build.exploit == stock.allies[1].build.exploit,
+		"the sword tassel improves broken-target damage without increasing the build bonus")
+	var protected := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	var before: int = protected.allies[0].hp
+	protected._hurt_ally(0, 20, 0, "dark", 0, "sweep")
+	protected._hurt_ally(0, 20, 0, "blade", 0, "strike")
+	_check(protected.allies[0].hp == before - 10 - 20,
+		"reinforced mantle helps against a sweep without weakening ordinary attacks")
+	Equipment.assign(slot, "cloud", 1, "tide_whistle")
+	_check(Equipment.level(slot, "tide_whistle") == 2 and Equipment.modifiers(slot,"cloud").interrupt_qi == 1
+		and not Equipment.modifiers(slot,"wind").has("interrupt_qi"), "reinforcement follows the unique item when transferred")
 
 func _check(passed: bool, description: String) -> void:
 	print(("PASS " if passed else "FAIL ") + description)

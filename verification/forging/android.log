@@ -1,0 +1,15 @@
+Android 16 API 36, x86_64 hardware-accelerated emulator, landscape 2400 × 1080
+APK SHA-256 223c8f3fe87a4af19828e5d8fc28abdc46d6c5b43705861725697bb886b29d73
+PASS 2.8.0 / 20800 replaces 2.7.0 / 20700 and preserves both save files
+PASS touch upgrade +1 charges 8 silver and one ember iron
+PASS touch upgrade +2 charges 14 silver, two ember iron and one silk
+PASS max-level item has no action and does not spend resources
+PASS touching the manual row and engraving acquires cloud_return once at the displayed cost
+PASS owned manual cannot be acquired or charged again
+PASS force-stop and resume preserve +2, manual, remaining materials, silver, and equipped item
+PASS app render initializes and targeted logcat contains no script or fatal errors
+PASS restored the Android test device save and backup byte for byte
+PASS APK Signature Scheme v2 and v3
+Signer #1 certificate SHA-256 digest: adaf6fded6e87931f9fa40493acebd846535caa29816694b8a3f79e7ad99f41c
+PASS same signing certificate as 2.7.0
+PASS zipalign -c -P 16 4

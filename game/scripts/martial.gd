@@ -32,7 +32,7 @@ const QUEST_MOVES := {
 }
 const MANUALS := {
 	"crosswind":{"hero":"wind", "source":"凤溪客栈截印", "move":["逆风截脉", 9, "风", 24, 2, "单体 · 削 2 势，敌蓄重招时额外削 1", "windup_break"]},
-	"cloud_return":{"hero":"cloud", "source":"剑庐工匠", "move":["回云卸劲", 9, "云", 0, 0, "自身 · 固守，接招后反击削 3 势", "counter_poise"]},
+	"cloud_return":{"hero":"cloud", "source":"剑庐购入或拓印", "move":["回云卸劲", 9, "云", 0, 0, "自身 · 固守，接招后反击削 3 势", "counter_poise"]},
 	"frost_gate":{"hero":"frost", "source":"凤溪石桥或渡船过河", "move":["霜锁渡门", 9, "寒", 22, 2, "单体 · 削 2 势，破势则给同伴护持", "frost_ward"]},
 	"moon_needle":{"hero":"dream", "source":"完成药庐三问", "move":["针渡清脉", 10, "疗", 20, 0, "单体 · 治疗、回 6 气，魔念 −2", "needle_transfer"]},
 	"sword_trace":{"hero":"sage", "source":"击退天牢卫队", "move":["寻隙剑", 10, "锋", 32, 1, "单体 · 对未破金身部分穿甲", "armor_pierce"]},
@@ -106,7 +106,8 @@ static func synergies(slot: Dictionary, hero: String, rank: int) -> Dictionary:
 	var moves := slotted_moves(hero, slot.campaign.sword, prepared(slot, hero), int(slot.chapter))
 	var active := {}
 	if (gear[1] in ["qi_ring", "courier_badge"] or Equipment.style(gear[1]) == "interrupt") and moves.any(interrupt_move):
-		active.interrupt = 5 if advanced else 3
+		var accessory := Equipment.item_modifiers(gear[1], Equipment.level(slot, gear[1]))
+		active.interrupt = (5 if advanced else 3) + int(accessory.get("interrupt_qi", 0))
 	if not gear[0].is_empty() and moves.any(protection_move):
 		active.retaliate = 4 if advanced else 0
 	if (gear[1] == "ferry_knot" or Equipment.style(gear[1]) == "exploit") and moves.any(exploit_move):

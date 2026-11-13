@@ -1,5 +1,5 @@
 ﻿#define GameName "风云：山河劫"
-#define GameVersion "2.7.0"
+#define GameVersion "2.8.0"
 #define ProjectUrl "https://github.com/peterwangze/fengyun"
 
 #if GetVersionNumbersString(AddBackslash(SourcePath) + "Fengyun.exe") != GameVersion + ".0"

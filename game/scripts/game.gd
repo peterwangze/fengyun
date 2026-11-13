@@ -86,6 +86,7 @@ var gear_rewards: Array[String] = []
 var gear_guide := false
 var gear_page := 0
 var shop_id := ""
+var forge_id := ""
 var shop_message := ""
 var battle_loot := PackedStringArray()
 var battle_loot_note := ""
@@ -232,6 +233,13 @@ func menu_items() -> Array:
 				items.append([row.name, row.limit.is_empty()])
 			items.append(["离开",true])
 			return items
+		"forge":
+			var items := []
+			for i in Economy.forge_count(forge_id):
+				var row := Economy.forge_offer(slot, shop_account(), forge_id, i)
+				items.append([row.name, row.limit.is_empty()])
+			items.append(["离开",true])
+			return items
 		"choice": return chronicle.options.map(func(option): return [option[0],true])
 		"review":
 			var chapters := []
@@ -325,6 +333,7 @@ func menu_confirm(index: int) -> void:
 		"martial": chronicle.equip(index)
 		"gear": _equip_gear(index)
 		"shop": _buy_good(index)
+		"forge": _forge_item(index)
 		"choice": chronicle.select_choice(index)
 		"review":
 			_start_review(index,slot.easy)
@@ -416,7 +425,7 @@ func _finish_intro() -> void:
 
 func _commit() -> bool:
 	var supplies := Items.reconcile_quests(slot, slot.supplies, slot.supply_claims)
-	if afterstory.active and not afterstory.state().has("silver"):
+	if afterstory.active and not afterstory.state().has("material_claims"):
 		Economy.normalize_tide(afterstory.state())
 	var finds := Economy.reconcile(slot)
 	if not chronicle.review and not storage.write(slot):
@@ -424,8 +433,8 @@ func _commit() -> bool:
 		return false
 	for item in supplies:
 		gear_rewards.append("获得 · " + item)
-	if not finds.is_empty():
-		gear_rewards.append("获得 · " + "、".join(finds))
+	for find in finds:
+		gear_rewards.append("获得 · " + find)
 	var current_rank := rank()
 	if not afterstory.active:
 		if known_rank < Martial.SYNERGY_TIER and current_rank >= Martial.SYNERGY_TIER:
@@ -633,8 +642,8 @@ func interact() -> void:
 			_reward_supply("chest:" + field_key)
 			var finds := Economy.claim(slot, slot, "chest:" + field_key)
 			_commit()
-			if not finds.is_empty():
-				gear_rewards.append("药箱 · " + "、".join(finds))
+			for find in finds:
+				gear_rewards.append("药箱 · " + find)
 		"fight":
 			if spot.index == 1 and not slot.cleared.has(0):
 				_notice("先击退前路的第一队敌人。")
@@ -882,7 +891,7 @@ func cancel() -> void:
 				_toggle_gear_guide()
 			else:
 				_set_mode(back_mode)
-		"shop": _return_to_field()
+		"shop", "forge": _return_to_field()
 		"settings", "journal", "martial": _set_mode(back_mode)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
@@ -924,7 +933,7 @@ func _navigate(dx: int, dy: int) -> void:
 	if mode == "gear" and dx != 0:
 		_select_gear_tab(posmod(gear_hero + dx, stage.party.size()), gear_kind)
 		return
-	if mode in ["gear", "shop"] and dy != 0:
+	if mode in ["gear", "shop", "forge"] and dy != 0:
 		selected = posmod(selected + dy, menu_items().size())
 		if mode == "gear":
 			gear_page = selected / 6
@@ -963,7 +972,7 @@ func _navigate(dx: int, dy: int) -> void:
 
 func click(kind: String, index: int) -> void:
 	match kind:
-		"shop_row":
+		"shop_row", "forge_row":
 			selected = index
 			shop_message = ""
 		"menu":
@@ -1009,6 +1018,11 @@ func _open_shop(id: String) -> void:
 	shop_message = ""
 	_set_mode("shop")
 
+func _open_forge(id: String) -> void:
+	forge_id = id
+	shop_message = ""
+	_set_mode("forge")
+
 func shop_account() -> Dictionary:
 	return afterstory.state() if afterstory.active else slot
 
@@ -1025,6 +1039,20 @@ func _buy_good(index: int) -> void:
 		shop_message = "存档失败，已撤销交易。"
 		return
 	shop_message = "已购入 %s。" % bought
+
+func _forge_item(index: int) -> void:
+	if index == Economy.forge_count(forge_id):
+		_return_to_field()
+		return
+	var previous := slot.duplicate(true)
+	var result := Economy.reinforce(slot,shop_account(),forge_id,index)
+	if result.is_empty():
+		return
+	if not _commit():
+		slot = previous
+		shop_message = "存档失败，已撤销锻造。"
+		return
+	shop_message = result
 
 func _use_joypad(device: int) -> void:
 	if touch_controls and not using_joypad:
