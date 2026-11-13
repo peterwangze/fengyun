@@ -2,6 +2,8 @@ extends RefCounted
 
 const Equipment = preload("res://scripts/equipment.gd")
 const Items = preload("res://scripts/items.gd")
+const MarketCatalog = preload("res://scripts/market_catalog.gd")
+const Martial = preload("res://scripts/martial.gd")
 
 const COURIER_CONTACT_POS := Vector2(208,209)
 const COURIER_CONTACT_NAME := "与凤溪信使会合"
@@ -78,7 +80,7 @@ const RESULT := {
 	"done_rack":"剑架修复，习得翻云守势。","wait_palace":"找到断剑缘由，绝宫再见于楚楚。",
 	"wait_sage":"无名会把情报送到凌云山。","wait_guard":"守军会在凌云山接应。",
 	"done_sage":"风云练过起手。雄霸决战开场多 1 格合击。","done_guard":"守军疏散山腰百姓，决战开场削雄霸 2 格势。",
-	"done_aid":"药方可用，习得护心针。","done_stealth":"便门已开。狱卒给聂风留了一次护持。",
+	"done_aid":"药方可用，第二梦交给你针法抄本。","done_stealth":"便门已开。狱卒给聂风留了一次护持。",
 	"done_escort":"村民沿小径平安下山。","done_decoy":"追兵离开，村民已经下山。"
 }
 
@@ -105,7 +107,7 @@ const CONSEQUENCES := {
 	"courier":"绝宫茶房会合，决战金身时可得护持或削敌 2 格势。",
 	"forgework":"学会翻云守势，固守后可反击",
 	"swordstory":"决战可多 1 格合击，或开近路并削雄霸 2 格势",
-	"remedy":"学会护心针，可治疗并护持队友",
+	"remedy":"学会护心针与针渡清脉，可配合治疗与回气。",
 	"shift":"打开撤离便门。龙脉战可护持聂风或削守兽 2 格势",
 	"stairs":"村民在尾声回到凤溪",
 }
@@ -216,10 +218,7 @@ func note(key: String) -> String:
 func journal_entry(key: String) -> Dictionary:
 	var task: Dictionary = TASKS[key]
 	var step: String = state().get(key,"start")
-	var reward := Items.reward_label("quest:" + key)
-	var item := Equipment.quest_reward(key)
-	if not item.is_empty():
-		reward = item + "、" + reward
+	var reward := _quest_reward(key)
 	var entry := {"status":"已完成", "action":"", "place":"", "deadline":"", "payoff":CONSEQUENCES[key], "reward":reward}
 	if step.begins_with("done_"):
 		entry.action = _result_line(key,step)
@@ -277,6 +276,22 @@ func journal_entry(key: String) -> Dictionary:
 	elif room == g.field_key and _reachable(room):
 		entry.point = Vector2(node[1],node[2])
 	return entry
+
+func _quest_reward(key: String) -> String:
+	var source := "quest:" + key
+	var pieces := PackedStringArray()
+	var equipment := Equipment.quest_reward(key)
+	if not equipment.is_empty():
+		pieces.append(equipment)
+	var medicine := Items.reward_label(source)
+	if not medicine.is_empty():
+		pieces.append(medicine)
+	var drop: Dictionary = MarketCatalog.DROPS.get(source,{})
+	if drop.has("manual"):
+		pieces.append(Martial.MANUALS[drop.manual].move[0] + "抄本")
+	if drop.has("silver"):
+		pieces.append("银两 ×%d" % drop.silver)
+	return "、".join(pieces)
 
 func _dawn_entry(entry: Dictionary, label: String, position: Vector2) -> Dictionary:
 	entry.status = "待回访"

@@ -8,21 +8,30 @@ const CATALOG := {
 	"witness_cape": {"kind":0,"name":"护证短披","source":"完成旧账新印","quest":"seals","mods":{"armor":3,"hp":-8}},
 	"forge_apron": {"kind":0,"name":"剑庐护腕","source":"完成炉火借一更","quest":"forgework","mods":{"guard_qi":4,"attack":-2}},
 	"palace_mail": {"kind":0,"name":"绝宫轻甲","source":"抵达无神绝宫","chapter":4,"mods":{"armor":2,"hp":6,"attack":-3}},
+	"reed_mantle": {"kind":0,"name":"芦蓑披肩","source":"凤溪客栈商贩","grant":true,"mods":{"sweep_armor":6,"hp":-8}},
+	"forge_guard": {"kind":0,"name":"回锋护臂","source":"剑庐工匠","grant":true,"mods":{"counter_power":8,"attack":-3}},
+	"granary_vest": {"kind":0,"name":"仓卫厚甲","source":"盐汊渡口粮商","grant":true,"mods":{"heavy_armor":8,"qi":-6}},
 	"qi_ring": {"kind":1,"name":"纳气玉扣","source":"达到境界 2","merit":4,"mods":{"qi":6,"hp":-8}},
 	"ferry_knot": {"kind":1,"name":"渡口缆结","source":"抵达剑池初鸣","chapter":2,"mods":{"broken_damage":6,"qi":-4}},
 	"courier_badge": {"kind":1,"name":"信使铜牌","source":"完成雨夜押书","quest":"courier","mods":{"weakness_poise":1,"hp":-8}},
 	"needle_case": {"kind":1,"name":"药庐针匣","source":"完成药庐三问","quest":"remedy","mods":{"heal":8,"attack":-2}},
 	"peak_token": {"kind":1,"name":"石阶平安结","source":"完成石阶上的人","quest":"stairs","mods":{"armor":2,"qi":-4}},
+	"tide_whistle": {"kind":1,"name":"渡口铜哨","source":"击退凤溪天池杀手","grant":true,"style":"interrupt","mods":{"qi":4,"attack":-2}},
+	"sword_tassel": {"kind":1,"name":"火麟剑穗","source":"剑池击退断浪","grant":true,"style":"exploit","mods":{"broken_damage":9,"qi":-7}},
+	"apothecary_gourd": {"kind":1,"name":"清息药葫","source":"生死门药庐","grant":true,"mods":{"heal":5,"ward_armor":4,"qi":-5}},
 }
 const EFFECTS := {
 	"hp":"气血", "qi":"真气", "attack":"攻击", "armor":"受击减伤",
 	"guard_qi":"固守回气", "broken_damage":"对破势目标的武学伤害", "weakness_poise":"克制招式削势", "heal":"治疗武学",
+	"sweep_armor":"横扫减伤", "counter_power":"反击威力", "heavy_armor":"重击减伤", "ward_armor":"护持额外减伤",
 }
 
 static func unlocked(slot: Dictionary, id: String) -> bool:
 	if slot.is_empty() or not CATALOG.has(id):
 		return false
 	var item: Dictionary = CATALOG[id]
+	if item.get("grant", false):
+		return slot.get("gear_grants", {}).get(id, false) == true
 	if item.has("quest"):
 		return String(slot.chronicle.quests.get(item.quest, "")).begins_with("done_")
 	return slot.merit >= item.get("merit", 0) and slot.chapter >= item.get("chapter", 0)
@@ -40,6 +49,17 @@ static func options(kind: int) -> Array[String]:
 		if CATALOG[id].kind == kind:
 			ids.append(id)
 	return ids
+
+static func clean_grants(value: Variant) -> Dictionary:
+	var grants := {}
+	if value is Dictionary:
+		for id in CATALOG:
+			if CATALOG[id].get("grant", false) and value.get(id, false) == true:
+				grants[id] = true
+	return grants
+
+static func style(id: String) -> String:
+	return CATALOG.get(id, {}).get("style", "")
 
 static func clean_loadouts(slot: Dictionary, stored: Variant) -> Dictionary:
 	var clean := {}

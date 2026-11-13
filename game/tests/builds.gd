@@ -19,6 +19,9 @@ func _initialize() -> void:
 	_test_dragon_current()
 	_test_final_tyrant()
 	_test_tidal_formation()
+	_test_manual_catalog()
+	_test_new_gear()
+	_test_new_manual_actions()
 	print("Builds: %d failures" % failures)
 	quit(1 if failures else 0)
 
@@ -318,6 +321,88 @@ func _test_tidal_formation() -> void:
 	kill.foes[1].hp = 1
 	kill.act(0, 1)
 	_check(not kill.foes[0].formation and kill.presentation().foe[0].phase_label == "韩朔独战", "defeating the drummer removes the coordination mechanic")
+
+func _test_manual_catalog() -> void:
+	var slot := _slot()
+	var legacy_wind: Array = Martial.options("wind", false).slice(0, 4)
+	_check(Martial.move_count("wind") == 5 and legacy_wind[0][0] == "风神腿" and legacy_wind[3][0] == "回风腿",
+		"the fifth technique appends without changing old saved move indices")
+	_check(not Martial.unlocked(slot, "wind", 4) and not Martial.unlocked(slot, "wind", 5) and not Martial.unlocked(slot, "unknown", 0),
+		"old or invalid technique records cannot equip a learned-only move")
+	slot.manual_grants = Martial.clean_grants({"crosswind":true, "moon_needle":false, "unknown":true})
+	_check(slot.manual_grants == {"crosswind":true} and Martial.unlocked(slot, "wind", 4) and not Martial.unlocked(slot, "dream", 4),
+		"manual validation learns only the named hero technique and drops unknown ids")
+	slot.chronicle.loadout.wind = [4, 1]
+	_check(Martial.prepared(slot, "wind") == [4, 1] and Martial.source("wind", 4) == "凤溪客栈截印",
+		"the normal loadout and source lookup support the new technique")
+
+func _test_new_gear() -> void:
+	var slot := _slot()
+	_check(Equipment.options(0).size() == 9 and Equipment.options(1).size() == 9 and not Equipment.unlocked(slot, "reed_mantle"),
+		"the equipment list exposes all sixteen items and keeps unearned pieces locked")
+	slot.gear_grants = Equipment.clean_grants({"reed_mantle":true, "tide_whistle":true, "sword_tassel":true,
+		"granary_vest":true, "apothecary_gourd":true, "travel_coat":true, "forge_guard":false, "unknown":true})
+	_check(slot.gear_grants.size() == 5 and not Equipment.unlocked(slot, "forge_guard"), "only valid newly owned pieces become entitlements")
+	Equipment.assign(slot, "wind", 0, "reed_mantle")
+	Equipment.assign(slot, "wind", 1, "tide_whistle")
+	Equipment.assign(slot, "cloud", 0, "granary_vest")
+	Equipment.assign(slot, "cloud", 1, "sword_tassel")
+	slot.chronicle.loadout.cloud = [0, 3]
+	_check(Martial.synergies(slot, "wind", 4).has("interrupt") and Martial.synergies(slot, "cloud", 4).has("exploit"),
+		"the acquired accessories work as alternatives in the existing style system")
+	var armor := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	var before_wind: int = armor.allies[0].hp
+	var before_cloud: int = armor.allies[1].hp
+	armor._hurt_ally(0, 20, 0, "dark", 0, "sweep")
+	armor._hurt_ally(1, 20, 0, "dark", 0, "sweep")
+	_check(armor.allies[0].hp == before_wind - 14 and armor.allies[1].hp == before_cloud - 20,
+		"reed mantle protects against sweeps and heavy-only armor does not")
+	armor._hurt_ally(1, 20, 0, "cloud", 0, "tyrant_palm")
+	_check(armor.allies[1].hp == before_cloud - 32, "warehouse vest protects against a targeted heavy technique")
+	Equipment.assign(slot, "wind", 1, "apothecary_gourd")
+	var warded := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	warded.apply_quest_aid({"ward":"wind"})
+	var before_ward: int = warded.allies[0].hp
+	warded._hurt_ally(0, 20, 0, "blade", 0)
+	warded._hurt_ally(0, 20, 0, "blade", 0)
+	_check(warded.allies[0].hp == before_ward - 5 - 20, "gourd only boosts absorption while a ward is consumed")
+
+func _test_new_manual_actions() -> void:
+	var slot := _slot()
+	slot.manual_grants = {"crosswind":true, "cloud_return":true, "frost_gate":true, "moon_needle":true, "sword_trace":true}
+	for id in ["wind", "cloud", "frost", "dream", "sage"]:
+		slot.chronicle.loadout[id] = [4, 0]
+	var wind := _battle(slot, ["wind", "cloud"], ["duan"], 4)
+	_check("势 6 → 3" == wind.poise_preview(1, 0) and wind.act(1, 0) and wind.foes[0].poise == 3,
+		"Crosswind's windup bonus is identical in preview and execution")
+	var chill := _battle(slot, ["frost", "wind"], ["claw"], 4)
+	chill.foes[0].poise = 3
+	_check(chill.act(1, 0) and chill.foes[0].broken and chill.allies[1].ward and not chill.allies[0].ward,
+		"Frost Gate wards its companion only on an actual live-enemy break")
+	var cloud := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	slot.gear_grants = {"forge_guard":true}
+	Equipment.assign(slot, "cloud", 0, "forge_guard")
+	var braced := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	for battle in [cloud, braced]:
+		battle.act(3, 0)
+		battle.act(1, 0)
+	_check(braced.foes[0].poise == 2 and cloud.foes[0].poise == 2 and braced.foes[0].hp < cloud.foes[0].hp,
+		"counter manual deals three poise and the forge gear independently raises counter damage")
+	slot.chapter = 3
+	var healer := _battle(slot, ["dream", "wind"], ["demon"], 4)
+	healer.allies[1].hp -= 40
+	healer.allies[1].qi = 5
+	healer.corruption = 4
+	_check(healer.targets_ally(1) and healer.act(1, 1) and healer.allies[1].hp == healer.allies[1].max_hp - 14
+		and healer.allies[1].qi == 11 and healer.corruption == 2,
+		"Needle Transfer targets a partner, healing and restoring Qi while lowering corruption")
+	slot.chapter = 4
+	var sword := _battle(slot, ["sage", "cloud"], ["godless"], 4)
+	var plain := Battle.new(["sage", "cloud"], ["godless"], 4, 2, false, 4, true, {}, true)
+	sword.act(1, 0)
+	plain.act(1, 0)
+	_check(sword.foes[0].hp < plain.foes[0].hp and sword.foes[0].poise > plain.foes[0].poise,
+		"Sword Trace increases damage through armor in exchange for weaker break pressure")
 
 func _check(passed: bool, description: String) -> void:
 	print(("PASS " if passed else "FAIL ") + description)

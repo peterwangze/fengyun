@@ -6,7 +6,7 @@ const SYNERGY_TIER := 2
 const SYNERGY_ADVANCED_TIER := 4
 const EXPLOIT_COST := 3
 const SYNERGY_NAMES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
-const PROTECTION := ["cover", "counter", "shelter", "aid"]
+const PROTECTION := ["cover", "counter", "counter_poise", "shelter", "aid"]
 const EXTRA := {
 	"wind": [
 		["护风步",7,"风",0,0,"单体 · 替同伴挡下一击","cover"],
@@ -30,6 +30,15 @@ const OPEN_AT := {
 const QUEST_MOVES := {
 	"cloud_2":"forgework", "dream_2":"remedy"
 }
+const MANUALS := {
+	"crosswind":{"hero":"wind", "source":"凤溪客栈截印", "move":["逆风截脉", 9, "风", 24, 2, "单体 · 削 2 势，敌蓄重招时额外削 1", "windup_break"]},
+	"cloud_return":{"hero":"cloud", "source":"剑庐工匠", "move":["回云卸劲", 9, "云", 0, 0, "自身 · 固守，接招后反击削 3 势", "counter_poise"]},
+	"frost_gate":{"hero":"frost", "source":"凤溪石桥或渡船过河", "move":["霜锁渡门", 9, "寒", 22, 2, "单体 · 削 2 势，破势则给同伴护持", "frost_ward"]},
+	"moon_needle":{"hero":"dream", "source":"完成药庐三问", "move":["针渡清脉", 10, "疗", 20, 0, "单体 · 治疗、回 6 气，魔念 −2", "needle_transfer"]},
+	"sword_trace":{"hero":"sage", "source":"击退天牢卫队", "move":["寻隙剑", 10, "锋", 32, 1, "单体 · 对未破金身部分穿甲", "armor_pierce"]},
+}
+const MANUAL_INDEX := 4
+const HERO_MANUALS := {"wind":"crosswind", "cloud":"cloud_return", "frost":"frost_gate", "dream":"moon_needle", "sage":"sword_trace"}
 const NAMES := {"wind_frost":"风霜封渡","wind_dream":"风息回春","cloud_sage":"双剑开阵","wind_cloud":"风云合璧"}
 
 static func options(id: String, sword: bool) -> Array:
@@ -37,9 +46,30 @@ static func options(id: String, sword: bool) -> Array:
 	if id == "cloud" and not sword:
 		base[1] = ["翻云掌",10,"云",24,1,"全体 · 破势 1"]
 	base.append_array(EXTRA[id])
+	base.append(MANUALS[HERO_MANUALS[id]].move.duplicate())
 	return base
 
+static func move_count(id: String) -> int:
+	return MANUAL_INDEX + 1 if HERO_MANUALS.has(id) else 0
+
+static func source(id: String, at: int) -> String:
+	if at == MANUAL_INDEX and HERO_MANUALS.has(id):
+		return MANUALS[HERO_MANUALS[id]].source
+	return "随修行或任务解锁"
+
+static func clean_grants(value: Variant) -> Dictionary:
+	var grants := {}
+	if value is Dictionary:
+		for id in MANUALS:
+			if value.get(id, false) == true:
+				grants[id] = true
+	return grants
+
 static func unlocked(slot: Dictionary, id: String, at: int) -> bool:
+	if at < 0 or at >= move_count(id):
+		return false
+	if at == MANUAL_INDEX:
+		return slot.get("manual_grants", {}).get(HERO_MANUALS[id], false) == true
 	if at < 2:
 		return true
 	var quest: String = QUEST_MOVES.get("%s_%d" % [id,at],"")
@@ -75,11 +105,11 @@ static func synergies(slot: Dictionary, hero: String, rank: int) -> Dictionary:
 	var gear := [Equipment.equipped(slot, hero, 0), Equipment.equipped(slot, hero, 1)]
 	var moves := slotted_moves(hero, slot.campaign.sword, prepared(slot, hero), int(slot.chapter))
 	var active := {}
-	if gear[1] in ["qi_ring", "courier_badge"] and moves.any(interrupt_move):
+	if (gear[1] in ["qi_ring", "courier_badge"] or Equipment.style(gear[1]) == "interrupt") and moves.any(interrupt_move):
 		active.interrupt = 5 if advanced else 3
 	if not gear[0].is_empty() and moves.any(protection_move):
 		active.retaliate = 4 if advanced else 0
-	if gear[1] == "ferry_knot" and moves.any(exploit_move):
+	if (gear[1] == "ferry_knot" or Equipment.style(gear[1]) == "exploit") and moves.any(exploit_move):
 		active.exploit = 12 if advanced else 8
 	return active
 

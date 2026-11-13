@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS chapter-one quest identifies its nearby start
+PASS journal lists the equipment, medicine, and silver rewards
+PASS future quest is shown as unavailable
+PASS quest hands off from the courtyard to the wedding hall
+PASS journal updates to 查看柜下旧单
+PASS journal updates to 安置证人
+PASS choice explains two different main-story consequences
+PASS quest completion and the branch persist
+PASS completed quest grants a reward and clears the departure warning
+PASS west-bank quest marker waits until crossing
+PASS west-bank quest marker appears after crossing
+PASS leaving Fengxi warns about unfinished river rescue
+PASS planned reunion remains available in the finale
+PASS leaving the forge warns about the unexamined ledger
+PASS Palace handoff can be located and missed
+PASS missed Palace handoff cannot appear actionable at the peak
+PASS mountain departure warns while preserving Fengxi follow-up
+PASS dawn expires the mountain and activates the river follow-up
+PASS the final departure lists only the available river follow-up
+PASS optional remedy remains reachable after the main-story briefing
+PASS medicinal quest advertises its new manual and silver
+Quest journal: 0 failures

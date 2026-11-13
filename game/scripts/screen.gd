@@ -7,6 +7,7 @@ const Chronicle = preload("res://scripts/chronicle.gd")
 const Martial = preload("res://scripts/martial.gd")
 const SideStories = preload("res://scripts/side_stories.gd")
 const Equipment = preload("res://scripts/equipment.gd")
+const Economy = preload("res://scripts/economy.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
 const SANS = preload("res://assets/fonts/body.tres")
 const SERIF = preload("res://assets/fonts/display.tres")
@@ -182,6 +183,9 @@ func paint() -> void:
 		"gear":
 			_field(false)
 			_gear()
+		"shop":
+			_field(false)
+			_shop()
 		"review":
 			_title(false)
 			_fill(FULL,Color("#0b1120dd"))
@@ -659,8 +663,8 @@ func _martial() -> void:
 		var prefix := "栏位 %d" % (i+1) if g.touch_ui() or g.using_joypad else "键 %d" % (i+2)
 		_text("%s   %s" % [prefix,learned[int(equipped[i])][0]],box.position.x+9,105,14,CREAM)
 		_hit(box,"martial_slot",i)
-	for i in 4:
-		var box := Rect2(91,127+i*36,152,29)
+	for i in learned.size():
+		var box := Rect2(91,120+i*31,152,28)
 		var ready := Martial.unlocked(g.slot,id,i)
 		_button(learned[i][0],box,i,ready)
 		if ready:
@@ -669,16 +673,16 @@ func _martial() -> void:
 			if not styles.is_empty():
 				_text(styles,257,box.position.y+28,11,TEAL)
 		else:
-			_text("随修行或任务解锁",257,box.position.y+20,13,FAINT)
-	_text(_build_summary(id,g.rank()),91,280,13,TEAL)
+			_text(Martial.source(id,i),257,box.position.y+20,12,DIM)
+	_text(_build_summary(id,g.rank()),91,289,13,TEAL)
 	if g.slot.chapter == 3 and id == "wind":
-		_text("魔池试炼会把栏位 2 暂时换成魔刀狂斩。",91,298,12,GOLD)
+		_text("魔池试炼会把栏位 2 暂时换成魔刀狂斩。",91,303,11,GOLD)
 	var hint: String = "← → 换人   X 换栏位   A 装配   B 返回" if g.using_joypad else "← → 换人   Tab 换栏位   Enter 装配   Esc 返回"
 	if g.touch_ui():
 		hint = "点按队员和栏位，再点按武学装配"
 	else:
 		_hit(Rect2(486,290,70,29),"cancel")
-	_text(hint,91,312,12,DIM)
+	_text(hint,91,319,12,DIM)
 
 func _move_styles(move: Array) -> String:
 	var styles := PackedStringArray()
@@ -712,24 +716,58 @@ func _gear() -> void:
 		var item_name: String = "未装配" if id.is_empty() else Equipment.CATALOG[id].name
 		_gear_tab(Rect2(81 + kind*238,96,231,31),"%s · %s" % [Equipment.CATEGORIES[kind],item_name],g.gear_kind == kind,"gear_kind",kind)
 	var ids := Equipment.options(g.gear_kind)
-	for i in ids.size():
+	var top: int = g.gear_page * 6
+	for i in range(top,mini(top+6,ids.size())):
 		var item := ids[i]
 		var ready := item.is_empty() or Equipment.unlocked(g.slot,item)
-		var box := Rect2(81,134+i*27,150,25)
+		var box := Rect2(81,134+(i-top)*27,150,25)
 		_button("卸下" if item.is_empty() else Equipment.CATALOG[item].name,box,i,ready)
 		if item.is_empty():
 			_text("恢复此栏基础属性",244,box.position.y+17,12,DIM)
 		elif ready:
-			_text(Equipment.describe(item),244,box.position.y+17,12,CREAM)
+			var effect := Equipment.describe(item)
+			_text(effect,244,box.position.y+13,11,CREAM)
 			var holder := Equipment.owner(g.slot,item)
 			if not holder.is_empty():
-				_right("已装备" if holder == hero else "转交自%s" % Story.HEROES[holder].name,551,box.position.y+17,11,GOLD)
+				_text("已装备" if holder == hero else "转交自%s" % Story.HEROES[holder].name,244,box.position.y+24,9,GOLD)
 		else:
 			_text(Equipment.CATALOG[item].source,244,box.position.y+17,12,DIM)
+	if ids.size() > 6:
+		if top > 0: _gear_tab(Rect2(490,296,28,24),"↑",false,"gear_scroll",-1)
+		if top + 6 < ids.size(): _gear_tab(Rect2(523,296,28,24),"↓",false,"gear_scroll",1)
 	_text(_build_summary(hero,rank),81,305,12,TEAL)
 	var hint := "点按队员、栏位和行装" if g.touch_ui() else (
 		"← → 换人   X 换栏位   A 装备   B 返回" if g.using_joypad else "← → 换人   Tab 换栏位   Enter 装备   Esc 返回")
 	_text(g.gear_message if not g.gear_message.is_empty() else hint,81,322,12,GOLD if not g.gear_message.is_empty() else DIM)
+
+func _shop() -> void:
+	_fill(FULL,Color("#0b1120d9"))
+	_panel(Rect2(54,23,532,308),true)
+	var shop: Dictionary = Economy.SHOPS[g.shop_id]
+	var account: Dictionary = g.shop_account()
+	_text(shop.title,76,62,24,CREAM,SERIF)
+	_right("银两  %d" % account.silver,564,61,16,GOLD)
+	_paragraph(shop.note,77,87,475,13,DIM,16)
+	for i in shop.goods.size():
+		var row := Economy.offer(g.slot,account,g.shop_id,i)
+		var box := Rect2(76,106+i*35,487,32)
+		var active: bool = g.selected == i
+		_fill(box,Color("#393343") if active else Color("#1a2337"))
+		_stroke(box,GOLD if active else LINE)
+		_text(row.name,85,box.position.y+19,14,CREAM if row.limit.is_empty() else DIM)
+		_text(row.detail,226,box.position.y+13,10,DIM)
+		_text("余 %d" % row.remaining if row.limit.is_empty() else row.limit,226,box.position.y+27,10,TEAL if row.limit.is_empty() else DIM)
+		_right("%d 两" % row.price,553,box.position.y+20,13,GOLD)
+		_hit(box,"shop_row",i)
+	var selected: int = g.selected
+	var can_buy: bool = selected < shop.goods.size() and Economy.offer(g.slot,account,g.shop_id,selected).limit.is_empty()
+	var message: String = g.shop_message
+	if message.is_empty():
+		message = "点选货品后确认" if g.touch_ui() else ("方向键选货 · A 购入 · B 返回" if g.using_joypad else "方向键选货 · Enter 购入 · Esc 返回")
+	_text(message,78,307,12,TEAL if not g.shop_message.is_empty() else DIM)
+	if can_buy:
+		_gear_tab(Rect2(395,286,80,29),"购入",true,"confirm",0)
+	_gear_tab(Rect2(482,286,80,29),"离开",selected == shop.goods.size(),"cancel",0)
 
 func _build_guide() -> void:
 	_text("武学与行装搭配",80,62,24,CREAM,SERIF)
@@ -739,9 +777,9 @@ func _build_guide() -> void:
 	_text("境界 %d 开启搭配，境界 %d 强化效果。当前境界 %d。" %
 		[Martial.SYNERGY_TIER,Martial.SYNERGY_ADVANCED_TIER,rank],82,88,13,DIM)
 	var cards := [
-		["截势", "纳气玉扣或信使铜牌 ＋ 单体削势至少 2 的武学", "破势回气，截断首领重招时多回 2 气。"],
+		["截势", "纳气玉扣、信使铜牌或渡口铜哨 ＋ 单体削势武学", "基础削势至少 2 格的武学破势时回气。"],
 		["守反", "护具 ＋ 护风步、翻云守势等护持武学", "护招接住攻击，每回合可造一次空门并积攒合击。"],
-		["乘隙", "渡口缆结 ＋ 傲寒六诀、断浪追斩等重招", "重招打空门时额外耗 3 气提高威力。"],
+		["乘隙", "渡口缆结或火麟剑穗 ＋ 傲寒六诀等重招", "重招打空门时额外耗 3 气提高威力。"],
 	]
 	for i in cards.size():
 		var y := 104 + i * 58
@@ -837,10 +875,19 @@ func _battle() -> void:
 	if g.mode != "battle" and (not g.settings.motion or not combat_art.active()):
 		hot.clear()
 		_fill(FULL,Color("#080e20b2"))
-		_panel(Rect2(147,87,346,183),true)
-		_center("战胜" if g.mode == "victory" else "败阵",320,137,36,CREAM,SERIF)
-		_center(g.debrief,320,163,14,DIM)
-		_menu(Vector2(196,182),248,31,5)
+		if g.mode == "victory" and not g.battle_loot.is_empty():
+			_panel(Rect2(107,73,426,211),true)
+			_center("战胜",320,119,32,CREAM,SERIF)
+			_center(g.debrief,320,146,13,DIM)
+			_center("战利品 · " + "、".join(g.battle_loot),320,174,15,GOLD)
+			if not g.battle_loot_note.is_empty():
+				_center(g.battle_loot_note,320,196,12,TEAL)
+			_menu(Vector2(196,223),248,31,5)
+		else:
+			_panel(Rect2(147,87,346,183),true)
+			_center("战胜" if g.mode == "victory" else "败阵",320,137,36,CREAM,SERIF)
+			_center(g.debrief,320,163,14,DIM)
+			_menu(Vector2(196,182),248,31,5)
 
 func _battle_touch_targets(battle: RefCounted) -> void:
 	var friendly: bool = battle.targets_ally(g.pending_action)

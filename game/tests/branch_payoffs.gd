@@ -3,6 +3,7 @@ extends SceneTree
 const Main = preload("res://main.tscn")
 const SideStories = preload("res://scripts/side_stories.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
+const MarketCatalog = preload("res://scripts/market_catalog.gd")
 const BODY_FONT = preload("res://assets/fonts/body.tres")
 const PROFILE := "qa_branch_payoffs"
 
@@ -30,6 +31,7 @@ func _run() -> void:
 	_test_tidegate_carryover()
 	_test_reunion_tidegate()
 	_test_journal_fit()
+	_test_market_placement()
 	for suffix in ["",".bak",".tmp"]:
 		var file: String = game.storage.path + suffix
 		if FileAccess.file_exists(file):
@@ -311,7 +313,66 @@ func _test_journal_fit() -> void:
 				var place: String = entry.place + ("  ·  " + entry.deadline if not entry.deadline.is_empty() else "")
 				fits = fits and _line_count(entry.action,257,14) <= 2 and _line_count(entry.payoff,257,12) <= 2
 				fits = fits and (entry.place.is_empty() or _line_count(place,257,11) <= 1)
+				fits = fits and _line_count(entry.reward,257,11) <= 2
 	_check(fits,"branch result, follow-up and deadline text fit the journal")
+
+func _test_market_placement() -> void:
+	for id in MarketCatalog.SHOPS:
+		var shop: Dictionary = MarketCatalog.SHOPS[id]
+		_check(_line_count(shop.note,270,13) <= 2 and shop.goods.size() <= 6, id + " market note and stock fit their panel")
+	_chapter(1,{})
+	game.slot.campaign.crossing = "boat"
+	game.chronicle.enter("inn")
+	_check_market_point("inn","与凤溪行商交易")
+	_chapter(2,{})
+	game.chronicle.enter("swordhall")
+	_check(not _has_point("shop_forge"), "the swordhall craft stall opens after the lesson")
+	_visit("lesson")
+	_drain_dialogue()
+	_check_market_point("forge","向剑庐工匠购置行装")
+	_chapter(3,{})
+	game.chronicle.enter("apothecary")
+	_check(not _has_point("shop_medicine"), "the medicine stall opens after meeting the healers")
+	_visit("pool_intro")
+	_drain_dialogue()
+	_check_market_point("medicine","向药师购买补给")
+	_chapter(5,{})
+	game.slot.finished = true
+	game.slot.cleared = [0,1]
+	game.afterstory.resume()
+	_check(not _has_point("shop_tidegate"), "Tidegate goods open after the briefing")
+	_visit("brief")
+	_drain_dialogue()
+	_check_market_point("tidegate","查看盐汊杂货")
+
+func _check_market_point(id: String, label: String) -> void:
+	var point := _field_point("shop_" + id)
+	if not _check(not point.is_empty() and point.get("name") == label and point.get("optional"), id + " merchant has an optional named interaction"):
+		return
+	_check(_walk_to(point.pos), id + " merchant is reachable on the map without bypassing collision")
+	_check(game.nearest().get("id") == point.id, id + " merchant is distinct from nearby quest interactions")
+	if game.has_method("_open_shop"):
+		game.interact()
+		_check(game.mode == "shop", id + " merchant opens the shop via normal interaction")
+		game.cancel()
+
+func _walk_to(destination: Vector2) -> bool:
+	var start := Vector2i(game.player)
+	var frontier: Array[Vector2i] = [start]
+	var visited := {start:true}
+	var index := 0
+	while index < frontier.size():
+		var cell := frontier[index]
+		index += 1
+		if Vector2(cell).distance_to(destination) < 5.0:
+			game.player = Vector2(cell)
+			return true
+		for step in [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]:
+			var next: Vector2i = cell + step
+			if not visited.has(next) and game.passable(Vector2(next)):
+				visited[next] = true
+				frontier.append(next)
+	return false
 
 func _test_tidegate_carryover() -> void:
 	for step: String in ["","wait_boat","done_boat","wait_goods","done_goods"]:
@@ -427,7 +488,13 @@ func _visit(id: String, index: int = -1) -> void:
 	_check(false, "interaction is available at " + id)
 
 func _has_point(id: String) -> bool:
-	return game.field_points().any(func(spot): return spot.id == id)
+	return not _field_point(id).is_empty()
+
+func _field_point(id: String) -> Dictionary:
+	for spot in game.field_points():
+		if spot.id == id:
+			return spot
+	return {}
 
 func _drain_dialogue() -> void:
 	for i in 12:

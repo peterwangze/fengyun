@@ -11,6 +11,7 @@ const Martial = preload("res://scripts/martial.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
 const MobileControls = preload("res://scripts/mobile_controls.gd")
 const Equipment = preload("res://scripts/equipment.gd")
+const Economy = preload("res://scripts/economy.gd")
 const Items = preload("res://scripts/items.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
 const SideStories = preload("res://scripts/side_stories.gd")
@@ -83,6 +84,11 @@ var gear_message := ""
 var known_gear: Array[String] = []
 var gear_rewards: Array[String] = []
 var gear_guide := false
+var gear_page := 0
+var shop_id := ""
+var shop_message := ""
+var battle_loot := PackedStringArray()
+var battle_loot_note := ""
 var known_rank := 1
 var active_pad := -1
 var menu_sticks: Dictionary[int, Vector2] = {}
@@ -219,6 +225,13 @@ func menu_items() -> Array:
 			for id in Equipment.options(gear_kind).slice(1):
 				items.append([Equipment.CATALOG[id].name, Equipment.unlocked(slot, id)])
 			return items
+		"shop":
+			var items := []
+			for i in Economy.SHOPS[shop_id].goods.size():
+				var row := Economy.offer(slot, shop_account(), shop_id, i)
+				items.append([row.name, row.limit.is_empty()])
+			items.append(["离开",true])
+			return items
 		"choice": return chronicle.options.map(func(option): return [option[0],true])
 		"review":
 			var chapters := []
@@ -311,6 +324,7 @@ func menu_confirm(index: int) -> void:
 				5: _title()
 		"martial": chronicle.equip(index)
 		"gear": _equip_gear(index)
+		"shop": _buy_good(index)
 		"choice": chronicle.select_choice(index)
 		"review":
 			_start_review(index,slot.easy)
@@ -402,11 +416,16 @@ func _finish_intro() -> void:
 
 func _commit() -> bool:
 	var supplies := Items.reconcile_quests(slot, slot.supplies, slot.supply_claims)
+	if afterstory.active and not afterstory.state().has("silver"):
+		Economy.normalize_tide(afterstory.state())
+	var finds := Economy.reconcile(slot)
 	if not chronicle.review and not storage.write(slot):
 		_notice("存档写入失败。请确认本机存储空间。")
 		return false
 	for item in supplies:
 		gear_rewards.append("获得 · " + item)
+	if not finds.is_empty():
+		gear_rewards.append("获得 · " + "、".join(finds))
 	var current_rank := rank()
 	if not afterstory.active:
 		if known_rank < Martial.SYNERGY_TIER and current_rank >= Martial.SYNERGY_TIER:
@@ -416,7 +435,7 @@ func _commit() -> bool:
 		known_rank = current_rank
 	var available := Equipment.owned(slot)
 	for id in available:
-		if id not in known_gear:
+		if id not in known_gear and not slot.gear_grants.has(id):
 			gear_rewards.append("获得 · " + Equipment.CATALOG[id].name)
 	known_gear = available
 	return true
@@ -612,7 +631,10 @@ func interact() -> void:
 			slot.tonics += amount
 			_notice("得到金创药 ×%d。" % amount if amount > 0 else "药囊已满。")
 			_reward_supply("chest:" + field_key)
+			var finds := Economy.claim(slot, slot, "chest:" + field_key)
 			_commit()
+			if not finds.is_empty():
+				gear_rewards.append("药箱 · " + "、".join(finds))
 		"fight":
 			if spot.index == 1 and not slot.cleared.has(0):
 				_notice("先击退前路的第一队敌人。")
@@ -714,6 +736,8 @@ func _approach_battle(index: int) -> void:
 
 func _start_battle() -> void:
 	toast_time = 0
+	battle_loot.clear()
+	battle_loot_note = ""
 	var prepared := {}
 	var gear := {}
 	var builds := {}
@@ -789,6 +813,7 @@ func _battle_act(action: int, at: int) -> void:
 	if encounter.result == "victory":
 		if afterstory.active:
 			afterstory.state().supplies = encounter.supplies
+			_record_battle_loot(afterstory.state(), "tidal:" + afterstory.battle, 6 if afterstory.battle == "chief" else 4)
 			debrief = afterstory.won(encounter.tonics)
 			result_cue = "win"
 			_set_mode("victory")
@@ -797,12 +822,14 @@ func _battle_act(action: int, at: int) -> void:
 		if seal_chase:
 			slot.tonics = encounter.tonics
 			_reward_supply("hunt:inn")
+			_record_battle_loot(slot, "hunt:inn", 3)
 			_commit()
 			debrief = "截下仿造的缺角印。秦霜把它和调令一起留作证据。"
 			result_cue = "win"
 			_set_mode("victory")
 			return
 		if not chronicle.special.is_empty():
+			_record_battle_loot(slot, "special:" + chronicle.special, 3 if chronicle.special == "spar" else 5)
 			chronicle.on_special_won()
 			debrief = "武学切磋完成。" if chronicle.special == "spar" else "可继续调查眼前的事。"
 			result_cue = "win"
@@ -818,6 +845,7 @@ func _battle_act(action: int, at: int) -> void:
 		if active_battle == 2:
 			debrief += "  ·  金创药补给"
 			_reward_supply("hunt:" + field_key)
+		_record_battle_loot(slot, "battle:%s:%d" % [field_key,active_battle], 3 if active_battle == 2 else (6 if active_battle == 1 else 5))
 		_commit()
 		result_cue = "win"
 		_set_mode("victory")
@@ -825,6 +853,10 @@ func _battle_act(action: int, at: int) -> void:
 		debrief = "密探带着假印逃走。可以重试，或先回渡口。" if encounter.escaped else "重试将恢复至本场开战前的状态。"
 		result_cue = "lose"
 		_set_mode("defeat")
+
+func _record_battle_loot(account: Dictionary, source: String, silver: int) -> void:
+	battle_loot = Economy.claim(slot, account, source, silver)
+	battle_loot_note = Economy.source_note(source) if battle_loot.size() > 1 else ""
 
 func _finish_result_audio() -> void:
 	if not result_cue.is_empty():
@@ -850,6 +882,7 @@ func cancel() -> void:
 				_toggle_gear_guide()
 			else:
 				_set_mode(back_mode)
+		"shop": _return_to_field()
 		"settings", "journal", "martial": _set_mode(back_mode)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
@@ -891,6 +924,14 @@ func _navigate(dx: int, dy: int) -> void:
 	if mode == "gear" and dx != 0:
 		_select_gear_tab(posmod(gear_hero + dx, stage.party.size()), gear_kind)
 		return
+	if mode in ["gear", "shop"] and dy != 0:
+		selected = posmod(selected + dy, menu_items().size())
+		if mode == "gear":
+			gear_page = selected / 6
+		else:
+			shop_message = ""
+		sfx("select")
+		return
 	if mode == "martial" and dx != 0:
 		chronicle.martial_hero = posmod(chronicle.martial_hero + dx,stage.party.size())
 		selected = 0
@@ -922,6 +963,9 @@ func _navigate(dx: int, dy: int) -> void:
 
 func click(kind: String, index: int) -> void:
 	match kind:
+		"shop_row":
+			selected = index
+			shop_message = ""
 		"menu":
 			selected = index
 			menu_confirm(index)
@@ -951,11 +995,36 @@ func click(kind: String, index: int) -> void:
 		"gear_kind": _select_gear_tab(gear_hero, index)
 		"gear_hero": _select_gear_tab(index, gear_kind)
 		"gear_guide": _toggle_gear_guide()
+		"gear_scroll":
+			var last := (Equipment.options(gear_kind).size() - 1) / 6
+			gear_page = clampi(gear_page + index,0,last)
 		"journal_row": journal_index = index
 		"journal_track": _confirm()
 		"confirm": _confirm()
 		"cancel": cancel()
 		"skip": _skip_battle_effect()
+
+func _open_shop(id: String) -> void:
+	shop_id = id
+	shop_message = ""
+	_set_mode("shop")
+
+func shop_account() -> Dictionary:
+	return afterstory.state() if afterstory.active else slot
+
+func _buy_good(index: int) -> void:
+	if index == Economy.SHOPS[shop_id].goods.size():
+		_return_to_field()
+		return
+	var previous := slot.duplicate(true)
+	var bought := Economy.buy(slot, shop_account(), shop_id, index)
+	if bought.is_empty():
+		return
+	if not _commit():
+		slot = previous
+		shop_message = "存档失败，已撤销交易。"
+		return
+	shop_message = "已购入 %s。" % bought
 
 func _use_joypad(device: int) -> void:
 	if touch_controls and not using_joypad:
@@ -1150,6 +1219,7 @@ func _select_gear_tab(hero: int, kind: int) -> void:
 	gear_kind = kind
 	gear_message = ""
 	selected = Equipment.options(kind).find(Equipment.equipped(slot, stage.party[hero], kind))
+	gear_page = maxi(0,selected) / 6
 
 func _equip_gear(index: int) -> void:
 	var hero: String = stage.party[gear_hero]

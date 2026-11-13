@@ -42,7 +42,7 @@ func martial_id() -> String:
 func martial_items() -> Array:
 	var id := martial_id()
 	var result := []
-	for at in 4:
+	for at in Martial.move_count(id):
 		var move: Array = Martial.options(id,g.slot.campaign.sword)[at]
 		result.append([move[0],Martial.unlocked(g.slot,id,at)])
 	return result
@@ -148,6 +148,7 @@ func points() -> Array:
 				result.append(_point("inn",97,167,"进西岸客栈"))
 		"inn":
 			result.append(_point("inn_exit",320,289,"回到西岸"))
+			result.append(_optional_point("shop_inn",Vector2(549,245),"与凤溪行商交易","servant"))
 			if not has("ferry_evidence"):
 				result.append(_point("ferry_evidence",315,185,"核对秦霜的调令","frost"))
 			elif g.slot.cleared.has(1) and not has("dream_intro"):
@@ -158,6 +159,7 @@ func points() -> Array:
 				result.append(_point("lesson",318,155,"请无名指点合璧","sage"))
 			else:
 				result.append(_point("returnhall",293,191,"返回天下会"))
+				result.append(_optional_point("shop_forge",Vector2(506,199),"向剑庐工匠购置行装","guide"))
 		"returnhall":
 			result.append(_point("hall_back",151,268,"返回剑庐"))
 			if not has("first_tyrant"):
@@ -179,6 +181,8 @@ func points() -> Array:
 			result.append(_point("pool_back",320,289,"回到魔池"))
 			if not has("pool_intro"):
 				result.append(_point("pool_intro",320,163,"听两位姑娘说来意","dream"))
+			else:
+				result.append(_optional_point("shop_medicine",Vector2(394,235),"向药师购买补给","servant"))
 		"palace":
 			if g.slot.cleared.has(0):
 				result.append(_point("tearoom",448,192,"进入茶房侧廊"))
@@ -218,15 +222,15 @@ func points() -> Array:
 		"dawn":
 			if dawn_witness_available():
 				var witnessed: bool = side.state().get("seals","") == "done_guide"
-				result.append(_dawn_point("dawn_witness",DAWN_WITNESS,"探望引路的证人" if witnessed else "查看证人的公示","maid"))
+				result.append(_optional_point("dawn_witness",DAWN_WITNESS,"探望引路的证人" if witnessed else "查看证人的公示","maid"))
 			if dawn_courier_available():
 				var quiet: bool = side.state().get("courier","") == "done_quiet"
-				result.append(_dawn_point("dawn_courier",DAWN_COURIER,"回访凤溪药棚" if quiet else "会见获释的船工",
+				result.append(_optional_point("dawn_courier",DAWN_COURIER,"回访凤溪药棚" if quiet else "会见获释的船工",
 					"servant" if quiet else "boatman_front"))
 			if has("dawn_lamp"):
 				result.append(_point("dawn_exit",423,201,"与步惊云离开"))
 				if dawn_reunion_available():
-					result.append(_dawn_point("dawn_reunion",DAWN_REUNION,"商议安置归人" if reunion_plan().is_empty()
+					result.append(_optional_point("dawn_reunion",DAWN_REUNION,"商议安置归人" if reunion_plan().is_empty()
 						else "查看凤溪安置安排","guard" if reunion_plan() == "roll" else "boatman_front"))
 			else:
 				result.append(_point("dawn_lamp",298,201,"点亮桥栏的灯"))
@@ -313,6 +317,9 @@ func handle(id: String) -> bool:
 			return false
 		"inn": enter("inn")
 		"inn_exit": enter("village","west_spawn")
+		"shop_inn": g._open_shop("inn")
+		"shop_forge": g._open_shop("forge")
+		"shop_medicine": g._open_shop("medicine")
 		"ferry_evidence":
 			var clue := "石桥那面旗和封门令都盖着缺角印。" if g.slot.campaign.crossing == "bridge" else "渡工认出了追兵旗上的缺角印。"
 			var answer := "一边令我们拔刀，一边封门灭口。先回渡口截住持哨的人，我要让云师兄亲眼看这道令。"
@@ -503,7 +510,7 @@ func on_first_departure() -> Array:
 func _point(id: String, x: int, y: int, label: String, sprite: String = "") -> Dictionary:
 	return {"id":id,"name":label,"pos":Vector2(x,y),"index":-1,"sprite":sprite,"optional":false}
 
-func _dawn_point(id: String, pos: Vector2, label: String, sprite: String) -> Dictionary:
+func _optional_point(id: String, pos: Vector2, label: String, sprite: String) -> Dictionary:
 	return {"id":id,"name":label,"pos":pos,"index":-1,"sprite":sprite,"optional":true}
 
 func _dawn_witness() -> void:

@@ -72,7 +72,7 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 		unit["guard"] = false
 		unit["ward"] = false
 		unit["ward_owner"] = -1
-		unit["counter"] = false
+		unit["counter"] = ""
 		unit["protector"] = -1
 		unit.moves = Martial.slotted_moves(id, sword_ready, prepared.get(id, [0, 1]), chapter)
 		if id == "cloud" and not sword_ready:
@@ -367,7 +367,7 @@ func act(action: int, target: int) -> bool:
 			style = {"风":"wind","云":"cloud","寒":"frost","疗":"heal","锋":"blade"}[move[2]]
 			if action_name == "魔刀狂斩":
 				style = "dark"
-			elif _move_kind(action) in ["cover","counter","shelter"]:
+			elif Martial.protection_move(move) and move[2] != "疗":
 				style = "guard"
 		3: style = "guard"
 		4: style = "heal"
@@ -419,12 +419,12 @@ func _guard_recovery(unit: Dictionary) -> int:
 	return 9 + int(unit.gear.get("guard_qi", 0))
 
 func _automatic(action: int) -> bool:
-	return action in [1,2] and ("全体" in allies[actor].moves[action - 1][5] or _move_kind(action) == "counter")
+	return action in [1,2] and ("全体" in allies[actor].moves[action - 1][5] or _move_kind(action) in ["counter", "counter_poise"])
 
 func targets_ally(action: int) -> bool:
 	if action >= FIRST_SUPPLY:
 		return Items.CATALOG[_supply(action)].target == "ally"
-	return action == 4 or _move_kind(action) in ["cover","aid"]
+	return action == 4 or _move_kind(action) in ["cover", "aid", "needle_transfer"]
 
 func valid_target(action: int, target: int) -> bool:
 	var friendly := targets_ally(action)
@@ -453,11 +453,7 @@ func poise_preview(action: int, at: int) -> String:
 	if action >= FIRST_SUPPLY:
 		amount = Items.CATALOG[_supply(action)].amount
 	elif not move.is_empty():
-		amount = move[4]
-		if _move_kind(action) == "shatter":
-			amount += enemy.frost
-		if move[2] == enemy.weak:
-			amount += 1 + int(unit.gear.get("weakness_poise", 0))
+		amount = _technique_poise(unit, move, enemy, _move_kind(action)) + int(move[2] == enemy.weak)
 	var next := maxi(int(enemy.resolve), enemy.poise - amount)
 	if next == 0 and not move.is_empty() and unit.build.has("interrupt") and Martial.interrupt_move(move):
 		return "破势打断 · 截势回气 %d" % _interrupt_recovery(unit, enemy)
@@ -507,9 +503,9 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 			allies[target].protector = actor
 			unit.guard = true
 			_ally_state(target,"护风")
-		"counter":
+		"counter", "counter_poise":
 			unit.guard = true
-			unit.counter = true
+			unit.counter = kind
 			_ally_state(actor,"蓄势反击")
 		"shelter":
 			for i in allies.size():
@@ -520,6 +516,13 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 			_heal(target,power + int(unit.gear.get("heal", 0)))
 			_grant_ward(target, actor)
 			_ally_state(target,"护持")
+		"needle_transfer":
+			_heal(target, power + int(unit.gear.get("heal", 0)))
+			corruption = maxi(0, corruption - 2)
+			var recovered := _restore_qi(allies[target], 6)
+			if recovered > 0:
+				_ally_state(target, "真气 +%d" % recovered)
+				events.back().stats.qi = allies[target].qi
 		_:
 			if style == "dark":
 				power += 12 + corruption
@@ -541,9 +544,8 @@ func _apply_move(unit: Dictionary, move: Array, power: int, target: int, action:
 
 func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: String, style: String) -> void:
 	var enemy := foes[at]
-	var poise: int = move[4]
+	var poise := _technique_poise(unit, move, enemy, kind)
 	if kind == "shatter":
-		poise += enemy.frost
 		enemy.frost = 0
 	elif advanced and unit.id == "frost":
 		enemy.frost = mini(2,enemy.frost+1)
@@ -556,20 +558,31 @@ func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: St
 			unit.qi -= Martial.EXPLOIT_COST
 			power += int(unit.build.exploit)
 			_announce_synergy("乘隙 · 重招威力 +%d" % unit.build.exploit)
-	if move[2] == enemy.weak:
-		poise += int(unit.gear.get("weakness_poise", 0))
 	var already_broken: bool = enemy.broken
 	var interrupt_recovery := _interrupt_recovery(unit, enemy)
-	_hit_foe(at,power,poise,move[2],style)
+	_hit_foe(at, power, poise, move[2], style, 0, kind == "armor_pierce")
 	if not already_broken and enemy.broken and unit.build.has("interrupt") and Martial.interrupt_move(move):
 		var recovered := _restore_qi(unit, interrupt_recovery)
 		if recovered > 0:
 			_announce_synergy("截势 · 回气 %d" % recovered)
+	if kind == "frost_ward" and not already_broken and enemy.broken and enemy.hp > 0 and allies[1 - actor].hp > 0:
+		_grant_ward(1 - actor, actor)
+		_ally_state(1 - actor, "霜衣护持")
 	if pursuit and not followup_used and enemy.hp > 0:
 		followup_used = true
 		enemy.frost = 0
 		_hit_foe(at,14,0,"",style)
 		_note("抓住破势空当追击。")
+
+func _technique_poise(unit: Dictionary, move: Array, enemy: Dictionary, kind: String) -> int:
+	var amount: int = move[4]
+	if kind == "shatter":
+		amount += enemy.frost
+	elif kind == "windup_break" and _pattern(enemy) in ELITE_WINDUPS:
+		amount += 1
+	if move[2] == enemy.weak:
+		amount += int(unit.gear.get("weakness_poise", 0))
+	return amount
 
 func _interrupt_recovery(unit: Dictionary, enemy: Dictionary) -> int:
 	var recovery: int = unit.build.get("interrupt", 0)
@@ -647,7 +660,7 @@ func _on_drummer_falls(beat: int) -> void:
 	else:
 		_phase_change(0, beat, "guard", "韩朔独战")
 
-func _hit_foe(index: int, base: int, break_power: int, element: String, style: String, beat: int = 0) -> void:
+func _hit_foe(index: int, base: int, break_power: int, element: String, style: String, beat: int = 0, armor_pierce: bool = false) -> void:
 	var enemy := foes[index]
 	var weak: bool = element == enemy.weak
 	var damage := float(base)
@@ -661,7 +674,7 @@ func _hit_foe(index: int, base: int, break_power: int, element: String, style: S
 	elif enemy.opening > 0:
 		damage *= 1.15
 	elif enemy.phase == "armor":
-		damage *= 0.40
+		damage *= 0.68 if armor_pierce else 0.40
 	elif _pattern(enemy) == "mind_sweep":
 		damage *= 0.78
 	elif _pattern(enemy) == "brace":
@@ -807,7 +820,7 @@ func _enemy_turn() -> void:
 		match attack:
 			"sweep":
 				for i in allies.size():
-					_hurt_ally(i, roundi(enemy.attack * 0.78), beat, style,index)
+					_hurt_ally(i, roundi(enemy.attack * 0.78), beat, style, index, attack)
 			"fire_sweep", "mind_sweep":
 				for i in allies.size():
 					_hurt_ally(i, roundi(enemy.attack * 1.22), beat, style, index, attack)
@@ -827,7 +840,7 @@ func _enemy_turn() -> void:
 					enemy.rallied = false
 					_phase_change(index, beat, "guard", "鼓令散去")
 			"charge":
-				_hurt_ally(target, roundi(enemy.attack * 1.56), beat, style,index)
+				_hurt_ally(target, roundi(enemy.attack * 1.56), beat, style, index, attack)
 			_:
 				_hurt_ally(target, enemy.attack, beat, style,index)
 		if allies[0].hp == 0 and allies[1].hp == 0:
@@ -835,7 +848,7 @@ func _enemy_turn() -> void:
 			return
 	for unit in allies:
 		unit.guard = false
-		unit.counter = false
+		unit.counter = ""
 	for enemy in foes:
 		enemy.opening = maxi(0, enemy.opening - 1)
 	round_no += 1
@@ -864,18 +877,24 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int, 
 			unit = allies[index]
 			defending_ally = index
 			redirected = true
-	if unit.counter:
+	if not String(unit.counter).is_empty():
 		defending_ally = index
 	var guarded: bool = unit.guard or redirected
 	var protected: bool = guarded or unit.ward
 	var factor := (0.66 if story_mode else 1.0) * (0.34 if guarded else 1.0)
+	var armor: int = unit.gear.get("armor", 0)
+	if attack in ["sweep", "fire_sweep", "mind_sweep", "dragon_reflux", "tyrant_sweep"]:
+		armor += int(unit.gear.get("sweep_armor", 0))
+	elif attack in ["charge", "armor_bash", "tyrant_palm", "tidal_advance"]:
+		armor += int(unit.gear.get("heavy_armor", 0))
 	var ward_owner := -1
 	if unit.ward:
 		factor *= 0.45
 		unit.ward = false
+		armor += int(unit.gear.get("ward_armor", 0))
 		ward_owner = int(unit.ward_owner)
 		unit.ward_owner = -1
-	var damage := maxi(1, roundi(points * factor) - int(unit.gear.get("armor", 0)))
+	var damage := maxi(1, roundi(points * factor) - armor)
 	unit.hp = maxi(0, unit.hp - damage)
 	_effect("damage", "ally", index, beat, "guard" if guarded else style, "−%d" % damage)
 	if unit.hp == 0:
@@ -895,9 +914,11 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int, 
 			_note("魔念横扫夺走%s %d 点真气。" % [unit.name, drained])
 	_trigger_retaliation(defending_ally, source, beat)
 	_trigger_retaliation(ward_owner, source, beat)
-	if unit.counter and foes[source].hp > 0:
-		unit.counter = false
-		_hit_foe(source,unit.attack+13,1,"","blade",beat)
+	if not String(unit.counter).is_empty() and foes[source].hp > 0:
+		var poise_counter: bool = unit.counter == "counter_poise"
+		unit.counter = ""
+		var power: int = unit.attack + (2 if poise_counter else 13) + int(unit.gear.get("counter_power", 0))
+		_hit_foe(source, power, 3 if poise_counter else 1, "", "blade", beat)
 
 func _open_guard_gap(source: int, beat: int) -> bool:
 	var foe := foes[source]

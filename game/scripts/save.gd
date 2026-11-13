@@ -6,6 +6,7 @@ const Martial = preload("res://scripts/martial.gd")
 const Equipment = preload("res://scripts/equipment.gd")
 const Items = preload("res://scripts/items.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
+const Economy = preload("res://scripts/economy.gd")
 const FILE := "user://jianghu.json"
 const SETTINGS := "user://settings.json"
 const VERSION := 1
@@ -25,6 +26,7 @@ func fresh(easy: bool) -> Dictionary:
 	slot["chronicle"] = _initial_chronicle(0)
 	slot["supplies"] = Items.fresh()
 	slot["supply_claims"] = {}
+	Economy.normalize(slot)
 	return slot
 
 func _initial_chronicle(from_chapter: int) -> Dictionary:
@@ -37,6 +39,7 @@ func replay(chapter: int, easy: bool) -> Dictionary:
 	slot.tonics = 6
 	slot.supplies = Items.fresh(chapter)
 	slot.campaign = _initial_campaign(slot)
+	slot.silver = Economy.START_SILVER + chapter * 5
 	return slot
 
 func _initial_hall() -> Dictionary:
@@ -64,9 +67,14 @@ func read() -> Dictionary:
 			slot.hall = slot.get("hall", _initial_hall())
 			slot.campaign = slot.get("campaign", _initial_campaign(slot))
 			slot.chronicle = slot.get("chronicle",_initial_chronicle(slot.chapter + 1))
-			slot.gear = Equipment.clean_loadouts(slot, slot.get("gear", {}))
+			var legacy := not slot.has("loot_claims")
+			Economy.normalize(slot)
 			slot.supplies = Items.clean(slot.get("supplies", Items.fresh(int(slot.chapter))))
 			slot.supply_claims = Items.clean_claims(slot.get("supply_claims", {}))
+			if legacy:
+				Economy.recover_unique_drops(slot)
+				Economy.reconcile(slot)
+			slot.gear = Equipment.clean_loadouts(slot, slot.get("gear", {}))
 			return slot
 	return {}
 
@@ -140,7 +148,8 @@ func _valid_chronicle(value: Variant, chapter: int) -> bool:
 		var moves: Variant = value.loadout[hero]
 		if not Martial.EXTRA.has(hero) or not moves is Array or moves.size() != 2:
 			return false
-		if not _in_range(moves[0],0,3) or not _in_range(moves[1],0,3) or moves[0] == moves[1]:
+		var last := Martial.move_count(hero) - 1
+		if not _in_range(moves[0],0,last) or not _in_range(moves[1],0,last) or moves[0] == moves[1]:
 			return false
 	return true
 

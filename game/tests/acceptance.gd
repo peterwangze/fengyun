@@ -5,6 +5,8 @@ const Equipment = preload("res://scripts/equipment.gd")
 const Martial = preload("res://scripts/martial.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
 const Battle = preload("res://scripts/battle.gd")
+const Items = preload("res://scripts/items.gd")
+const Economy = preload("res://scripts/economy.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 var game
@@ -42,6 +44,9 @@ var endgame := false
 var endgame_counts := {}
 var endgame_build_counts := {}
 var tidal_battles: Array[Dictionary] = []
+var market_route := ""
+var market_observations: Array[String] = []
+var learned_casts := {}
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -55,6 +60,8 @@ func _run() -> void:
 			rear_route = arg.get_slice("=",1)
 		if arg.begins_with("--build-route="):
 			build_route = arg.get_slice("=",1)
+		if arg.begins_with("--market-route="):
+			market_route = arg.get_slice("=",1)
 	game = MAIN.instantiate()
 	root.add_child(game)
 	var all_encounters := "--all-encounters" in OS.get_cmdline_user_args()
@@ -141,6 +148,10 @@ func _run() -> void:
 			_equip_route()
 		elif not build_route.is_empty():
 			_equip_playtest_build(chapter)
+		if market_route == "training" and chapter == 5:
+			_prepare_manual("wind", "crosswind", 1)
+			_equip_owned("wind", "reed_mantle")
+			_prepare_manual("cloud", "cloud_return", 0)
 		if chapter == 5:
 			await _special("relic","cavern_guard")
 			_do_point("lost_relic")
@@ -205,6 +216,8 @@ func _run() -> void:
 					await _side_step("remedy",1)
 					await _side_step("remedy")
 				await _side_step("remedy",0)
+			if not market_route.is_empty():
+				await _visit_medicine_market()
 			await _capture("2-apothecary")
 			_do_point("pool_back")
 			if not await _scene_step("pool_trial","pool_trial","pool_trial"):
@@ -238,6 +251,8 @@ func _run() -> void:
 						_do_point("courier_contact")
 						_check(game.storage.read().chronicle.marks.get("courier_contact", false), "courier handoff persists")
 				_do_point("palace_back")
+				if market_route == "training":
+					_prepare_manual("sage", "sword_trace", 0)
 			if chapter == 5 and fight == 1 and quests:
 				await _side_step("swordstory")
 			if chapter == 5 and fight == 1 and not await _scene_step("altar","altar","altar"):
@@ -270,6 +285,8 @@ func _run() -> void:
 				var aid_applied: bool = godless.poise == godless.max_poise - 2 if detained else game.encounter.allies[1].ward
 				_check(aid_applied and not game.encounter.quest_aid_line.is_empty(), "courier follow-up changes the armor fight opening")
 				print("AID palace " + game.encounter.quest_aid_line)
+			if market_route == "training":
+				await _verify_training_in_battle(chapter, fight)
 			if chapter == 0 and fight == 0 and not pacing:
 				await _capture("03-first-battle")
 				_key(KEY_1)
@@ -301,9 +318,9 @@ func _run() -> void:
 				await _capture("04-final-battle")
 			if endgame and not game.slot.easy and chapter == 5 and fight == 0:
 				await _exercise_dragon_opening()
-			if chapter == 1 and fight == 1 and (not pacing or build_route.is_empty()):
+			if chapter == 1 and fight == 1 and market_route != "training" and (not pacing or build_route.is_empty()):
 				await _signal_opening()
-			if chapter == 3 and fight == 0:
+			if chapter == 3 and fight == 0 and market_route != "training":
 				await _demon_opening()
 			if chapter == 3 and fight == 1 and counterplay and not game.slot.easy:
 				await _exercise_corruption_warning()
@@ -317,7 +334,11 @@ func _run() -> void:
 			var qi_left: Array = game.encounter.allies.map(func(unit): return "%s %d/%d" % [unit.name,unit.qi,unit.max_qi])
 			print("PASS chapter %d encounter %d rounds %d tonics %d qi %s" %
 				[chapter+1,fight,game.encounter.round_no,game.slot.tonics,",".join(qi_left)])
+			if market_route == "training" and chapter == 2 and fight == 1:
+				await _capture_tactic("market-fixed-drop")
 			_key(KEY_ENTER)
+			if not market_route.is_empty():
+				_verify_battle_loot(chapter, fight)
 			if chapter == 1 and fight == 0:
 				_check(game.slot.campaign.crossing.is_empty(), "bridge battle does not register a landing")
 			if chapter == 2 and fight == 1:
@@ -357,6 +378,8 @@ func _run() -> void:
 				await _side_step("forgework")
 			_do_point("exit")
 			_do_point("lesson")
+			if not market_route.is_empty():
+				await _visit_forge_market()
 			if quests:
 				await _side_step("forgework")
 				await _side_step("swordstory")
@@ -429,7 +452,7 @@ func _run() -> void:
 		_check(q.size() == 8 and q.values().all(func(value): return String(value).begins_with("done_")),
 			"all eight quests finished and persisted")
 		print("Quest outcomes: ",q)
-		_check(Equipment.owned(completed_slot).size() == 10,"all ten rewards available after clearing the campaign and quests")
+		_check(Equipment.owned(completed_slot).size() >= 10,"all original rewards available after clearing the campaign and quests")
 	if counterplay and not easy:
 		_check(tactical_counts.fire_blocked + tactical_counts.fire_guarded > 0, "played at least one response to Duan Lang")
 		_check(tactical_counts.mind_suppressed > 0, "suppressed the magic blade to prevent the stronger sweep")
@@ -447,6 +470,12 @@ func _run() -> void:
 				"only the selected build activated during campaign combat")
 	if endgame and not easy:
 		_verify_endgame_counts()
+	if not market_route.is_empty():
+		_check(market_observations.size() >= 9, "the market route exercises drop, purchase and settlement checks")
+		if market_route == "training":
+			_check(learned_casts.size() == Martial.MANUALS.size(), "every acquired manual is used in a real encounter")
+		print("MARKET route=%s events=%s" % [market_route, market_observations])
+		print("MANUAL_CASTS ",learned_casts)
 	_verify_replay()
 	_check(saw_shield and combo_count > 0,"boss shield and combo reached")
 	_check(wins == (18 if all_encounters else 12) - int(rear_route == "quiet") - int(boat_route),"all requested battles won")
@@ -454,6 +483,8 @@ func _run() -> void:
 	_verify_new_martial()
 	_verify_backup()
 	_verify_legacy()
+	if not market_route.is_empty():
+		_verify_market_legacy()
 	if failures == 0:
 		print("PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery")
 		if low_motion:
@@ -590,6 +621,8 @@ func _verify_afterstory() -> void:
 		_check(game.afterstory.state().tonics == before_tonics + received and game.afterstory.state().supplies.guard_powder == before_powder + received,
 			"contact remains revisitable without repeating the benefit")
 		print("AID Tidegate reunion %s" % ("supplies" if alternate else "opening poise"))
+	if not market_route.is_empty():
+		await _visit_tidegate_market(baseline)
 	_do_point("seal")
 	_check(not _reach("gate_entry"),"gate route requires both pieces of evidence")
 	_do_point("register")
@@ -733,6 +766,8 @@ func _special(point: String, id: String, trigger: bool = true) -> void:
 		var expected: bool = beast.poise == beast.max_poise - 2 if shift == "done_fight" else wind.ward
 		_check(expected and not game.encounter.quest_aid_line.is_empty(), "jailer choice carries into the Dragon Cave fight")
 		print("AID cave %s %s" % [shift, game.encounter.quest_aid_line])
+	if market_route == "training" and id == "first_tyrant":
+		_cast_learned("cloud_return", 0)
 	if await _play_battle():
 		if id == "first_tyrant":
 			_check(game.encounter.shield_resolution == "combo","first Tyrant duel requires a real combo")
@@ -751,6 +786,8 @@ func _side_step(key: String, choice: int = -1) -> void:
 func _ferry_evidence() -> void:
 	_do_point("inn")
 	_do_point("ferry_evidence")
+	if not market_route.is_empty():
+		await _visit_inn_market()
 	if quests:
 		await _side_step("lamps")
 	_do_point("inn_exit")
@@ -763,10 +800,191 @@ func _ferry_evidence() -> void:
 		await _side_step("courier",int(alternate))
 		_do_point("inn_exit")
 	_verify_martial()
+	if market_route == "training":
+		_prepare_manual("wind", "crosswind", 0)
 	if visual:
 		_key(KEY_K)
 		await _capture("2-martial")
 		_key(KEY_ESCAPE)
+
+func _visit_inn_market() -> void:
+	_check(game.storage.read().get("manual_grants", {}).has("frost_gate"), "Fengxi crossing unlocks Frost's manual on either route")
+	_check_grant("manual_grants", "frost_gate", "progress:ferry" if boat_route else "battle:village:0")
+	if market_route == "training":
+		if _do_point("seal_chase") and _check(game.mode == "battle", "investigating the inn opens the optional seal fight"):
+			if await _play_battle():
+				_key(KEY_ENTER)
+				_check_grant("manual_grants", "crosswind", "hunt:inn")
+				_check(not game.field_points().any(func(point: Dictionary): return point.id == "seal_chase"), "seal chase reward cannot be farmed")
+		await _buy_at("inn", "reed_mantle")
+		_equip_owned("wind", "reed_mantle")
+		_prepare_manual("frost", "frost_gate", 0)
+	else:
+		await _buy_at("inn", "breath_pill")
+		var source: Dictionary = Economy.SHOPS.inn.goods.filter(func(row: Dictionary): return row.id == "breath_pill").front()
+		for extra in range(1, source.count):
+			await _buy_at("inn", "breath_pill")
+		_verify_sold_out("inn", "breath_pill")
+
+func _visit_forge_market() -> void:
+	if market_route == "training":
+		await _buy_at("forge", "cloud_return")
+		_prepare_manual("cloud", "cloud_return", 0)
+		_equip_owned("cloud", "sword_tassel")
+		_key(KEY_K)
+		for move in range(Martial.MANUAL_INDEX):
+			_key(KEY_DOWN)
+		await _capture_tactic("market-fifth-move")
+		_key(KEY_ESCAPE)
+	else:
+		await _buy_at("forge", "stagger_needle")
+
+func _visit_medicine_market() -> void:
+	if quests:
+		_check_grant("manual_grants", "moon_needle", "quest:remedy")
+	if market_route == "training":
+		await _buy_at("medicine", "apothecary_gourd")
+		_equip_owned("dream", "apothecary_gourd")
+		_prepare_manual("dream", "moon_needle", 1)
+	else:
+		await _buy_at("medicine", "guard_powder")
+
+func _visit_tidegate_market(baseline: Dictionary) -> void:
+	await _buy_at("tidegate", "granary_vest" if market_route == "training" else "guard_powder")
+	_check(game.storage.read().get("silver",0) == baseline.get("silver",0), "buying at Tidegate uses its separate silver")
+	if market_route == "training":
+		_equip_owned("cloud", "granary_vest")
+
+func _verify_battle_loot(chapter: int, fight: int) -> void:
+	match [chapter, fight]:
+		[1, 1]:
+			_check_grant("gear_grants", "tide_whistle", "battle:village:1")
+		[2, 1]:
+			_check_grant("gear_grants", "sword_tassel", "battle:forge:1")
+		[4, 0]:
+			_check_grant("manual_grants", "sword_trace", "battle:palace:0")
+
+func _check_grant(section: String, id: String, claim: String) -> void:
+	var saved: Dictionary = game.storage.read()
+	_check(saved.get(section, {}).has(id) and saved.get("loot_claims", {}).has(claim), "fixed reward persists " + id)
+	market_observations.append(id)
+
+func _prepare_manual(hero: String, id: String, slot: int) -> void:
+	if not _check(game.slot.get("manual_grants", {}).has(id) and Martial.unlocked(game.slot, hero, 4), "learned manual is selectable " + id):
+		return
+	_key(KEY_K)
+	_check(game.mode == "martial", "manual is prepared using the normal martial screen")
+	if game.stage.party[0] != hero:
+		_key(KEY_RIGHT)
+	if slot == 1:
+		_key(KEY_TAB)
+	game.menu_confirm(4)
+	_check(int(game.storage.read().chronicle.loadout.get(hero, [0, 1])[slot]) == 4, "prepared manual persists " + id)
+	_key(KEY_ESCAPE)
+
+func _equip_owned(hero: String, id: String) -> void:
+	if not _check(Equipment.unlocked(game.slot, id), "new equipment is available " + id):
+		return
+	_key(KEY_I)
+	if game.stage.party[0] != hero:
+		_key(KEY_RIGHT)
+	var kind: int = Equipment.CATALOG[id].kind
+	if kind == 1:
+		_key(KEY_TAB)
+	game.menu_confirm(Equipment.options(kind).find(id))
+	_check(Equipment.equipped(game.storage.read(), hero, kind) == id, "new equipment persists " + id)
+	_key(KEY_ESCAPE)
+
+func _verify_training_in_battle(chapter: int, fight: int) -> void:
+	match [chapter, fight]:
+		[1, 1]:
+			await _capture_tactic("market-frost-and-wind-manuals")
+			_cast_learned("crosswind", 0)
+			_cast_learned("frost_gate", 0)
+		[3, 0]:
+			_perform_action(2, 0)
+			_cast_learned("moon_needle", 0)
+		[4, 1]:
+			_perform_action(1, 0)
+			_cast_learned("sword_trace", 0)
+			if game.encounter.foes[0].opening > 0:
+				tactical_counts.armor_opened += 1
+
+func _cast_learned(id: String, wanted: int) -> void:
+	var battle: RefCounted = game.encounter
+	var label: String = Martial.MANUALS[id].move[0]
+	var action := 0
+	for candidate in [1, 2]:
+		if battle.label(candidate) == label:
+			action = candidate
+	if not _check(action > 0 and battle.available(action), "learned technique appears in its battle slot " + id):
+		return
+	_perform_action(action, wanted)
+	if _check(not battle.events.is_empty() and battle.events[0].text == label, "learned technique executes " + id):
+		learned_casts[id] = learned_casts.get(id, 0) + 1
+
+func _buy_at(shop: String, id: String) -> void:
+	if not _do_point("shop_" + shop) or not _check(game.mode == "shop" and game.shop_id == shop, "merchant is reachable " + shop):
+		return
+	var goods: Array = Economy.SHOPS[shop].goods
+	var index := goods.find_custom(func(row: Dictionary): return row.id == id)
+	if not _check(index >= 0, "merchant stocks " + id):
+		_key(KEY_ESCAPE)
+		return
+	var account: Dictionary = game.afterstory.state() if game.afterstory.active else game.slot
+	var before := Economy.offer(game.slot, account, shop, index)
+	var money: int = account.silver
+	var old_supply: int = account.supplies.get(id,0)
+	if _check(before.limit.is_empty(), "purchase is affordable and has space %s (%s)" % [id,before.limit]):
+		game.menu_confirm(index)
+		var saved: Dictionary = game.storage.read()
+		var saved_account: Dictionary = saved.afterstory if game.afterstory.active else saved
+		var after := Economy.offer(saved, saved_account, shop, index)
+		_check(saved_account.silver == money - before.price and after.remaining == before.remaining - 1, "purchase debits silver and finite stock once " + id)
+		match goods[index].kind:
+			"gear":
+				_check(saved.gear_grants.has(id), "purchase grants equipment " + id)
+			"manual":
+				_check(saved.manual_grants.has(id), "purchase grants manual " + id)
+			"supply":
+				_check(saved_account.supplies[id] == old_supply + 1, "purchase increments bag " + id)
+		if goods[index].kind in ["gear", "manual"]:
+			game.menu_confirm(index)
+			var repeated: Dictionary = game.storage.read()
+			var repeated_account: Dictionary = repeated.afterstory if game.afterstory.active else repeated
+			_check(repeated_account.silver == saved_account.silver, "one-time purchase cannot charge twice " + id)
+		market_observations.append(shop + ":" + id)
+		await _capture_tactic("market-" + shop)
+	_key(KEY_ESCAPE)
+	_check(game.mode == "field", "merchant closes back to the map")
+
+func _verify_sold_out(shop: String, id: String) -> void:
+	if not _do_point("shop_" + shop):
+		return
+	var goods: Array = Economy.SHOPS[shop].goods
+	var index := goods.find_custom(func(row: Dictionary): return row.id == id)
+	var silver: int = game.slot.silver
+	_check(Economy.offer(game.slot, game.slot, shop, index).limit == "售罄", "reopening the shop preserves exhausted stock")
+	game.menu_confirm(index)
+	_check(game.storage.read().silver == silver, "sold-out purchase cannot debit the save")
+	_key(KEY_ESCAPE)
+	market_observations.append(shop + ":sold_out")
+
+func _verify_market_legacy() -> void:
+	var current: Dictionary = game.storage.read()
+	for key in ["silver", "shop_stock", "loot_claims", "gear_grants", "manual_grants"]:
+		current.erase(key)
+	if current.has("afterstory"):
+		for key in ["silver", "shop_stock", "loot_claims"]:
+			current.afterstory.erase(key)
+	_check(game.storage.write(current), "pre-economy completed slot can be loaded")
+	var migrated: Dictionary = game.storage.read()
+	_check(migrated.silver == Economy.START_SILVER + int(migrated.chapter) * 5
+		and migrated.afterstory.silver == Economy.TIDE_SILVER and migrated.shop_stock.is_empty(), "older slot gets separate wallets and fresh shop stock")
+	_check(migrated.manual_grants.has("sword_trace") and migrated.manual_grants.has("frost_gate")
+		and migrated.gear_grants.has("sword_tassel") and migrated.gear_grants.has("tide_whistle"), "completed unique victories recover their drops on migration")
+	_check(game.storage.write(migrated) and game.storage.read().silver == migrated.silver, "migration does not repeat rewards")
+	print("MARKET_MIGRATION passed")
 
 func _verify_martial() -> void:
 	_key(KEY_K)
@@ -1211,9 +1429,9 @@ func _drain_dialogue() -> void:
 	_check(limit > 0,"dialogue completes")
 
 func _reach(kind: String, index: int = -1) -> bool:
-	var points: Array = game.afterstory.points() if game.afterstory.active else game.chronicle.points()
+	var points: Array = game.field_points()
 	for point in points:
-		if point.id == kind:
+		if point.id == kind and (index < 0 or point.get("index", -1) == index):
 			return _go_to(point.pos,9.0) and game.nearest().get("id") == kind and game.passable(game.follower)
 	if game.afterstory.active:
 		return false

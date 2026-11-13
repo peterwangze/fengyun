@@ -34,7 +34,7 @@ func _test_seals() -> void:
 	var side: RefCounted = game.chronicle.side
 	var entry: Dictionary = side.journal_entry("seals")
 	_check(entry.status == "可接取" and entry.place == "飞云堂庭院" and entry.get("point") == Vector2(142,222), "chapter-one quest identifies its nearby start")
-	_check(entry.reward == "护证短披、护脉散 ×1", "journal lists the equipment and medicine reward")
+	_check(entry.reward == "护证短披、护脉散 ×1、银两 ×4", "journal lists the equipment, medicine, and silver rewards")
 	_check(side.journal_entry("courier").status == "后续章节", "future quest is shown as unavailable")
 	_visit("side_seals", entry.get("point", Vector2.ZERO))
 	entry = side.journal_entry("seals")
@@ -88,6 +88,8 @@ func _test_apothecary() -> void:
 	_visit("pool_back",Vector2(320,289))
 	_visit("apothecary",Vector2(112,185))
 	_check(game.field_key == "apothecary" and game.chronicle.side.journal_entry("remedy").has("point"), "optional remedy remains reachable after the main-story briefing")
+	var reward: String = game.chronicle.side.journal_entry("remedy").reward
+	_check("针渡清脉抄本" in reward and "银两 ×4" in reward, "medicinal quest advertises its new manual and silver")
 
 func _has_point(id: String) -> bool:
 	return game.chronicle.side.points().any(func(spot): return spot.id == id)
