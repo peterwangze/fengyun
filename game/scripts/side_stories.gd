@@ -3,6 +3,8 @@ extends RefCounted
 const Equipment = preload("res://scripts/equipment.gd")
 const Items = preload("res://scripts/items.gd")
 
+const COURIER_CONTACT_POS := Vector2(208,209)
+const COURIER_CONTACT_NAME := "与凤溪信使会合"
 const TASKS := {
 	"seals": {
 		"title":"旧账新印",
@@ -26,7 +28,7 @@ const TASKS := {
 		"steps":{
 			"start":["village",76,233,"查看雨中脚印","","脚尖都向北，路牌却指向南。新钉的那块路牌是假的。","watch"],
 			"watch":["village",174,155,"听竹林的哨声","","两急一缓从河边传来。沿背风墙走可以避开巡哨。","decision"],
-			"decision":["inn",431,210,"接应信使","servant","沿背风墙可把信送出去。正门那名探子认识我，但现在截住他能问出口令。",[
+			"decision":["inn",431,210,"接应信使","servant","沿背风墙走，我能先把求援信送给药师。正门探子知道绝宫的操练口令，截住他就能问出来。",[
 				["沿背风墙护送","done_quiet"],["截住正门探子","fight"]]]}},
 	"forgework": {
 		"title":"炉火借一更",
@@ -70,9 +72,9 @@ const TASKS := {
 
 const RESULT := {
 	"done_guide":"证人带路。竹径巡哨的视线缩短。","done_proof":"秦霜带走口供。凤溪纸探花开战少 1 格势。",
-	"wait_boat":"船拖上岸。尾声可回访。","wait_goods":"冬粮抢回。尾声可回访。",
+	"wait_boat":"船拖上岸。尾声可回访，潮关可请渡工开水栅。","wait_goods":"冬粮抢回。尾声可回访，潮关可获乡亲补给。",
 	"done_boat":"渡口恢复两班船。","done_goods":"邻村渡工来接班。",
-	"done_quiet":"信件已经送出。","done_fight":"截击成功，获得口令。",
+	"done_quiet":"求援信已送给药师。","done_fight":"截击成功，取得绝宫操练口令。",
 	"done_rack":"剑架修复，习得翻云守势。","wait_palace":"找到断剑缘由，绝宫再见于楚楚。",
 	"wait_sage":"无名会把情报送到凌云山。","wait_guard":"守军会在凌云山接应。",
 	"done_sage":"风云练过起手。雄霸决战开场多 1 格合击。","done_guard":"守军疏散山腰百姓，决战开场削雄霸 2 格势。",
@@ -90,8 +92,8 @@ const ROOMS := {
 const CHAPTERS := ["第一章", "第二章", "第三章", "第四章", "第五章", "第六章"]
 const DECISIONS := {
 	"seals":"带证人走可缩短竹径守卫视线。留口供给秦霜，能让纸探花开场少 1 格势。",
-	"lamps":"人已经救起。拖船能恢复渡运，救货能保住过冬粮。清晨可回来看结果。",
-	"courier":"沿墙护送可避战。截住探子要交手，胜后能问出口令。",
+	"lamps":"拖船能复航，潮关有渡工开水栅。救粮能保住冬粮，潮关可获乡亲补给。",
+	"courier":"护送可免战，求援信能换药护持。截探子须交手，口令能削绝无神的势。",
 	"swordstory":"无名可教合击起手。守军能开小径，并用响箭削雄霸的势。需在凌云山会合。",
 	"remedy":"结合脉象和温补药渣，判断哪件事更紧急。",
 	"shift":"两路都开便门。潜行保住护心镜，交手可夺铜哨，均可用于凌云窟。",
@@ -99,8 +101,8 @@ const DECISIONS := {
 }
 const CONSEQUENCES := {
 	"seals":"缩短竹径巡哨视线，或让纸探花开局少 1 格势",
-	"lamps":"选择会改变清晨凤溪的回访结果",
-	"courier":"护送与截击走不同路线",
+	"lamps":"改变凤溪尾声。潮关可提早开水栅或获补给。",
+	"courier":"绝宫茶房会合，决战金身时可得护持或削敌 2 格势。",
 	"forgework":"学会翻云守势，固守后可反击",
 	"swordstory":"决战可多 1 格合击，或开近路并削雄霸 2 格势",
 	"remedy":"学会护心针，可治疗并护持队友",
@@ -116,6 +118,10 @@ func _init(game: Node2D) -> void:
 func state() -> Dictionary:
 	return g.slot.chronicle.quests
 
+func courier_contact_available() -> bool:
+	return int(g.slot.chapter) == 4 and g.chronicle.enabled() and not g.slot.cleared.has(1) \
+		and not g.chronicle.has("courier_contact") and state().get("courier","") in ["done_quiet","done_fight"]
+
 func battle_aid(room: String, encounter_index: int, special_id: String) -> Dictionary:
 	var quests := state()
 	if special_id == "cavern_guard" and room == "cavern":
@@ -130,6 +136,13 @@ func battle_aid(room: String, encounter_index: int, special_id: String) -> Dicti
 		"village":
 			if quests.get("seals","") == "done_proof":
 				return {"foe":"paper","poise":1,"line":"秦霜凭口供预判换哨，纸探花开场少 1 格势。"}
+		"palace":
+			if g.chronicle.has("courier_contact"):
+				match quests.get("courier",""):
+					"done_quiet":
+						return {"ward":"sage","line":"信使带来的护脉散护住无名，可挡下一次重击。"}
+					"done_fight":
+						return {"foe":"godless","poise":2,"line":"步惊云喊出操练口令，绝无神开场少 2 格势。"}
 		"peak":
 			match quests.get("swordstory",""):
 				"done_sage":
@@ -211,6 +224,14 @@ func journal_entry(key: String) -> Dictionary:
 	if step.begins_with("done_"):
 		entry.action = _result_line(key,step)
 		entry.payoff = _settled_payoff(key,step)
+		if key == "courier" and not g.slot.finished and not g.chronicle.has("courier_contact") \
+			and (int(g.slot.chapter) < 4 or courier_contact_available()):
+			entry.status = "待回访"
+			entry.action = COURIER_CONTACT_NAME
+			entry.place = "第五章 · 绝宫茶房侧廊" if int(g.slot.chapter) < 4 else "绝宫茶房侧廊"
+			entry.deadline = "破金身前"
+			if g.field_key == "tearoom":
+				entry.point = COURIER_CONTACT_POS
 		return entry
 	var node: Array = task.steps[step]
 	var room: String = node[0]
@@ -263,6 +284,14 @@ func _result_line(key: String, step: String) -> String:
 func _settled_payoff(key: String, step: String) -> String:
 	match key:
 		"seals": return "竹径撤离时可利用这条路。" if step == "done_guide" else "纸探花更容易被破势，能提前打断鸣哨。"
+		"lamps":
+			return "潮关查齐两件证据，渡工会抬起水栅。" if step == "done_boat" else "潮关陶伯会转交乡亲备好的补给。"
+		"courier":
+			if g.chronicle.has("courier_contact"):
+				return "无名迎战绝无神时自带一次护持。" if step == "done_quiet" else "绝无神开场少 2 格势。"
+			if int(g.slot.chapter) > 4 or (int(g.slot.chapter) == 4 and g.slot.cleared.has(1)):
+				return "支援时机已过，原先的任务回报已入手。"
+			return "绝宫可请药师给无名一次护持。" if step == "done_quiet" else "绝宫可利用口令削绝无神 2 格势。"
 		"shift": return "夺龙脉时，聂风可抵消部分首次受击。" if step == "done_stealth" else "夺龙脉时，火麟幻影开场少 2 格势。"
 		"swordstory":
 			if _duel_finished():

@@ -18,7 +18,7 @@ const SPECIALS := {
 }
 const FLAGS := ["spar","kindness","orders","ferry_evidence","dream_intro","lesson","first_tyrant",
 	"forge_rescue","forge_pursue","invaded","pool_intro","pool_gate","pool_escape","tea","fire_signal","evacuated",
-	"relic","lost_relic","shatter_relic","prepare","blood_rite","dawn_lamp"]
+	"relic","lost_relic","shatter_relic","prepare","blood_rite","dawn_lamp","courier_contact"]
 
 var g
 var side: RefCounted
@@ -152,6 +152,11 @@ func points() -> Array:
 			result.append(_point("palace_back",320,289,"返回绝宫"))
 			if g.slot.campaign.rescued and not has("tea"):
 				result.append(_point("tea",320,174,"听颜盈和绝心的交谈","juexin"))
+			if side.courier_contact_available():
+				var contact := _point("courier_contact",int(SideStories.COURIER_CONTACT_POS.x),
+					int(SideStories.COURIER_CONTACT_POS.y),SideStories.COURIER_CONTACT_NAME,"servant")
+				contact.optional = true
+				result.append(contact)
 			if g.slot.cleared.has(1) and not has("evacuated"):
 				if not has("fire_signal"):
 					result.append(_point("fire_signal",414,178,"查看绝无神和绝心","godless"))
@@ -334,6 +339,14 @@ func handle(id: String) -> bool:
 				["颜盈","我按你说的把药倒进茶里了。绝心，你答应我，让风儿活着离开。"],
 				["绝心","父亲只肯把位置留给绝天。等步惊云破了他的金身，我给他奉最后一盏茶。"],
 				["步惊云","绝心等我们动手，好接手那道假诏。先回绝宫破金身，再赶到侧廊接至尊。"]])
+		"courier_contact":
+			if g.field_key != "tearoom" or not side.courier_contact_available():
+				return false
+			match side.state().get("courier",""):
+				"done_quiet":
+					beat("courier_contact",[["信使","那封信请来了药师。我带了一包护脉散，先给无名先生敷上，绝无神的头一拳就有人能接住。"]])
+				"done_fight":
+					beat("courier_contact",[["信使","凤溪问出的口令是「收拳回阵」。开打时你喊一声，绝无神会以为亲卫要换位，足够你抢个先手。"]])
 		"fire_signal":
 			var path := "狱卒给你留了便门，大家顺着近路撤！" if String(side.state().get("shift","")).begins_with("done_") else "沿左廊走，低头避烟！"
 			beat("fire_signal",[
@@ -380,9 +393,12 @@ func handle(id: String) -> bool:
 			match side.state().get("stairs",""):
 				"done_escort": river = "从小径下山的人都坐上船了。船家说夜里也会留着这盏灯。"
 				"done_decoy": river = "从岔口脱身的乡亲都到了。那位老伯给灯添了油，说要照到夜里。"
-			beat("dawn_lamp",[
-				["聂风","雨停了。桥栏还在，我把灯搁在这儿。"],
-				["步惊云",river]])
+			var farewell := [["聂风","雨停了。桥栏还在，我把灯搁在这儿。"],["步惊云",river]]
+			if has("courier_contact"):
+				var news := "你们让我送去的那封信救了人。药师留下来，今后渡工伤了能找她。" \
+					if side.state().get("courier","") == "done_quiet" else "我把当夜截到的口令和换岗时刻交给了至尊。州府正按它们找被私押的人。"
+				farewell.insert(1,["信使",news])
+			beat("dawn_lamp",farewell)
 		"dawn_exit":
 			if not warn_departure(_finish_dawn):
 				_finish_dawn()

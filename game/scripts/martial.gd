@@ -4,6 +4,7 @@ const Story = preload("res://scripts/story.gd")
 const Equipment = preload("res://scripts/equipment.gd")
 const SYNERGY_TIER := 2
 const SYNERGY_ADVANCED_TIER := 4
+const EXPLOIT_COST := 3
 const SYNERGY_NAMES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const PROTECTION := ["cover", "counter", "shelter", "aid"]
 const EXTRA := {
@@ -102,12 +103,12 @@ static func synergy_descriptions(slot: Dictionary, hero: String, rank: int) -> P
 	var active := synergies(slot, hero, rank)
 	var descriptions := PackedStringArray()
 	if active.has("interrupt"):
-		descriptions.append("截势 · 单体削势武学破势时回 %d 气" % active.interrupt)
+		descriptions.append("截势 · 武学破势回 %d 气，截断重招多回 2 气" % active.interrupt)
 	if active.has("retaliate"):
-		var recovery := "并回 %d 气" % active.retaliate if active.retaliate > 0 else ""
-		descriptions.append("守反 · 以护招接住攻击，得 1 格合击%s" % recovery)
+		var recovery := "、回 %d 气" % active.retaliate if active.retaliate > 0 else ""
+		descriptions.append("守反 · 接住一击造空门，合击 +1%s" % recovery)
 	if active.has("exploit"):
-		descriptions.append("乘隙 · 重招打已破势敌人，首个目标伤害基础 +%d" % active.exploit)
+		descriptions.append("乘隙 · 重招打空门，额外耗 3 气，威力 +%d" % active.exploit)
 	return descriptions
 
 static func pair_id(party: Array) -> String:

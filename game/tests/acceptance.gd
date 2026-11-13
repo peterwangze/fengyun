@@ -4,7 +4,9 @@ const MAIN = preload("res://main.tscn")
 const Equipment = preload("res://scripts/equipment.gd")
 const Martial = preload("res://scripts/martial.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
+const Battle = preload("res://scripts/battle.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
+const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 var game
 var failures := 0
 var wins := 0
@@ -33,6 +35,9 @@ var chapter_battles: Array[Dictionary] = []
 var build_triggers := {"截势":0,"守反":0,"乘隙":0}
 var measured_encounter: RefCounted
 var battle_metrics := {}
+var counterplay := false
+var quest_carryover := false
+var tactical_counts := {"fire_blocked":0, "fire_guarded":0, "mind_suppressed":0, "armor_opened":0}
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -63,6 +68,8 @@ func _run() -> void:
 	tidal = "--tidal" in OS.get_cmdline_user_args()
 	tidal_sluice = "--tidal-sluice" in OS.get_cmdline_user_args()
 	pacing = "--pacing" in OS.get_cmdline_user_args()
+	counterplay = "--counterplay" in OS.get_cmdline_user_args()
+	quest_carryover = "--quest-carryover" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
 		quit(1)
@@ -222,6 +229,9 @@ func _run() -> void:
 				if quests:
 					await _side_step("shift",int(alternate))
 					await _side_step("swordstory",int(alternate))
+					if game.field_points().any(func(point: Dictionary): return point.id == "courier_contact"):
+						_do_point("courier_contact")
+						_check(game.storage.read().chronicle.marks.get("courier_contact", false), "courier handoff persists")
 				_do_point("palace_back")
 			if chapter == 5 and fight == 1 and quests:
 				await _side_step("swordstory")
@@ -249,6 +259,12 @@ func _run() -> void:
 					"seal proof changes the enemy's opening stance on the west bank")
 				if proof:
 					print("AID west bank " + game.encounter.quest_aid_line)
+			if quests and chapter == 4 and fight == 1 and game.chronicle.has("courier_contact"):
+				var godless: Dictionary = game.encounter.foes[0]
+				var detained: bool = game.slot.chronicle.quests.courier == "done_fight"
+				var aid_applied: bool = godless.poise == godless.max_poise - 2 if detained else game.encounter.allies[1].ward
+				_check(aid_applied and not game.encounter.quest_aid_line.is_empty(), "courier follow-up changes the armor fight opening")
+				print("AID palace " + game.encounter.quest_aid_line)
 			if chapter == 0 and fight == 0 and not pacing:
 				await _capture("03-first-battle")
 				_key(KEY_1)
@@ -282,7 +298,9 @@ func _run() -> void:
 				await _signal_opening()
 			if chapter == 3 and fight == 0:
 				await _demon_opening()
-			if chapter == 2 and fight == 2:
+			if chapter == 3 and fight == 1 and counterplay and not game.slot.easy:
+				await _exercise_corruption_warning()
+			if chapter == 2 and fight == 2 and build_route != "exploit":
 				_check(game.encounter.allies[0].moves[1][0] == "剑扫长空","claimed sword equips move in swordpool after reload")
 			if not await _play_battle():
 				quit(1)
@@ -398,7 +416,17 @@ func _run() -> void:
 		_check(Equipment.owned(completed_slot).size() == 10,"all ten rewards available after clearing the campaign and quests")
 	if not build_route.is_empty():
 		print("Build activations during real battles: ",build_triggers)
-		_check(build_triggers.values().all(func(count: int): return count > 0),"each equipped style activated during campaign combat")
+		if build_route == "mix":
+			_check(build_triggers.values().all(func(count: int): return count > 0),"each equipped style activated during campaign combat")
+		else:
+			var primary: String = ROUTE_STYLES[build_route]
+			_check(build_triggers[primary] > 0 and build_triggers.values().count(0) == 2,
+				"only the selected build activated during campaign combat")
+	if counterplay and not easy:
+		_check(tactical_counts.fire_blocked + tactical_counts.fire_guarded > 0, "played at least one response to Duan Lang")
+		_check(tactical_counts.mind_suppressed > 0, "suppressed the magic blade to prevent the stronger sweep")
+		_check(tactical_counts.armor_opened > 0, "opened Godless's armor by reacting to the heavy attack")
+		print("TACTICS ", tactical_counts)
 	if tidal and game.mode == "ending":
 		await _verify_afterstory()
 	_verify_replay()
@@ -436,6 +464,15 @@ func _equip_route() -> void:
 func _equip_playtest_build(chapter: int) -> void:
 	if game.rank() < Martial.SYNERGY_TIER:
 		return
+	if ROUTE_STYLES.has(build_route):
+		_equip_primary_build(chapter)
+	else:
+		_equip_mixed_build(chapter)
+	game._commit()
+	var detail: Array = game.stage.party.map(func(hero: String): return "%s %s" % [hero, Martial.synergy_text(game.slot, hero, game.rank())])
+	print("Build loadout chapter %d: %s" % [chapter + 1, detail])
+
+func _equip_mixed_build(chapter: int) -> void:
 	match chapter:
 		1:
 			_equip_for_route("wind", [0, 2], "travel_coat", "qi_ring")
@@ -452,9 +489,28 @@ func _equip_playtest_build(chapter: int) -> void:
 		5:
 			_equip_for_route("cloud", [0, 3], "scale_vest", "ferry_knot")
 			_equip_for_route("wind", [0, 3], "travel_coat", "qi_ring")
-	game._commit()
-	var detail: Array = game.stage.party.map(func(hero: String): return "%s %s" % [hero, Martial.synergy_text(game.slot, hero, game.rank())])
-	print("Build loadout chapter %d: %s" % [chapter + 1, detail])
+
+func _equip_primary_build(chapter: int) -> void:
+	var party: Array = game.stage.party
+	var first: String = party[0]
+	var second: String = party[1]
+	match build_route:
+		"interrupt":
+			var badge := "courier_badge" if Equipment.unlocked(game.slot, "courier_badge") else ""
+			_equip_for_route(first, [0, 1], "travel_coat", "qi_ring")
+			_equip_for_route(second, [0, 1], "scale_vest", badge)
+		"retaliate":
+			var opener: Array = [0, 2] if first != "cloud" or Martial.unlocked(game.slot, first, 2) else [0, 1]
+			var responder: Array = [0, 2] if Martial.unlocked(game.slot, second, 2) else [0, 1]
+			_equip_for_route(first, opener, "travel_coat", "")
+			_equip_for_route(second, responder, "scale_vest", "")
+		"exploit":
+			if chapter < 2:
+				return
+			var user: String = {2:"wind", 3:"dream", 4:"cloud", 5:"cloud"}[chapter]
+			_equip_for_route(first, [0, 3] if first == "cloud" else [0, 1], "travel_coat", "ferry_knot" if user == first else "")
+			var followup: Array = [1, 0] if second == "wind" else ([0, 3] if second == "cloud" else [0, 1])
+			_equip_for_route(second, followup, "scale_vest", "ferry_knot" if user == second else "")
 
 func _equip_for_route(hero: String, moves: Array, armor: String, accessory: String) -> void:
 	_check(moves.all(func(at: int): return Martial.unlocked(game.slot, hero, at)), "route martial arts are available for " + hero)
@@ -497,17 +553,28 @@ func _verify_afterstory() -> void:
 	_key(KEY_ENTER)
 	_check(game.afterstory.active and game.field_key == "tidal_ford","credits open the Tidegate story")
 	await _capture("tidal-ford")
+	var opening_tonics: int = game.afterstory.state().tonics
+	var opening_powder: int = game.afterstory.state().supplies.guard_powder
 	_do_point("brief")
+	if quest_carryover and quests and alternate:
+		_check(game.afterstory.state().tonics == opening_tonics + 1 and game.afterstory.state().supplies.guard_powder == opening_powder + 1,
+			"preserving the grain sends medicine on Tidegate's first briefing")
+		print("AID Tidegate grain +1 tonic and +1 ward powder")
 	_do_point("seal")
 	_check(not _reach("gate_entry"),"gate route requires both pieces of evidence")
 	_do_point("register")
+	if quest_carryover and quests and not alternate:
+		_check(game.afterstory.state().sluice and game.storage.read().afterstory.sluice,
+			"saving the ferry opens Tidegate's waterway after both clues")
+		print("AID Tidegate boat opened the waterway")
 	_key(KEY_J)
 	_check(game.mode == "journal","Tidegate journal opens")
 	await _capture("tidal-journal")
 	_key(KEY_ESCAPE)
 	if tidal_sluice:
-		_check(not _reach("sluice_entry"),"watergate entry requires the winch")
-		_do_point("sluice")
+		if not game.afterstory.state().sluice:
+			_check(not _reach("sluice_entry"),"watergate entry requires the winch or help from Fengxi")
+			_do_point("sluice")
 		_do_point("sluice_entry")
 	else:
 		_do_point("gate_entry")
@@ -519,15 +586,16 @@ func _verify_afterstory() -> void:
 		_do_point("gate")
 		if not _check(game.mode == "battle","enter gate encounter"):
 			return
+		var initial_tonics: int = game.afterstory.state().tonics
 		_key(KEY_5)
 		_key(KEY_ENTER)
 		for turn in 180:
 			if game.mode != "battle":
 				break
 			_key(KEY_4)
-		_check(game.mode == "defeat" and game.afterstory.state().tonics == 3,"defeat leaves Tidegate checkpoint supply intact")
+		_check(game.mode == "defeat" and game.afterstory.state().tonics == initial_tonics,"defeat leaves Tidegate checkpoint supply intact")
 		_key(KEY_ENTER)
-		_check(game.mode == "battle" and game.encounter.tonics == 3,"retry restores Tidegate supply")
+		_check(game.mode == "battle" and game.encounter.tonics == initial_tonics,"retry restores Tidegate supply")
 		if not await _play_battle():
 			return
 		_key(KEY_ENTER)
@@ -850,6 +918,29 @@ func _demon_opening() -> void:
 	_check(game.encounter.corruption == 0,"Second Dream suppresses corruption")
 	used_actions.techniques += 2
 
+func _exercise_corruption_warning() -> void:
+	var battle: RefCounted = game.encounter
+	_key(KEY_3)
+	_key(KEY_4)
+	_key(KEY_3)
+	used_actions.techniques += 2
+	used_actions.guard += 1
+	if battle.foes[0].broken:
+		_key(KEY_4)
+		used_actions.guard += 1
+	_check(battle.corruption == 4 and battle.intent(battle.foes[0]).contains("魔念横扫"),
+		"using the magic blade twice makes the stronger sweep visible before the enemy acts")
+	await _capture_tactic("demon-mind-sweep")
+	if battle.actor == 0:
+		_key(KEY_4)
+		used_actions.guard += 1
+	else:
+		_key(KEY_2)
+		used_actions.techniques += 1
+	_check(battle.corruption < 4 and battle._pattern(battle.foes[0]) != "mind_sweep",
+		"guard or healing suppresses the visible sweep before the enemy acts")
+	tactical_counts.mind_suppressed += 1
+
 func _tutorial_combat() -> void:
 	var before: int = game.encounter.foes[0].hp
 	var wind_hp: int = game.encounter.allies[1].hp
@@ -995,6 +1086,13 @@ func _capture_effect(style: String) -> void:
 	await create_timer(0.23).timeout
 	await _capture("fx-" + style)
 
+func _capture_tactic(name: String) -> void:
+	if not visual or report_dir.is_empty() or captured_effects.has(name):
+		return
+	captured_effects[name] = true
+	await create_timer(1.4).timeout
+	await _capture(name)
+
 func _verify_map(chapter: int) -> void:
 	_check(game.passable(game.follower) and game.player.distance_to(game.follower) >= 28.0,
 		"companion starts on a separate walkable point on " + game.stage.key)
@@ -1137,6 +1235,9 @@ func _play_battle() -> bool:
 		var heal_index: int = b.weakest_ally()
 		var wounded: Dictionary = b.allies[heal_index]
 		var selection := _build_action(b, self_unit, enemy, foe_index) if not build_route.is_empty() else {}
+		var tactical := _boss_response(b, enemy, foe_index, selection) if counterplay and not b.story_mode else {}
+		if not tactical.is_empty():
+			selection = tactical
 		saw_shield = saw_shield or (enemy.id == "boss" and enemy.shield)
 		if b.available(5) and (enemy.id != "boss" or (not poise_finish and enemy.shield)):
 			action = 5
@@ -1163,17 +1264,32 @@ func _play_battle() -> bool:
 				if score > best:
 					action = candidate
 					best = score
-		_key(KEY_1 + action)
+		var foe_before := {"opening": enemy.get("opening", 0), "pattern": b._pattern(enemy)}
+		if counterplay and not b.story_mode:
+			if foe_before.pattern == "fire_sweep" and tactical_counts.fire_blocked + tactical_counts.fire_guarded == 0:
+				await _capture_tactic("duan-fire-sweep")
+			if foe_before.pattern == "armor_bash" and tactical_counts.armor_opened == 0:
+				await _capture_tactic("godless-heavy-attack")
+		var acting: int = b.actor
+		var wanted: int = heal_index if action == 4 else (selection.target if selection.get("action") == action else foe_index)
+		_perform_action(action, wanted)
 		match action:
 			1,2: used_actions.techniques += 1
 			3: used_actions.guard += 1
 			4: used_actions.tonics += 1
 			5: used_actions.combo += 1
-		if game.pending_action >= 0:
-			var wanted: int = heal_index if action == 4 else (selection.target if selection.get("action") == action else foe_index)
-			if game.target != wanted:
-				_key(KEY_RIGHT)
-			_key(KEY_ENTER)
+		if counterplay and not b.story_mode:
+			if foe_before.pattern in ["kindle", "fire_sweep"] and b.events.any(func(event: Dictionary):
+				return event.kind == "break" and event.side == "foe" and event.index == foe_index):
+				tactical_counts.fire_blocked += 1
+			if foe_before.pattern == "fire_sweep" and b.events.any(func(event: Dictionary):
+				return event.kind == "damage" and event.side == "ally" and event.style == "guard"):
+				tactical_counts.fire_guarded += 1
+			if enemy.id == "godless" and enemy.get("opening", 0) > foe_before.opening and foe_before.pattern == "armor_bash":
+				tactical_counts.armor_opened += 1
+				await _capture_tactic("godless-armor-opening")
+			if tactical.get("action") == action:
+				print("RESPONSE %s %s %s" % [enemy.id, foe_before.pattern, b.allies[acting].name])
 		if not build_route.is_empty() and not b.synergy_feedback.is_empty():
 			var style_name: String = b.synergy_feedback.get_slice(" ",0)
 			if build_triggers.has(style_name):
@@ -1192,6 +1308,46 @@ func _play_battle() -> bool:
 		chapter_battles.append(battle_metrics)
 	return true
 
+func _perform_action(action: int, wanted: int) -> void:
+	if action >= Battle.FIRST_SUPPLY:
+		_key(KEY_B)
+		for next in range(action - Battle.FIRST_SUPPLY + 1):
+			_key(KEY_RIGHT)
+		_key(KEY_ENTER)
+	else:
+		_key(KEY_1 + action)
+	if game.pending_action >= 0:
+		if game.target != wanted:
+			_key(KEY_RIGHT)
+		_key(KEY_ENTER)
+
+func _boss_response(b: RefCounted, enemy: Dictionary, foe_index: int, build_selection: Dictionary) -> Dictionary:
+	if enemy.broken:
+		return {}
+	var pattern: String = b._pattern(enemy)
+	var actor: Dictionary = b.allies[b.actor]
+	if pattern == "kindle" and b.round_no == 1 and build_route == "retaliate":
+		return {"action":3,"target":b.actor}
+	if pattern == "fire_sweep" and build_route == "retaliate":
+		if not build_selection.is_empty() and build_selection.action in [1, 2] and Martial.protection_move(actor.moves[build_selection.action - 1]):
+			return build_selection
+		return {"action":3,"target":b.actor}
+	if pattern == "armor_bash" and not actor.ward and not actor.guard:
+		var target: int = b._threat_target(enemy)
+		if b.actor == target:
+			if not build_selection.is_empty() and build_selection.action in [1, 2] and Martial.protection_move(actor.moves[build_selection.action - 1]):
+				return build_selection
+			if b.round_no == 1 or build_route == "retaliate":
+				return {"action":3,"target":target}
+	if pattern in ["kindle", "fire_sweep"] and build_selection.is_empty():
+		for action in [1, 2]:
+			if b.available(action) and b.poise_preview(action, foe_index).begins_with("可破势"):
+				return {"action":action,"target":foe_index}
+		var needle := Battle.FIRST_SUPPLY + 2
+		if b.available(needle) and b.poise_preview(needle, foe_index).begins_with("可破势"):
+			return {"action":needle,"target":foe_index}
+	return {}
+
 func _build_action(b: RefCounted, unit: Dictionary, enemy: Dictionary, foe_index: int) -> Dictionary:
 	for candidate in [1, 2]:
 		if not b.available(candidate):
@@ -1199,7 +1355,7 @@ func _build_action(b: RefCounted, unit: Dictionary, enemy: Dictionary, foe_index
 		var move: Array = unit.moves[candidate - 1]
 		if unit.build.has("exploit") and Martial.exploit_move(move):
 			for at in b.foes.size():
-				if b.foes[at].hp > 0 and b.foes[at].broken:
+				if b.foes[at].hp > 0 and (b.foes[at].broken or b.foes[at].get("opening", 0) > 0):
 					return {"action":candidate,"target":at}
 		if unit.build.has("interrupt") and Martial.interrupt_move(move):
 			for at in b.foes.size():
@@ -1215,7 +1371,7 @@ func _build_action(b: RefCounted, unit: Dictionary, enemy: Dictionary, foe_index
 				if threat.hp <= 0 or threat.broken:
 					continue
 				var pattern: String = b._pattern(threat)
-				if pattern == "sweep" or (pattern in ["strike", "charge"] and (move[6] == "shelter" or b._threat_target(threat) == defender)):
+				if pattern in ["sweep", "fire_sweep", "mind_sweep"] or (pattern in ["strike", "charge", "armor_bash"] and (move[6] == "shelter" or b._threat_target(threat) == defender)):
 					return {"action":candidate,"target":defender}
 	for candidate in [1, 2]:
 		var move: Array = unit.moves[candidate - 1]
@@ -1227,7 +1383,6 @@ func _build_action(b: RefCounted, unit: Dictionary, enemy: Dictionary, foe_index
 	return {}
 
 func _verify_model() -> void:
-	var Battle = preload("res://scripts/battle.gd")
 	var direct = Battle.new(["cloud","wind"],["gate_guard"],1,3,false,0)
 	var defended = Battle.new(["cloud","wind"],["gate_guard"],1,3,false,0)
 	direct.act(0,0)

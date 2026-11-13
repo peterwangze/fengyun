@@ -53,6 +53,18 @@ func _run() -> void:
 	_check(game.mode == "field", "old action position does not trigger a nearby interaction")
 	_touch(1, Vector2(420, 337), true)
 	_check(game.mode == "dialogue", "bottom action triggers the nearby interaction")
+	game._approach_battle(0)
+	game._start_battle()
+	game.battle_choose(1)
+	var starting_qi: int = game.encounter.allies[0].qi
+	game.click("pick_target", 1)
+	_check(game.target == 1 and game.pending_action == 1 and game.encounter.allies[0].qi == starting_qi,
+		"touching a target changes the preview without committing the technique")
+	game.click("cancel", 0)
+	_check(game.pending_action < 0 and game.encounter.allies[0].qi == starting_qi, "canceling target selection preserves Qi")
+	game.battle_choose(1)
+	game.click("confirm", 0)
+	_check(game.pending_action < 0 and game.encounter.allies[0].qi < starting_qi, "touch confirm executes the selected technique")
 	print("Touch controls: %d failures" % failures)
 	quit(1 if failures else 0)
 

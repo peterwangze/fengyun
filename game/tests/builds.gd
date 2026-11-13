@@ -13,6 +13,9 @@ func _initialize() -> void:
 	_test_guard()
 	_test_exploit()
 	_test_quest_aid()
+	_test_fire_elites()
+	_test_demon()
+	_test_golden_armor()
 	print("Builds: %d failures" % failures)
 	quit(1 if failures else 0)
 
@@ -103,10 +106,17 @@ func _test_exploit() -> void:
 		battle.foes[0].max_hp = 200
 		battle.act(1, 0)
 		if battle == linked:
-			_check("乘隙威力 +12" in battle.poise_preview(2, 0), "target preview shows the available follow-through")
+			_check("乘隙 +12" in battle.poise_preview(2, 0), "target preview shows the available follow-through and resource cost")
 		battle.act(2, 0)
 	_check(linked.foes[0].hp < baseline.foes[0].hp and linked.synergy_feedback == "乘隙 · 重招威力 +12",
 		"partner opens a gap and the heavy technique exploits it")
+	_check(linked.allies[1].qi == baseline.allies[1].qi - Martial.EXPLOIT_COST,
+		"follow-through spends only the stated extra Qi")
+	var strained := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
+	strained.foes[0].opening = 1
+	strained.allies[0].qi = 11
+	_check("另需 3 气" in strained.poise_preview(2, 0) and strained.act(2, 0) and strained.allies[0].qi == 0
+		and strained.synergy_feedback.is_empty(), "a heavy strike can still be cast at its base cost without the affinity bonus")
 	var unbroken := _battle(slot, ["wind", "cloud"], ["gate_guard"], 4)
 	unbroken.foes[0].poise = 1
 	_check(unbroken.act(2, 0) and unbroken.foes[0].broken and unbroken.synergy_feedback.is_empty(),
@@ -119,6 +129,93 @@ func _test_quest_aid() -> void:
 		"quest intelligence weakens just the named living enemy without an automatic break")
 	_check(battle.bond == 4 and battle.allies[1].ward and battle.quest_aid_line in battle.log,
 		"quest aid applies opening protection and capped bond with visible feedback")
+
+func _test_fire_elites() -> void:
+	var slot := _slot()
+	var hold := _battle(slot, ["cloud", "wind"], ["duan"], 3)
+	_check("引火" in hold.intent(hold.foes[0]) and "破势" in hold.tactical_hint(hold.presentation()),
+		"Duan telegraphs the charge and explains how to stop it")
+	hold.act(3, 0)
+	hold.act(3, 0)
+	_check(hold.foes[0].kindle and hold._pattern(hold.foes[0]) == "fire_sweep", "allowing the charge arms the next round's sweep")
+	var control := _battle(slot, ["cloud", "wind"], ["duan"], 3)
+	control.act(3, 0)
+	control.act(3, 0)
+	hold.act(3, 0)
+	hold.act(3, 0)
+	control.act(0, 0)
+	control.act(0, 0)
+	_check(hold.allies[0].hp > control.allies[0].hp and hold.allies[1].hp > control.allies[1].hp
+		and not hold.foes[0].kindle, "ordinary guard softens the fire sweep for both fighters and the charge expires")
+	Equipment.assign(slot, "wind", 1, "courier_badge")
+	var breaker := _battle(slot, ["cloud", "wind"], ["duan"], 3)
+	breaker.foes[0].poise = 4
+	breaker.act(1, 0)
+	var qi: int = breaker.allies[1].qi
+	_check("截势回气 5" in breaker.poise_preview(1, 0), "interrupt style previews the extra Qi for stopping a boss windup")
+	breaker.act(1, 0)
+	_check(not breaker.foes[0].kindle and breaker.allies[1].qi == qi - 7 + 5 and "断浪引火被打断，火刃未能横扫。" in breaker.log,
+		"breaking the windup prevents the sweep and awards the stated Qi")
+	var elite := _battle(slot, ["cloud", "wind"], ["beast"], 3)
+	_check(elite._pattern(elite.foes[0]) == "charge", "optional forge elite pressures immediately before it can light its weapon")
+	elite.act(3, 0)
+	elite.act(3, 0)
+	_check(elite._pattern(elite.foes[0]) == "kindle", "the forge beast shares the charge-up system on an offset turn")
+	var cavern := Battle.new(["cloud", "wind"], ["beast"], 5, 0, false, 5, true, {}, true)
+	var easy := Battle.new(["cloud", "wind"], ["duan"], 3, 0, true, 2, false, {}, true)
+	_check(cavern._pattern(cavern.foes[0]) != "kindle" and easy._pattern(easy.foes[0]) != "kindle",
+		"cavern reuse and story difficulty keep their original behavior")
+
+func _test_demon() -> void:
+	var slot := _slot()
+	slot.chapter = 3
+	var pressured := _battle(slot, ["wind", "dream"], ["demon"], 4)
+	var relieved := _battle(slot, ["wind", "dream"], ["demon"], 4)
+	for battle in [pressured, relieved]:
+		battle.corruption = 2
+		battle.act(2, 0)
+	_check("耗气" in pressured.intent(pressured.foes[0]) and "回春" in pressured.tactical_hint(pressured.presentation()),
+		"building four corruption telegraphs a Qi-draining sweep before the partner acts")
+	var qi: int = pressured.allies[0].qi
+	pressured.act(0, 0)
+	relieved.act(1, 0)
+	_check(pressured.allies[0].qi == qi - 4 and relieved.allies[0].qi == qi and relieved.corruption == 1,
+		"a reckless attack loses Qi while Dream's healing suppresses the special sweep")
+	var guarded := _battle(slot, ["wind", "dream"], ["demon"], 4)
+	guarded.corruption = 4
+	guarded.act(3, 0)
+	_check(guarded.corruption == 2 and guarded._pattern(guarded.foes[0]) != "mind_sweep", "Wind can also suppress the sweep by guarding")
+
+func _test_golden_armor() -> void:
+	var slot := _slot()
+	slot.chapter = 4
+	slot.campaign.sword = true
+	var defended := _battle(slot, ["cloud", "sage"], ["godless"], 5)
+	var reckless := _battle(slot, ["cloud", "sage"], ["godless"], 5)
+	for battle in [defended, reckless]:
+		battle.act(0, 0)
+	_check("金身重击 › 无名" == defended.intent(defended.foes[0]), "the golden armor attack names its intended target")
+	defended.act(3, 0)
+	reckless.act(0, 0)
+	_check(defended.foes[0].opening == 1 and reckless.foes[0].opening == 0,
+		"guarding with the named target creates an armor gap on the next round")
+	var guarded_before: int = defended.foes[0].hp
+	var normal_before: int = reckless.foes[0].hp
+	defended.act(1, 0)
+	reckless.act(1, 0)
+	_check(guarded_before - defended.foes[0].hp > normal_before - reckless.foes[0].hp,
+		"the gap bypasses armor without relying on the equipped synergy or the combo")
+	defended.act(3, 0)
+	_check(defended.foes[0].opening == 0, "the guarded opening expires after its follow-through round")
+	Equipment.assign(slot, "cloud", 1, "ferry_knot")
+	Equipment.assign(slot, "sage", 0, "travel_coat")
+	slot.chronicle.loadout.cloud = [0, 3]
+	slot.chronicle.loadout.sage = [2, 0]
+	var linked := _battle(slot, ["cloud", "sage"], ["claw"], 5)
+	linked.act(0, 0)
+	linked.act(1, 0)
+	_check(linked.foes[0].opening == 1 and "守反" in linked.synergy_feedback, "equipped counter creates a follow-through opening on an ordinary foe")
+	_check(linked.act(2, 0) and "乘隙" in linked.synergy_feedback, "the next partner exploits the opening from a defensive build")
 
 func _check(passed: bool, description: String) -> void:
 	print(("PASS " if passed else "FAIL ") + description)

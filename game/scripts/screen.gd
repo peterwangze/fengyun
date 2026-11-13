@@ -663,8 +663,13 @@ func _martial() -> void:
 		var box := Rect2(91,127+i*36,152,29)
 		var ready := Martial.unlocked(g.slot,id,i)
 		_button(learned[i][0],box,i,ready)
-		_text("%d 气 · %s" % [learned[i][1],learned[i][5]] if ready else "随修行或任务解锁",
-			257,box.position.y+20,13,CREAM if ready else FAINT)
+		if ready:
+			_text("%d 气 · %s" % [learned[i][1],learned[i][5]],257,box.position.y+14,13)
+			var styles := _move_styles(learned[i])
+			if not styles.is_empty():
+				_text(styles,257,box.position.y+28,11,TEAL)
+		else:
+			_text("随修行或任务解锁",257,box.position.y+20,13,FAINT)
 	_text(_build_summary(id,g.rank()),91,280,13,TEAL)
 	if g.slot.chapter == 3 and id == "wind":
 		_text("魔池试炼会把栏位 2 暂时换成魔刀狂斩。",91,298,12,GOLD)
@@ -674,6 +679,13 @@ func _martial() -> void:
 	else:
 		_hit(Rect2(486,290,70,29),"cancel")
 	_text(hint,91,312,12,DIM)
+
+func _move_styles(move: Array) -> String:
+	var styles := PackedStringArray()
+	if Martial.interrupt_move(move): styles.append("截势")
+	if Martial.protection_move(move): styles.append("守反")
+	if Martial.exploit_move(move): styles.append("乘隙")
+	return " / ".join(styles)
 
 func _gear() -> void:
 	_fill(FULL,Color("#0b1120ce"))
@@ -727,9 +739,9 @@ func _build_guide() -> void:
 	_text("境界 %d 开启搭配，境界 %d 强化效果。当前境界 %d。" %
 		[Martial.SYNERGY_TIER,Martial.SYNERGY_ADVANCED_TIER,rank],82,88,13,DIM)
 	var cards := [
-		["截势", "纳气玉扣或信使铜牌 ＋ 单体削势至少 2 的武学", "用武学破势后回气。适合打断鸣哨或蓄势。"],
-		["守反", "护具 ＋ 护风步、翻云守势等护持武学", "成功守住一击可积累合击。观察敌方预告再守。"],
-		["乘隙", "渡口缆结 ＋ 傲寒六诀、断浪追斩等重招", "重招命中已破势的目标时追加伤害。让搭档先出手。"],
+		["截势", "纳气玉扣或信使铜牌 ＋ 单体削势至少 2 的武学", "破势回气，截断首领重招时多回 2 气。"],
+		["守反", "护具 ＋ 护风步、翻云守势等护持武学", "护招接住攻击，每回合可造一次空门并积攒合击。"],
+		["乘隙", "渡口缆结 ＋ 傲寒六诀、断浪追斩等重招", "重招打空门时额外耗 3 气提高威力。"],
 	]
 	for i in cards.size():
 		var y := 104 + i * 58
@@ -765,6 +777,8 @@ func _battle() -> void:
 	_dots("dust",0.16)
 	_text(g.battle_info()[0],22,32,24,CREAM,SERIF)
 	_text("回合 %02d" % view.round,23,54,13,GOLD)
+	if int(g.slot.chapter) == 3:
+		_text("魔念 %d / 6" % view.corruption,105,54,12,RED if view.corruption >= 4 else DIM)
 	var combat_status: String = "境界 6    ·    合击" if g.afterstory.active else "历练  %d    ·    合击" % g.slot.merit
 	_right(combat_status,544,29,13,DIM)
 	for i in 4:
@@ -790,8 +804,7 @@ func _battle() -> void:
 	if g.pending_action >= 0:
 		description = "选择队友" if battle.targets_ally(g.pending_action) else "选择敌人"
 		if not g.touch_ui():
-			description += ("   ·   摇杆或方向键切换 / A 确定 / B 取消" if g.using_joypad
-				else "   ·   方向键切换 / Enter 确定 / Esc 取消")
+			description += ("  ·  方向键 / A 确定" if g.using_joypad else "  ·  方向键 / Enter 确定")
 	elif g.mode == "battle":
 		if g.bag_open:
 			description = battle.detail(battle.bag_actions()[g.bag_index])
@@ -803,7 +816,8 @@ func _battle() -> void:
 		description = ""
 	_text(description,22,270,13,GOLD)
 	if g.pending_action >= 0:
-		_right(battle.poise_preview(g.pending_action,g.target),618,270,12,TEAL)
+		var preview: String = battle.poise_preview(g.pending_action,g.target)
+		_right(preview,618,270,11 if preview.length() > 26 else 12,TEAL)
 	if g.pending_action < 0 and g.mode == "battle" and not g.bag_open:
 		_right(battle.log[-1],618,270,12,DIM)
 	if g.bag_open:
@@ -830,8 +844,10 @@ func _battle_touch_targets(battle: RefCounted) -> void:
 		var unit: Dictionary = units[i]
 		if battle.valid_target(g.pending_action, i):
 			var box := Rect2(21 + (i % 2) * 202, 278 + floori(i / 2.0) * 38, 196, 34)
-			_touch_battle_button(box, unit.name, "ally" if friendly else "foe", i)
-	_touch_battle_button(Rect2(425,278,196,72),"取消选招","cancel")
+			var label: String = "◆  " + unit.name if g.target == i else unit.name
+			_touch_battle_button(box,label,"pick_target",i)
+	_touch_battle_button(Rect2(425,278,196,34),"确认出招","confirm")
+	_touch_battle_button(Rect2(425,316,196,34),"取消选招","cancel")
 
 func _battle_bag(battle: RefCounted) -> void:
 	var actions: Array[int] = battle.bag_actions()
@@ -871,8 +887,8 @@ func _build_battle_feedback(battle: RefCounted, view: Dictionary) -> void:
 		return
 	var width := SANS.get_string_size(feedback,HORIZONTAL_ALIGNMENT_LEFT,-1,11).x
 	var wraps := width > 254.0
-	_fill(Rect2(22,92,minf(270.0,width + 16.0),33 if wraps else 21),Color("#111a2beb"))
-	_paragraph(feedback,30,106,254,11,TEAL,13)
+	_fill(Rect2(22,99,minf(270.0,width + 16.0),33 if wraps else 21),Color("#111a2beb"))
+	_paragraph(feedback,30,113,254,11,TEAL,13)
 
 func _special_battle_tip(view: Dictionary) -> void:
 	var tip := ""
@@ -894,9 +910,13 @@ func _special_battle_tip(view: Dictionary) -> void:
 				tip = "%s  %d / 2 破势  ·  合璧可破" % ["三分归元气" if g.encounter.advanced else "龙脉护气",view.foe[0].cracks]
 	if int(g.slot.chapter) == 3:
 		tip = "魔念  %d / 6  ·  固守与回春诀可压制" % view.corruption
+	var tactical: String = g.encounter.tactical_hint(view)
+	if not tactical.is_empty():
+		tip = tactical
 	if not tip.is_empty():
-		_fill(Rect2(22,63,272,23),Color("#111a2beb"))
-		_text(tip,30,79,12,RED if view.corruption >= 4 else GOLD)
+		var wraps := "\n" in tip or SANS.get_string_size(tip,HORIZONTAL_ALIGNMENT_LEFT,-1,12).x > 256
+		_fill(Rect2(22,62,272,34 if wraps else 23),Color("#111a2beb"))
+		_paragraph(tip,30,77,256,12,RED if view.corruption >= 4 else GOLD,14)
 
 func _battle_actor(index: int, ally: bool, stats: Dictionary, current: bool) -> void:
 	var battle: RefCounted = g.encounter
@@ -938,7 +958,9 @@ func _battle_enemy_hud(index: int, stats: Dictionary) -> void:
 		_fill(Rect2(x + i*8,y+27,6,4),GOLD if i < stats.poise else Color("#42425a"))
 	_right("弱" + unit.weak,x+WIDTH,y+32,11,TEAL)
 	var note: String = "退场" if stats.hp <= 0 else ("破势 · 跳过行动" if stats.broken else stats.intent)
-	if stats.shield:
+	if stats.get("opening",false) and stats.hp > 0 and not stats.broken:
+		note = "空门 · " + note
+	elif stats.shield:
 		note = "护气 · " + note
 	elif stats.rallied and stats.hp > 0:
 		note = "鼓阵 · " + note
@@ -946,9 +968,9 @@ func _battle_enemy_hud(index: int, stats: Dictionary) -> void:
 		note = "霜印 %d · " % stats.frost + note
 	elif unit.phase == "armor" and not stats.broken and stats.hp > 0:
 		note = "金身 · " + note
-	_center(note,p.x,y+45,10 if note.length() > 13 else 11,GOLD if stats.broken or stats.shield else DIM)
+	_center(note,p.x,y+45,10 if note.length() > 13 else 11,GOLD if stats.broken or stats.shield or stats.get("opening",false) else DIM)
 	if unit.hp > 0:
-		_hit(Rect2(p.x-60,y-3,120,206-y),"foe",index)
+		_hit(Rect2(p.x-60,y-3,120,206-y),"pick_target" if g.touch_ui() and not battle.targets_ally(g.pending_action) else "foe",index)
 
 func _bar(box: Rect2, amount: float, maximum: float, color: Color) -> void:
 	_fill(box,Color("#30374e"))
@@ -975,7 +997,7 @@ func _battle_status(index: int, stats: Dictionary, current: bool) -> void:
 	_bar(Rect2(xx+19,box.position.y+26,103,6),stats.qi,unit.max_qi,Color("#93a9e7"))
 	_right("%d / %d" % [stats.hp,unit.max_hp],box.end.x-10,box.position.y+17,12,CREAM)
 	_right("%d / %d" % [stats.qi,unit.max_qi],box.end.x-10,box.position.y+33,12,DIM)
-	_hit(box,"ally",index)
+	_hit(box,"pick_target" if g.touch_ui() and battle.targets_ally(g.pending_action) else "ally",index)
 
 func _battle_action(index: int) -> void:
 	var battle: RefCounted = g.encounter

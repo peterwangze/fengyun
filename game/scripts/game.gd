@@ -938,6 +938,10 @@ func click(kind: String, index: int) -> void:
 		"foe", "ally":
 			if mode == "battle" and pending_action >= 0 and ((kind == "ally") == encounter.targets_ally(pending_action)):
 				_battle_act(pending_action, index)
+		"pick_target":
+			if mode == "battle" and pending_action >= 0 and encounter.valid_target(pending_action,index):
+				target = index
+				sfx("select")
 		"martial_slot": chronicle.martial_slot = index
 		"martial_hero":
 			chronicle.martial_hero = index

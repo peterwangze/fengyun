@@ -8,8 +8,12 @@ const FIRST_SUPPLY := 6
 const INTENTS = {
 	"strike": "快斩 · 单体", "charge": "蓄势 · 重击",
 	"sweep": "横扫 · 全体", "brace": "架势 · 减伤", "signal":"预备鸣哨 · 召援",
-	"rally":"擂鼓 · 护韩朔", "escape":"携印逃走 · 可破势打断"
+	"rally":"擂鼓 · 护韩朔", "escape":"携印逃走 · 可破势打断",
+	"kindle":"引火蓄刃 · 可打断", "fire_sweep":"火刃横扫 · 全体",
+	"mind_sweep":"魔念横扫 · 伤血耗气", "armor_bash":"金身重击"
 }
+const ELITE_WINDUPS := ["kindle", "fire_sweep", "mind_sweep", "armor_bash"]
+const STANDARD_ELITE_HP := {"duan":202, "beast":178, "demon":260, "godless":310}
 
 var allies: Array[Dictionary] = []
 var foes: Array[Dictionary] = []
@@ -22,6 +26,7 @@ var tonics := 0
 var supplies := {}
 var result := ""
 var story_mode := false
+var chapter_index := 0
 var signal_state := ""
 var corruption := 0
 var shield_resolution := ""
@@ -43,6 +48,7 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 	tonics = stock
 	supplies = Items.clean(stock_items)
 	story_mode = easy
+	chapter_index = chapter
 	advanced = expanded
 	pair = Martial.pair_id(party)
 	var sword_ready := chapter >= 3 if sword == null else bool(sword)
@@ -73,13 +79,13 @@ func _init(party: Array, opponents: Array, rank: int, stock: int, easy: bool, ch
 	for id in opponents:
 		var info: Array = Story.FOES[id]
 		var hp: int = info[1]
-		if id == "demon" and advanced and not story_mode:
-			hp = 240
+		if _has_elite_pattern(id):
+			hp = STANDARD_ELITE_HP[id]
 		foes.append({"id": id, "name": info[0], "hp": hp, "max_hp": hp,
 			"attack": info[2], "poise": info[3], "max_poise": info[3], "weak": info[4],
 			"sprite": info[5], "cycle": info[6], "phase": info[7], "broken": false,
 			"awakened": false, "shield": false, "cracks": 0, "offset": foes.size(), "dormant":false,
-			"frost":0,"resolve":false,"rallied":false})
+			"frost":0,"resolve":false,"rallied":false,"kindle":false,"opening":0})
 	if chapter == 1 and opponents == ["paper","claw"]:
 		signal_state = "ready"
 		foes[1].hp = 0
@@ -150,7 +156,7 @@ func detail(action: int) -> String:
 			if unit.build.has("retaliate") and Martial.protection_move(move):
 				return description + " · 守反"
 			if unit.build.has("exploit") and Martial.exploit_move(move):
-				return description + " · 乘隙"
+				return description + " · 乘隙另耗 %d 气" % Martial.EXPLOIT_COST
 			return description
 		3:
 			var recovered := _guard_recovery(allies[actor])
@@ -169,12 +175,36 @@ func intent(enemy: Dictionary) -> String:
 	if enemy.broken:
 		return "破势 · 跳过行动"
 	var pattern := _pattern(enemy)
-	if enemy.id == "demon" and advanced and corruption >= 4:
+	if enemy.id == "demon" and advanced and pattern == "sweep" and corruption >= 4:
 		return "随魔念横扫 · 全体"
-	if pattern in ["strike", "charge"]:
-		var move := "重击" if pattern == "charge" else "快斩"
+	if pattern in ["strike", "charge", "armor_bash"]:
+		var move: String = {"strike":"快斩", "charge":"重击", "armor_bash":"金身重击"}[pattern]
 		return "%s › %s" % [move, allies[_threat_target(enemy)].name]
 	return INTENTS[pattern]
+
+func tactical_hint(view: Dictionary) -> String:
+	for i in foes.size():
+		var enemy := foes[i]
+		var shown: Dictionary = view.foe[i]
+		if not _has_elite_pattern(enemy.id) or shown.hp <= 0:
+			continue
+		if shown.broken or shown.opening > 0:
+			return "敌人露出空门。趁这回合用重招。"
+		match enemy.id:
+			"duan", "beast":
+				if shown.kindle:
+					return "火刃将扫全队。可破势打断，或固守、护持。"
+				if "引火" in shown.intent:
+					return "敌人正在引火。破势可阻止火刃成形。"
+				return "下一次引火前，可用普攻或固守回气。"
+			"demon":
+				return "魔念过高。聂风固守或第二梦回春可压住横扫。" if view.corruption >= 4 else "魔念达四格会引来强横扫。留真气回春或固守。"
+			"godless":
+				return "被点名的人固守或受护持，接下重击便露空门。" if "金身重击" in shown.intent else "可破势或用双剑开阵打开金身。"
+	return ""
+
+func _has_elite_pattern(id: String) -> bool:
+	return advanced and not story_mode and STANDARD_ELITE_HP.has(id) and (id != "beast" or chapter_index == 2)
 
 func _threat_target(enemy: Dictionary) -> int:
 	var target := (round_no + int(enemy.offset)) % allies.size()
@@ -187,6 +217,16 @@ func _pattern(enemy: Dictionary) -> String:
 		return "signal"
 	if enemy.id == "tidal_drum":
 		return "rally" if foes[0].id == "tidal_chief" and foes[0].hp > 0 and round_no % 2 == 1 else "strike"
+	if _has_elite_pattern(enemy.id):
+		match enemy.id:
+			"duan", "beast":
+				if enemy.kindle:
+					return "fire_sweep"
+				return "kindle" if (round_no % 2 == 1) == (enemy.id == "duan") else "charge"
+			"demon":
+				return "mind_sweep" if corruption >= 4 else ("charge" if round_no % 2 else "brace")
+			"godless":
+				return ["armor_bash", "brace", "sweep"][(round_no - 1) % 3]
 	if advanced:
 		match enemy.id:
 			"duan": return "charge" if round_no % 2 else "sweep"
@@ -222,7 +262,8 @@ func presentation() -> Dictionary:
 
 func _foe_stats(enemy: Dictionary) -> Dictionary:
 	return {"hp":enemy.hp,"poise":enemy.poise,"broken":enemy.broken,"shield":enemy.shield,
-		"cracks":enemy.cracks,"dormant":enemy.dormant,"frost":enemy.frost,"rallied":enemy.rallied}
+		"cracks":enemy.cracks,"dormant":enemy.dormant,"frost":enemy.frost,"rallied":enemy.rallied,
+		"kindle":enemy.kindle,"opening":enemy.opening}
 
 func act(action: int, target: int) -> bool:
 	if not available(action):
@@ -324,9 +365,11 @@ func poise_preview(action: int, at: int) -> String:
 	var enemy := foes[at]
 	var unit := allies[actor]
 	var move: Array = unit.moves[action - 1] if action in [1, 2] else []
+	if (enemy.broken or enemy.opening > 0) and not move.is_empty() and unit.build.has("exploit") and Martial.exploit_move(move):
+		if unit.qi - move[1] >= Martial.EXPLOIT_COST:
+			return "有空门 · 乘隙 +%d（另耗 %d 气）" % [unit.build.exploit, Martial.EXPLOIT_COST]
+		return "有空门 · 乘隙另需 %d 气" % Martial.EXPLOIT_COST
 	if enemy.broken:
-		if not move.is_empty() and unit.build.has("exploit") and Martial.exploit_move(move):
-			return "已破势 · 乘隙威力 +%d" % unit.build.exploit
 		return "已破势 · 此回合跳过行动"
 	var amount := 1
 	if action >= FIRST_SUPPLY:
@@ -339,7 +382,7 @@ func poise_preview(action: int, at: int) -> String:
 			amount += 1 + int(unit.gear.get("weakness_poise", 0))
 	var next := maxi(int(enemy.resolve), enemy.poise - amount)
 	if next == 0 and not move.is_empty() and unit.build.has("interrupt") and Martial.interrupt_move(move):
-		return "破势打断 · 截势回气 %d" % unit.build.interrupt
+		return "破势打断 · 截势回气 %d" % _interrupt_recovery(unit, enemy)
 	return "可破势 · 打断本回合" if next == 0 else "势 %d → %d" % [enemy.poise, next]
 
 func _supply(action: int) -> String:
@@ -426,19 +469,22 @@ func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: St
 		enemy.frost = 0
 	elif advanced and unit.id == "frost":
 		enemy.frost = mini(2,enemy.frost+1)
-	var pursuit: bool = enemy.broken and (kind == "pursuit" or (advanced and enemy.frost == 2 and unit.id == "wind"))
-	if enemy.broken:
+	var has_opening: bool = enemy.broken or enemy.opening > 0
+	var pursuit: bool = has_opening and (kind == "pursuit" or (advanced and enemy.frost == 2 and unit.id == "wind"))
+	if has_opening:
 		power += int(unit.gear.get("broken_damage", 0))
-		if not opening_used and unit.build.has("exploit") and Martial.exploit_move(move):
+		if not opening_used and unit.build.has("exploit") and Martial.exploit_move(move) and unit.qi >= Martial.EXPLOIT_COST:
 			opening_used = true
+			unit.qi -= Martial.EXPLOIT_COST
 			power += int(unit.build.exploit)
 			_announce_synergy("乘隙 · 重招威力 +%d" % unit.build.exploit)
 	if move[2] == enemy.weak:
 		poise += int(unit.gear.get("weakness_poise", 0))
 	var already_broken: bool = enemy.broken
+	var interrupt_recovery := _interrupt_recovery(unit, enemy)
 	_hit_foe(at,power,poise,move[2],style)
 	if not already_broken and enemy.broken and unit.build.has("interrupt") and Martial.interrupt_move(move):
-		var recovered := _restore_qi(unit, int(unit.build.interrupt))
+		var recovered := _restore_qi(unit, interrupt_recovery)
 		if recovered > 0:
 			_announce_synergy("截势 · 回气 %d" % recovered)
 	if pursuit and not followup_used and enemy.hp > 0:
@@ -446,6 +492,10 @@ func _technique_hit(unit: Dictionary, move: Array, at: int, power: int, kind: St
 		enemy.frost = 0
 		_hit_foe(at,14,0,"",style)
 		_note("抓住破势空当追击。")
+
+func _interrupt_recovery(unit: Dictionary, enemy: Dictionary) -> int:
+	var recovery: int = unit.build.get("interrupt", 0)
+	return recovery + 2 if _pattern(enemy) in ELITE_WINDUPS else recovery
 
 func _apply_combo(unit: Dictionary) -> void:
 	if advanced and pair == "wind_dream":
@@ -507,8 +557,12 @@ func _hit_foe(index: int, base: int, break_power: int, element: String, style: S
 		damage *= 1.20
 	if enemy.broken:
 		damage *= 1.38
+	elif enemy.opening > 0:
+		damage *= 1.15
 	elif enemy.phase == "armor":
 		damage *= 0.40
+	elif _pattern(enemy) == "mind_sweep":
+		damage *= 0.78
 	elif _pattern(enemy) == "brace":
 		damage *= 0.75
 	if enemy.shield:
@@ -547,6 +601,10 @@ func _reduce_poise(index: int, points: int, beat: int) -> void:
 	enemy.poise = maxi(1 if enemy.resolve else 0, enemy.poise - points)
 	if enemy.poise > 0:
 		return
+	if _has_elite_pattern(enemy.id) and enemy.id in ["duan", "beast"]:
+		if enemy.kindle or _pattern(enemy) == "kindle":
+			_note("%s引火被打断，火刃未能横扫。" % enemy.name)
+		enemy.kindle = false
 	enemy.broken = true
 	if enemy.id == "paper" and signal_state == "ready":
 		signal_state = "blocked"
@@ -600,19 +658,31 @@ func _enemy_turn() -> void:
 			_effect("stance","foe",index,beat,"guard","鸣哨")
 			_note("纸探花吹响暗哨，援兵将在次轮赶到。")
 			continue
+		if attack == "kindle":
+			enemy.kindle = true
+			_effect("stance", "foe", index, beat, "blade", "火刃蓄成")
+			_note("%s引火蓄刃，下回合将横扫全队。" % enemy.name)
+			continue
 		if attack == "brace":
 			enemy.poise = mini(enemy.max_poise, enemy.poise + 2)
 			_effect("stance", "foe", index, beat, "guard")
 			_note("%s稳住架势。" % enemy.name)
 			continue
 		var target := _threat_target(enemy)
-		var style: String = {"sweep":"dark","charge":"cloud","strike":"blade"}[attack]
+		var style: String = {"sweep":"dark", "charge":"cloud", "strike":"blade", "fire_sweep":"blade",
+			"mind_sweep":"dark", "armor_bash":"cloud"}[attack]
 		_effect("cast", "foe", index, beat, style)
 		_note("%s · %s" % [enemy.name, INTENTS[attack]])
 		match attack:
 			"sweep":
 				for i in allies.size():
 					_hurt_ally(i, roundi(enemy.attack * 0.78), beat, style,index)
+			"fire_sweep", "mind_sweep":
+				for i in allies.size():
+					_hurt_ally(i, roundi(enemy.attack * 1.22), beat, style, index, attack)
+				enemy.kindle = false
+			"armor_bash":
+				_hurt_ally(target, roundi(enemy.attack * 1.48), beat, style, index, attack)
 			"charge":
 				_hurt_ally(target, roundi(enemy.attack * 1.56), beat, style,index)
 			_:
@@ -623,6 +693,8 @@ func _enemy_turn() -> void:
 	for unit in allies:
 		unit.guard = false
 		unit.counter = false
+	for enemy in foes:
+		enemy.opening = maxi(0, enemy.opening - 1)
 	round_no += 1
 	followup_used = false
 	retaliation_used = false
@@ -634,7 +706,7 @@ func _enemy_turn() -> void:
 		result = "victory"
 	actor = 0 if allies[0].hp > 0 else 1
 
-func _hurt_ally(index: int, points: int, beat: int, style: String, source: int) -> void:
+func _hurt_ally(index: int, points: int, beat: int, style: String, source: int, attack: String = "") -> void:
 	var unit := allies[index]
 	if unit.hp <= 0:
 		return
@@ -652,6 +724,7 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int) 
 	if unit.counter:
 		defending_ally = index
 	var guarded: bool = unit.guard or redirected
+	var protected: bool = guarded or unit.ward
 	var factor := (0.66 if story_mode else 1.0) * (0.34 if guarded else 1.0)
 	var ward_owner := -1
 	if unit.ward:
@@ -665,13 +738,31 @@ func _hurt_ally(index: int, points: int, beat: int, style: String, source: int) 
 	if unit.hp == 0:
 		_note("%s倒下。金创药可救起。" % unit.name)
 		return
-	_trigger_retaliation(defending_ally, beat)
-	_trigger_retaliation(ward_owner, beat)
+	if attack == "armor_bash" and protected:
+		_open_guard_gap(source, beat)
+		_note("重击被接住，绝无神的金身露出空门。")
+	if attack == "mind_sweep" and not protected:
+		var drained := mini(4, int(unit.qi))
+		if drained > 0:
+			unit.qi -= drained
+			_effect("stance", "ally", index, beat, "dark", "真气 −%d" % drained)
+			events.back().stats.qi = unit.qi
+			_note("魔念横扫夺走%s %d 点真气。" % [unit.name, drained])
+	_trigger_retaliation(defending_ally, source, beat)
+	_trigger_retaliation(ward_owner, source, beat)
 	if unit.counter and foes[source].hp > 0:
 		unit.counter = false
 		_hit_foe(source,unit.attack+13,1,"","blade",beat)
 
-func _trigger_retaliation(index: int, beat: int) -> void:
+func _open_guard_gap(source: int, beat: int) -> bool:
+	var foe := foes[source]
+	if foe.hp <= 0 or foe.opening == 2:
+		return false
+	foe.opening = 2
+	_effect("stance", "foe", source, beat, "break", "空门")
+	return true
+
+func _trigger_retaliation(index: int, source: int, beat: int) -> void:
 	if index < 0 or retaliation_used:
 		return
 	var defender := allies[index]
@@ -679,16 +770,22 @@ func _trigger_retaliation(index: int, beat: int) -> void:
 		return
 	var recovered := _restore_qi(defender, int(defender.build.retaliate))
 	var gained := mini(1, 4 - bond)
-	if gained == 0 and recovered == 0:
-		return
+	var opened := _open_guard_gap(source, beat)
 	retaliation_used = true
 	bond += gained
-	var reward := "合击 +1" if gained == 1 else ""
+	var reward := PackedStringArray()
+	if gained > 0:
+		reward.append("合击 +1")
 	if recovered > 0:
-		reward += (" · " if gained == 1 else "") + "回气 %d" % recovered
-	_ally_state(index, "守反 · " + reward, beat)
+		reward.append("回气 %d" % recovered)
+	if opened:
+		reward.append("露空门")
+	if reward.is_empty():
+		return
+	var message := "守反 · " + " · ".join(reward)
+	_ally_state(index, message, beat)
 	events.back().stats.qi = defender.qi
-	_announce_synergy("守反 · " + reward)
+	_announce_synergy(message)
 
 func _note(message: String) -> void:
 	log.append(message)

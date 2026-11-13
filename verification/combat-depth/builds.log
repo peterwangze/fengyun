@@ -1,0 +1,44 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS rank one keeps ordinary techniques and gear
+PASS rank two opens interrupt with an appropriate technique and accessory
+PASS rank four strengthens both active effects
+PASS transferring the only ring changes both tactical previews
+PASS recipient immediately sees the new style
+PASS unequipped technique cannot enable interrupt
+PASS temporary Devil Blade is counted as the equipped heavy skill
+PASS selected target previews the qualifying Qi refund
+PASS weakness technique breaks a live scout with the signal badge
+PASS interrupt refunds Qi on the successful break
+PASS foe resolve prevents both break and the interrupt refund
+PASS set counter while the other fighter guards
+PASS counter stance takes the forecast hit and gains one bond and 4 Qi despite multiple enemies
+PASS counter stance aimed at the wrong fighter has no affinity payoff
+PASS cover selects a teammate and reads the forecast instead of allowing self-target
+PASS cover takes the blow and grants the equipped defender's affinity
+PASS an external ward and basic guard cannot trigger the prepared-technique reward
+PASS target preview shows the available follow-through and resource cost
+PASS partner opens a gap and the heavy technique exploits it
+PASS follow-through spends only the stated extra Qi
+PASS a heavy strike can still be cast at its base cost without the affinity bonus
+PASS heavy strike does not get the payoff from a break it opens itself
+PASS quest intelligence weakens just the named living enemy without an automatic break
+PASS quest aid applies opening protection and capped bond with visible feedback
+PASS Duan telegraphs the charge and explains how to stop it
+PASS allowing the charge arms the next round's sweep
+PASS ordinary guard softens the fire sweep for both fighters and the charge expires
+PASS interrupt style previews the extra Qi for stopping a boss windup
+PASS breaking the windup prevents the sweep and awards the stated Qi
+PASS optional forge elite pressures immediately before it can light its weapon
+PASS the forge beast shares the charge-up system on an offset turn
+PASS cavern reuse and story difficulty keep their original behavior
+PASS building four corruption telegraphs a Qi-draining sweep before the partner acts
+PASS a reckless attack loses Qi while Dream's healing suppresses the special sweep
+PASS Wind can also suppress the sweep by guarding
+PASS the golden armor attack names its intended target
+PASS guarding with the named target creates an armor gap on the next round
+PASS the gap bypasses armor without relying on the equipped synergy or the combo
+PASS the guarded opening expires after its follow-through round
+PASS equipped counter creates a follow-through opening on an ordinary foe
+PASS the next partner exploits the opening from a defensive build
+Builds: 0 failures

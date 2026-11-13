@@ -59,6 +59,12 @@ static func valid(value: Variant) -> bool:
 func state() -> Dictionary:
 	return g.slot.afterstory
 
+func _fengxi_aid() -> String:
+	match g.slot.chronicle.quests.get("lamps",""):
+		"wait_boat", "done_boat": return "boat"
+		"wait_goods", "done_goods": return "grain"
+	return ""
+
 func title_item() -> String:
 	var saved: Dictionary = g.slot.get("afterstory",{})
 	if saved.is_empty():
@@ -74,7 +80,10 @@ func resume() -> void:
 	if not g.slot.has("afterstory"):
 		g.slot["afterstory"] = initial()
 	state().supplies = Items.clean(state().get("supplies", Items.fresh(2)))
+	var opened := _open_crew_sluice()
 	_enter(state().room)
+	if opened:
+		g._notice("凤溪渡工已抬起水栅。")
 
 func reset() -> void:
 	active = false
@@ -151,9 +160,12 @@ func handle(id: String) -> void:
 			elif flags.brief:
 				g._talk([["陶伯","领粮名册在西棚。东边那只封箱是谁的印，你们看过就知道。"]],g._return_to_field)
 			else:
-				var introduction := "凤溪的船还能跑。今早我托人把过冬粮运来了。" if g.slot.chronicle.quests.get("lamps","") in ["done_boat","done_goods"] else "借来的船送来三十袋粮，出关的人却说账上没有。"
+				var introduction := "借来的船送来三十袋粮，出关的人却说账上没有。"
+				match _fengxi_aid():
+					"boat": introduction = "你们拖回凤溪那条船，如今能跑潮关了。渡工就在东边，证据查齐后他替你们抬水栅。"
+					"grain": introduction = "凤溪乡亲靠你们救下的冬粮熬过了冬天。这次他们托我带来金创药和护脉散，先收下吧。"
 				g._talk([["陶伯",introduction],["陶伯","没粮的人在岸上等。你们去看看名册，再验一验封箱。"],
-					["步惊云","先把扣粮的人和印找出来。"]],_mark.bind("brief"))
+					["步惊云","先把扣粮的人和印找出来。"]],_brief)
 		"register":
 			g._talk([["聂风","名册上签收的是阿芦。她那一栏写着二十户，一户还没划掉。"]],_mark.bind("register"))
 		"seal":
@@ -175,8 +187,12 @@ func handle(id: String) -> void:
 				["聂风","把账带回渡口，先让该领粮的人自己说。"]],_mark.bind("ledger"))
 		"report":
 			var note := "两种做法会改变渡口接下来如何分粮。"
+			if _fengxi_aid() == "boat":
+				note = "凤溪船能把粮送上游。公开账簿可沿河分粮，交州府则先运原账。"
+			elif _fengxi_aid() == "grain":
+				note = "凤溪乡亲会垫出周转粮。公开账簿可当场发粮，交州府则用它撑过清点。"
 			if not flags.aid:
-				note = "粮棚还有被扣的人。若想先救人，可返回粮仓。"
+				note += " 阿芦仍可救。"
 			g.chronicle.choose("粮账该如何交代",
 				[["公开账簿，按名册开仓","public"],["留存证词，交由州府清点","witness"]],
 				_resolve,note)
@@ -186,10 +202,38 @@ func handle(id: String) -> void:
 			else:
 				g._talk([["渡口乡亲","今年总算有粮了。给我们递信的阿芦，还在等粮仓那头的回音。"]],g._return_to_field)
 
+func _brief() -> void:
+	if state().brief:
+		return
+	if _fengxi_aid() != "grain":
+		_mark("brief")
+		return
+	var flags := state()
+	var medicine := PackedStringArray()
+	if flags.tonics < 6:
+		flags.tonics += 1
+		medicine.append("金创药")
+	if flags.supplies.guard_powder < Items.CAP:
+		flags.supplies.guard_powder += 1
+		medicine.append("护脉散")
+	_mark("brief")
+	g._notice("收到凤溪补给 · " + "、".join(medicine) if not medicine.is_empty() else "药囊已满，陶伯收回药品。")
+
+func _open_crew_sluice() -> bool:
+	var flags := state()
+	if _fengxi_aid() != "boat" or not flags.register or not flags.seal or flags.sluice or not flags.route.is_empty():
+		return false
+	flags.sluice = true
+	return true
+
 func _mark(flag: String) -> void:
 	state()[flag] = true
+	var opened := _open_crew_sluice()
 	g._commit()
 	g._return_to_field()
+	if opened:
+		g.sfx("mechanism")
+		g._notice("凤溪渡工已抬起水栅，可走侧道。")
 
 func won(remaining: int) -> String:
 	var flags := state()
@@ -208,6 +252,13 @@ func _resolve(resolution: String) -> void:
 	else:
 		scene = [["陶伯","抄一份留在村里，原账随证词送州府。先给等在岸上的人留足三日粮。"],
 			["步惊云","让送账的人带回执。仓门往后开不开，由领粮的人一起看着。"]]
+	match _fengxi_aid():
+		"boat":
+			scene[1][1] = ("凤溪的船先把粮分送上游，名单和实发的数一起贴在船头。" if resolution == "public"
+				else "凤溪的船送原账去州府。回程记得带回执，上游人就知道仓门何时开。")
+		"grain":
+			scene[1][1] = ("凤溪乡亲先垫两袋粮，今天就能让等在岸上的人按册领粮。" if resolution == "public"
+				else "凤溪乡亲会先借粮给最缺粮的几户，等州府按回执补足。")
 	if flag.aid:
 		scene.append(["阿芦","我愿意作证。我认得每一张被他们换过的粮票。"])
 	g._talk(scene,func():
@@ -220,7 +271,7 @@ func journal() -> Array:
 	var f := state()
 	var route: String = {"":"尚未选路","gate":"由正门入仓","sluice":"从水栅侧道入仓"}.get(f.route,"")
 	var end: String = {"":"尚未决定","public":"公开账簿，按名册开仓","witness":"留存证词，交州府清点"}.get(f.resolution,"")
-	return [
+	var entries := [
 		["领粮名册","已核对" if f.register else "未查"],
 		["粮箱封条","已核对" if f.seal else "未查"],
 		["入仓路线",route],
@@ -228,3 +279,7 @@ func journal() -> Array:
 		["粮仓账簿","已带回" if f.ledger else "尚未取回"],
 		["渡口交代",end]
 	]
+	match _fengxi_aid():
+		"boat": entries.append(["凤溪渡工","水栅已开" if f.sluice else "查齐证据后帮忙抬水栅"])
+		"grain": entries.append(["凤溪乡亲","陶伯已交接药品" if f.brief else "陶伯处有药品"])
+	return entries

@@ -2,6 +2,7 @@ extends SceneTree
 
 const Main = preload("res://main.tscn")
 const SideStories = preload("res://scripts/side_stories.gd")
+const Afterstory = preload("res://scripts/afterstory.gd")
 const BODY_FONT = preload("res://assets/fonts/body.tres")
 const PROFILE := "qa_branch_payoffs"
 
@@ -20,9 +21,11 @@ func _run() -> void:
 	root.add_child(game)
 	game.settings.motion = false
 	_test_seals()
+	_test_courier()
 	_test_shift()
 	_test_sword()
 	_test_dawn()
+	_test_tidegate_carryover()
 	_test_journal_fit()
 	for suffix in ["",".bak",".tmp"]:
 		var file: String = game.storage.path + suffix
@@ -32,6 +35,7 @@ func _run() -> void:
 	quit(1 if failures else 0)
 
 func _chapter(at: int, quests: Dictionary) -> void:
+	game.afterstory.reset()
 	game.slot = game.storage.replay(at,false)
 	game.slot.chronicle.quests = quests.duplicate()
 	game._enter_chapter(false)
@@ -57,6 +61,58 @@ func _test_seals() -> void:
 			_retry()
 			_check(game.encounter.foes[0].poise == poise and game.encounter.foes[0].max_poise == 5,
 				"retry reapplies the same opening gap without changing maximum poise")
+
+func _test_courier() -> void:
+	for step in ["","done_quiet","done_fight"]:
+		var quests := {} if step.is_empty() else {"courier":step}
+		_chapter(3,quests)
+		var journal: Dictionary = game.chronicle.side.journal_entry("courier")
+		_check((journal.status == "待回访") == not step.is_empty(),
+			"the journal offers a Palace follow-up only after helping the Fengxi courier")
+		_chapter(4,quests)
+		game.slot.cleared = [0]
+		game.slot.campaign.rescued = true
+		game.slot.chronicle.marks.tea = true
+		game.chronicle.enter("tearoom")
+		_check(game.chronicle.side.battle_aid("palace",1,"").is_empty(),
+			"courier quest rewards remain earned, while combat aid requires the rendezvous")
+		if not step.is_empty():
+			journal = game.chronicle.side.journal_entry("courier")
+			_check(journal.get("point") == SideStories.COURIER_CONTACT_POS and "破金身前" in journal.deadline
+				and game.passable(journal.point), "the journal points to the reachable contact and gives the deadline")
+			_visit("courier_contact")
+			_check(("护脉散" if step == "done_quiet" else "收拳回阵") in game.lines[0][1],
+				"the courier explains the specific tactical handoff")
+			_drain_dialogue()
+			game.slot = game.storage.read()
+			game._enter_chapter(false)
+			_check(game.chronicle.has("courier_contact") and not _has_point("courier_contact"),
+				"reloading after the handoff removes the interaction and preserves the aid")
+		_visit("palace_back")
+		_visit("fight",1)
+		_drain_dialogue()
+		if not _check(game.mode == "battle", "Godless encounter opens with any courier outcome"):
+			continue
+		_check(game.encounter.allies[1].id == "sage" and game.encounter.allies[1].ward == (step == "done_quiet")
+			and game.encounter.foes[0].poise == (4 if step == "done_fight" else 6),
+			"quiet courier grants a ward to the heavy target, intercepting opens a poise gap")
+		_retry()
+		_check(game.encounter.allies[1].ward == (step == "done_quiet")
+			and game.encounter.foes[0].poise == (4 if step == "done_fight" else 6), "retries reproduce exactly one courier aid")
+		game.slot.chapter = 5
+		game.stage = preload("res://scripts/story.gd").CHAPTERS[5]
+		game.slot.cleared = [0,1]
+		game.chronicle.enter("dawn")
+		_visit("dawn_lamp")
+		_check(game.lines.size() == (2 if step.is_empty() else 3)
+			and (step.is_empty() or ("药师" if step == "done_quiet" else "州府") in game.lines[1][1]),
+			"Fengxi lantern scene recalls the courier choice only when its later meeting took place")
+		_drain_dialogue()
+	_chapter(4,{"courier":"done_quiet"})
+	game.slot.cleared = [0,1]
+	game.chronicle.enter("tearoom")
+	_check(not _has_point("courier_contact") and "时机已过" in game.chronicle.side.journal_entry("courier").payoff,
+		"a courier handoff after the fight is hidden and the journal preserves the earned reward")
 
 func _test_shift() -> void:
 	for step in ["","done_stealth","done_fight"]:
@@ -162,6 +218,56 @@ func _test_journal_fit() -> void:
 				fits = fits and (entry.place.is_empty() or _line_count(place,257,11) <= 1)
 	_check(fits,"branch result, follow-up and deadline text fit the journal")
 
+func _test_tidegate_carryover() -> void:
+	for step: String in ["","wait_boat","done_boat","wait_goods","done_goods"]:
+		_chapter(5,{} if step.is_empty() else {"lamps":step})
+		game.slot.finished = true
+		game.slot.cleared = [0,1]
+		var boat := step.ends_with("boat")
+		var grain := step.ends_with("goods")
+		game.afterstory.resume()
+		var main_stock: Dictionary = game.slot.supplies.duplicate()
+		_visit("brief")
+		_check(("抬水栅" in game.lines[0][1]) == boat and ("护脉散" in game.lines[0][1]) == grain,
+			"Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save")
+		_drain_dialogue()
+		var before: Dictionary = game.afterstory.state().duplicate(true)
+		_check(before.brief and before.tonics == 3 + int(grain) and before.supplies.guard_powder == 1 + int(grain)
+			and game.slot.supplies == main_stock, "the grain branch adds one tonic and powder to the Tidegate bag only")
+		game.slot = game.storage.read()
+		game.afterstory.resume()
+		_visit("brief")
+		_drain_dialogue()
+		_check(game.afterstory.state().supplies == before.supplies and game.afterstory.state().tonics == before.tonics,
+			"revisiting and reloading the briefing cannot duplicate the reward")
+		for point in (["seal","register"] if step.begins_with("done_") else ["register","seal"]):
+			_visit(point)
+			_drain_dialogue()
+			if not (game.afterstory.state().register and game.afterstory.state().seal):
+				_check(not game.afterstory.state().sluice, "one piece of evidence cannot open the watergate")
+		var flags: Dictionary = game.afterstory.state()
+		_check(flags.sluice == boat and _has_point("gate_entry") and _has_point("sluice_entry") == boat,
+			"crew opens the watergate after both pieces of evidence without removing the main gate route")
+		if not boat:
+			_visit("sluice")
+			_check(flags.sluice and _has_point("sluice_entry"), "players without the crew can open the watergate normally")
+		for resolution in ["public","witness"]:
+			flags.merge({"route":"sluice","aid":true,"chief":true,"ledger":true,"resolution":""},true)
+			_visit("report")
+			game.menu_confirm(int(resolution == "witness"))
+			_check(("凤溪的船" in game.lines[1][1]) == boat and ("凤溪乡亲" in game.lines[1][1]) == grain,
+				"each Tidegate settlement uses the matching regional aid in the distribution plan")
+			_drain_dialogue()
+			_check(game.storage.read().afterstory.resolution == resolution, "the selected settlement persists with its original resolution ID")
+	_chapter(5,{"lamps":"wait_boat"})
+	game.slot.finished = true
+	game.slot.cleared = [0,1]
+	game.slot.afterstory = Afterstory.initial()
+	game.slot.afterstory.merge({"brief":true,"register":true,"seal":true},true)
+	game.afterstory.resume()
+	_check(game.storage.read().afterstory.sluice and game.afterstory.state().route == "",
+		"older boat saves get crew aid only when the evidence is complete and the route is undecided")
+
 func _line_count(value: String, width: float, size: int) -> int:
 	var line := ""
 	var lines := 1
@@ -186,6 +292,9 @@ func _visit(id: String, index: int = -1) -> void:
 				return
 			break
 	_check(false, "interaction is available at " + id)
+
+func _has_point(id: String) -> bool:
+	return game.field_points().any(func(spot): return spot.id == id)
 
 func _drain_dialogue() -> void:
 	for i in 12:
