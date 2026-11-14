@@ -30,6 +30,7 @@ const CATALOG := {
 	"reed_mantle": {"kind":0,"name":"芦蓑披肩","source":"凤溪客栈商贩","grant":true,"mods":{"sweep_armor":6,"hp":-8}},
 	"forge_guard": {"kind":0,"name":"回锋护臂","source":"剑庐工匠","grant":true,"mods":{"counter_power":8,"attack":-3}},
 	"granary_vest": {"kind":0,"name":"仓卫厚甲","source":"盐汊渡口粮商","grant":true,"mods":{"heavy_armor":8,"qi":-6}},
+	"dream_herb_wrap": {"kind":0,"name":"草药护衣","source":"完成渡口药单","grant":true,"mods":{"heal":4,"ward_armor":2,"hp":-8}},
 	"qi_ring": {"kind":1,"name":"纳气玉扣","source":"达到境界 2","merit":4,"mods":{"qi":6,"hp":-8}},
 	"ferry_knot": {"kind":1,"name":"渡口缆结","source":"抵达剑池初鸣","chapter":2,"mods":{"broken_damage":6,"qi":-4}},
 	"courier_badge": {"kind":1,"name":"信使铜牌","source":"完成雨夜押书","quest":"courier","mods":{"weakness_poise":1,"hp":-8}},
@@ -38,6 +39,7 @@ const CATALOG := {
 	"tide_whistle": {"kind":1,"name":"渡口铜哨","source":"击退凤溪天池杀手","grant":true,"style":"interrupt","mods":{"qi":4,"attack":-2}},
 	"sword_tassel": {"kind":1,"name":"火麟剑穗","source":"剑池击退断浪","grant":true,"style":"exploit","mods":{"broken_damage":9,"qi":-7}},
 	"apothecary_gourd": {"kind":1,"name":"清息药葫","source":"生死门药庐","grant":true,"mods":{"heal":5,"ward_armor":4,"qi":-5}},
+	"frost_seal_cord": {"kind":1,"name":"水路印绳","source":"完成水路证词","grant":true,"style":"interrupt","mods":{"weakness_poise":1,"qi":-3}},
 }
 const EFFECTS := {
 	"hp":"气血", "qi":"真气", "attack":"攻击", "armor":"受击减伤",

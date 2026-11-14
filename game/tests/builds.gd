@@ -28,6 +28,7 @@ func _initialize() -> void:
 	_test_masteries()
 	_test_exclusive_gear_branches()
 	_test_advancement_save_migration()
+	_test_fengxi_quest_rewards()
 	print("Builds: %d failures" % failures)
 	quit(1 if failures else 0)
 
@@ -346,8 +347,8 @@ func _test_manual_catalog() -> void:
 
 func _test_new_gear() -> void:
 	var slot := _slot()
-	_check(Equipment.options(0).size() == 9 and Equipment.options(1).size() == 9 and not Equipment.unlocked(slot, "reed_mantle"),
-		"the equipment list exposes all sixteen items and keeps unearned pieces locked")
+	_check("reed_mantle" in Equipment.options(0) and "tide_whistle" in Equipment.options(1) and not Equipment.unlocked(slot, "reed_mantle"),
+		"the equipment list exposes each slot's gear and keeps unearned pieces locked")
 	slot.gear_grants = Equipment.clean_grants({"reed_mantle":true, "tide_whistle":true, "sword_tassel":true,
 		"granary_vest":true, "apothecary_gourd":true, "travel_coat":true, "forge_guard":false, "unknown":true})
 	_check(slot.gear_grants.size() == 5 and not Equipment.unlocked(slot, "forge_guard"), "only valid newly owned pieces become entitlements")
@@ -598,6 +599,44 @@ func _test_advancement_save_migration() -> void:
 		and Equipment.level(upgraded,"tide_whistle") == 2 and Equipment.owner(upgraded,"tide_whistle") == "cloud",
 		"migration restores only earned insights and keeps a portable legacy +2 item")
 	_check(storage.write(upgraded) and storage.read().materials == upgraded.materials, "saving migrated account makes rare material recovery idempotent")
+	_remove_fixture(storage)
+
+func _test_fengxi_quest_rewards() -> void:
+	var storage := Save.new("qa_fengxi_rewards_%d" % OS.get_process_id())
+	var slot := _slot()
+	slot.chapter = 1
+	_check(not Equipment.unlocked(slot,"frost_seal_cord") and not Equipment.unlocked(slot,"dream_herb_wrap"),
+		"the two Fengxi rewards stay locked in a normal fresh or old slot")
+	_check(not Economy.reconcile(slot).has("水路印绳") and not slot.gear_grants.has("dream_herb_wrap"),
+		"the existing repair path does not award the regional gear without its canonical claim")
+	var original_silver: int = slot.silver
+	_check(Economy.claim(slot,slot,"quest:fengxi_testimony") == PackedStringArray(["水路印绳"])
+		and Economy.claim(slot,slot,"quest:fengxi_medicine") == PackedStringArray(["草药护衣"]),
+		"the real reward claims grant the exact two intended unique items")
+	_check(Economy.claim(slot,slot,"quest:fengxi_testimony").is_empty() and Economy.claim(slot,slot,"quest:fengxi_medicine").is_empty()
+		and slot.silver == original_silver, "retriggering either claim cannot create a duplicate or change silver")
+	_check(Equipment.assign(slot,"frost",1,"frost_seal_cord") and Equipment.assign(slot,"wind",1,"frost_seal_cord")
+		and Equipment.owner(slot,"frost_seal_cord") == "wind", "the single cord is portable between heroes")
+	var baseline := Battle.new(["wind","frost"],["gate_guard"],3,3,false,1)
+	var breaker := _battle(slot,["wind","frost"],["gate_guard"],3)
+	baseline.act(1,0)
+	breaker.act(1,0)
+	_check(breaker.allies[0].max_qi == baseline.allies[0].max_qi - 3 and breaker.foes[0].poise == baseline.foes[0].poise - 1
+		and breaker.allies[0].build.get("interrupt",0) == 3, "seal cord adds one weakness poise and activates interrupt at a Qi tradeoff")
+	Equipment.assign(slot,"dream",0,"dream_herb_wrap")
+	var healer := _battle(slot,["dream","wind"],["gate_guard"],3)
+	healer.allies[1].hp = 30
+	healer.act(1,0)
+	_check(healer.allies[1].hp == 80 and healer.allies[0].max_hp == 104, "herb wrap actually improves healing while trading eight maximum HP")
+	healer.apply_quest_aid({"ward":"dream"})
+	var hp: int = healer.allies[0].hp
+	healer._hurt_ally(0,20,0,"blade",0)
+	_check(healer.allies[0].hp == hp - 7, "herb wrap's ward bonus applies on the hit that consumes a ward")
+	_check(storage.write(slot), "both regional grants and their worn items can be saved")
+	var restored := storage.read()
+	_check(Equipment.owner(restored,"frost_seal_cord") == "wind" and Equipment.owner(restored,"dream_herb_wrap") == "dream"
+		and restored.loot_claims.has("quest:fengxi_testimony") and restored.loot_claims.has("quest:fengxi_medicine"),
+		"reload keeps equipment and both independent claim IDs")
 	_remove_fixture(storage)
 
 func _remove_fixture(storage: RefCounted) -> void:

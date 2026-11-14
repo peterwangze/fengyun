@@ -96,12 +96,22 @@ func _step() -> Array:
 
 func points() -> Array:
 	var marks: Dictionary = g.afterstory.state() if g.afterstory.active else g.slot.chronicle.marks
+	var world_tasks: Dictionary = g.slot.get("world",{}).get("tasks",{})
 	var result := []
 	for point in _step():
 		var requirements: Dictionary = point.get("requires",{})
-		if requirements.keys().all(func(key): return marks.get(key) == requirements[key]):
+		var world_requirements: Dictionary = point.get("requires_world",{})
+		if requirements.keys().all(func(key): return marks.get(key) == requirements[key]) \
+				and world_requirements.keys().all(func(key): return world_tasks.get(key) == world_requirements[key]):
 			var entry: Dictionary = point.duplicate()
 			entry["pos"] = point.at
+			if point.has("patrol"):
+				var timing := _patrol_time(point.patrol)
+				if timing > 0:
+					entry["prop"] = "exit"
+					entry["objective"] = "巡卫未走 · %d 秒后可过旧门" % ceili(timing)
+				else:
+					entry["objective"] = "旧门无人 · 现在可通过"
 			result.append(entry)
 	return result
 
@@ -109,10 +119,15 @@ func objective() -> String:
 	var targets := points()
 	return targets[0].get("objective",targets[0].name) if not targets.is_empty() else ""
 
+func _patrol_time(patrol: Vector2) -> float:
+	return maxf(patrol.y - fposmod(g.elapsed,patrol.x),0.0)
+
 func battle_aid(index: int, special: String) -> Dictionary:
 	var marks: Dictionary = g.slot.chronicle.marks
 	if special == "first_tyrant" and marks.has("watch_freed"):
 		return {"bond":1,"line":"岗门的仆役留灯为号，风云预先蓄起一格合击。"}
+	if special == "first_tyrant" and marks.has("watch_old_road_done"):
+		return {"foe":"first_tyrant","poise":1,"line":"风云循旧宅侧门避开耳目，雄霸仓促迎战，少一格势。"}
 	if special == "prepare_guard":
 		if marks.has("ridge_guide"):
 			return {"ward":"cloud","line":"山民留下护肩，步惊云获得一次护持。"}
@@ -131,6 +146,8 @@ func battle_aid(index: int, special: String) -> Dictionary:
 				return {"ward":"cloud","line":"运铁工的皮衣提供护持。"}
 			if index == 0 and marks.has("pass_evidence"):
 				return {"foe":"smith","poise":1,"line":"凭押运口令引敌松阵。"}
+			if index == 0 and marks.has("pass_furnace_opened"):
+				return {"ward":"wind","line":"炉道的匠人给聂风留下隔热皮甲，开场获得护持。"}
 		"palace":
 			if index == 1 and marks.has("trestle_carry"):
 				return {"foe":"godless","poise":1,"line":"伤者托信使传到金身换气的时机。"}
@@ -151,12 +168,20 @@ func encounter() -> Array:
 	return []
 
 func handle(point: Dictionary) -> void:
+	if point.has("patrol") and _patrol_time(point.patrol) > 0:
+		g._notice("先在门柱后等候，换岗时再过旧门。")
+		return
 	if point.has("foes"):
 		battle = point.id
 		g.active_battle = -1
 		g._talk(point.lines,g._start_battle)
 	elif point.has("lines"):
-		g._talk(point.lines,_advance.bind(point))
+		var alternate: Dictionary = point.get("lines_if",{})
+		var lines: Array = point.lines
+		for flag in alternate:
+			if g.slot.chronicle.marks.has(flag):
+				lines = alternate[flag]
+		g._talk(lines,_advance.bind(point))
 	else:
 		_advance(point)
 

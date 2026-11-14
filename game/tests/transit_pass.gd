@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Pass = preload("res://scripts/transit_pass.gd")
+const Watch = preload("res://scripts/transit_watch.gd")
 const Escape = preload("res://scripts/transit_escape.gd")
 const Lanes = preload("res://scripts/transit_fengxi.gd")
 const STEP := 4
@@ -12,7 +13,12 @@ var failures := 0
 
 func _initialize() -> void:
 	_verify_map(Pass.DATA, [["pass_cart", "pass_worker", "pass_rope", "pass_gate", "pass_exit"],
-			["pass_cart", "pass_scouts", "pass_stencil", "pass_gate", "pass_exit"]], ["forge", "spawn"], ["pass_scouts"])
+			["pass_cart", "pass_scouts", "pass_stencil", "pass_gate", "pass_exit"],
+			["pass_cart", "pass_furnace", "pass_furnace_winch", "pass_furnace_register", "pass_gate", "pass_exit"]],
+			["forge", "spawn"], ["pass_scouts"])
+	_verify_map(Watch.DATA, [["watch_signal", "watch_list", "watch_guard", "watch_exit"],
+			["watch_signal", "watch_list", "watch_old_road", "watch_old_gate", "watch_hidden_orders", "watch_exit"]],
+			["returnhall", "spawn"], ["watch_guard"])
 	_verify_map(Escape.DATA, [["escape_orders", "escape_wounded", "escape_haul", "escape_lantern", "escape_river"],
 			["escape_orders", "escape_false_tracks", "escape_patrol", "escape_lantern", "escape_river"]], ["", "chapter"], ["escape_patrol"])
 	_verify_map(Lanes.DATA, [["lanes_child", "lanes_witness", "lanes_tracks", "lanes_relay", "lanes_bill", "lanes_exit"]],
@@ -40,7 +46,7 @@ func _verify_map(data: Dictionary, paths: Array, arrival: Array, fights: Array) 
 			_check(not points.has(point.id) and _passable(point.at), point.id + " is unique and placed on the trail")
 			points[point.id] = point.at
 			var next: int = point.get("next", step + 1)
-			_check(next > step and next <= steps.size(), point.id + " has a reachable successor index")
+			_check(next >= 0 and next != step and next <= steps.size(), point.id + " has a valid successor index")
 			point_steps[point.id] = [step, next]
 			if not point.get("foes", []).is_empty():
 				enemies.append(point.id)

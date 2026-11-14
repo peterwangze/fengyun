@@ -119,9 +119,10 @@ func apply_quest_aid(aid: Dictionary) -> void:
 			_grant_ward(i)
 			break
 	bond = mini(4, bond + int(aid.get("bond", 0)))
-	quest_aid_line = aid.get("line", "")
-	if not quest_aid_line.is_empty():
-		_note(quest_aid_line)
+	var message: String = aid.get("line", "")
+	if not message.is_empty():
+		quest_aid_line = message
+		_note(message)
 
 func available(action: int) -> bool:
 	if not result.is_empty() or actor >= allies.size() or action < 0 or action >= FIRST_SUPPLY + Items.ORDER.size():

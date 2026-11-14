@@ -209,6 +209,22 @@ func paint() -> void:
 		"journal":
 			_field(false)
 			_journal()
+		"world_journal":
+			_field(false)
+			_world_journal()
+		"handoff_journal":
+			_field(false)
+			_handoff_journal()
+		"world_map":
+			if g.back_mode == "title":
+				_title(false)
+			else:
+				_field(false)
+			_fill(FULL,Color("#080d1bb5"))
+			_panel(Rect2(142,39,356,285),true)
+			_center("江湖行路",320,82,29,CREAM,SERIF)
+			_center("选择已解锁的区域。主线仍从原地点继续。",320,106,14,DIM)
+			_menu(Vector2(174,121),292,23,4)
 		"ending": _ending()
 	if g.toast_time > 0 and g.mode in ["field","battle","dialogue"]:
 		var yy := 290 if g.mode == "field" else 171
@@ -234,7 +250,7 @@ func _title(with_menu: bool = true) -> void:
 	match g.mode:
 		"title":
 			if g.slot.get("finished",false):
-				_menu(Vector2(48,181),190,24,3)
+				_menu(Vector2(48,177),190,21,3)
 			else:
 				_menu(Vector2(48,188),190,29,5)
 			if not g.slot.is_empty():
@@ -254,7 +270,7 @@ func _modal(title: String, note: String) -> void:
 		_panel(Rect2(142,23,356,309),true)
 		_center(title,320,67,29,CREAM,SERIF)
 		_paragraph(note,170,94,300,14,DIM,19)
-		_menu(Vector2(174,126),292,29,4)
+		_menu(Vector2(174,120),292,22,4)
 	else:
 		_panel(Rect2(142,43,356,275),true)
 		_center(title,320,88,29,CREAM,SERIF)
@@ -272,12 +288,15 @@ func _field(interactive: bool = true) -> void:
 	if g.transit.active() and g.field_key == "dragon_waterway" and g.slot.journey.step == 0:
 		units = [_traveler("cloud",g.player,g.field_direction,g.facing,_walk_frame(g.moving,g.walk_distance))]
 	var marks: Array[Dictionary] = []
-	if g.transit.active():
-		for point in g.transit.points():
+	if g.transit.active() or g.world.active():
+		for point in g.field_points():
 			if point.has("sprite"):
 				units.append(_unit(point.sprite,point.pos,0,true))
 			if point.has("prop"):
 				_map_prop(point.pos,point.prop)
+			if g.world.active() and interactive:
+				var color := GOLD if point.has("evidence") or point.has("result") else TEAL
+				_guidance_marker(marks,point.pos,color,"·")
 	elif g.afterstory.active:
 		_afterstory_field(units,marks)
 	else:
@@ -288,6 +307,11 @@ func _field(interactive: bool = true) -> void:
 		else:
 			campaign_art.stage(units,marks)
 		_chronicle_field(units,marks)
+		for point in g.world.main_handoff_points():
+			units.append(_unit(point.sprite,point.pos,0,true))
+			if interactive:
+				var symbol := "支" if not point.evidence.is_empty() and point.evidence == g.world.tracked else "交"
+				_guidance_marker(marks,point.pos,GOLD,symbol if not point.evidence.is_empty() else "·")
 	var touch_field: bool = interactive and g.touch_ui()
 	_draw_field_actors(units)
 	if g.field_key in ["garden","village","lodge","inn","apothecary","tearoom","cavern","tidal_ford","tidal_fort"]:
@@ -299,7 +323,7 @@ func _field(interactive: bool = true) -> void:
 	for mark in marks:
 		_marker(mark.point, mark.color, mark.get("symbol",""))
 	g.draw_set_transform(Vector2.ZERO)
-	if interactive and g.transit.active():
+	if interactive and (g.transit.active() or g.world.active()):
 		for mark in marks:
 			var screen_x: float = mark.point.x - scroll
 			if screen_x < 17.0 or screen_x > 623.0:
@@ -319,6 +343,8 @@ func _field(interactive: bool = true) -> void:
 		g.field_key,g.first.subtitle() if g.first.active() else g.campaign.subtitle())
 	if g.transit.active():
 		place = g.transit.data().title
+	if g.world.active():
+		place = g.world.title()
 	_text(place,63,45,12,DIM)
 	var main_count: int = int(g.slot.cleared.has(0)) + int(g.slot.cleared.has(1))
 	var status := "主线进度  %d / 2" % main_count
@@ -328,6 +354,8 @@ func _field(interactive: bool = true) -> void:
 		status = "已结案" if g.afterstory.state().resolution != "" else "粮账待查"
 	if g.transit.active():
 		status = "沿途调查"
+	if g.world.active():
+		status = g.world.phase_label()
 	_right("%s    ·    境界  %d" % [status,g.rank()],620,24,13,GOLD)
 	var objective := TrailGuide.objective(g)
 	_right(objective,620,43,13,DIM)
@@ -364,6 +392,10 @@ func _field_guidance(marks: Array[Dictionary]) -> void:
 			marks.append({"point":main.pos - Vector2(0,8),"color":TEAL,"symbol":"主"})
 		else:
 			_guidance_marker(marks, main.pos, TEAL, "主")
+	if g.world.active():
+		for point in g.world.trackable_points():
+			_guidance_marker(marks,point.pos,GOLD,"支")
+		return
 	if not g.afterstory.active and not g.tracked_quest.is_empty():
 		var entry: Dictionary = g.chronicle.side.journal_entry(g.tracked_quest)
 		if entry.has("point"):
@@ -375,6 +407,8 @@ func _field_guidance(marks: Array[Dictionary]) -> void:
 		elif point.id == "seal_chase":
 			_sprite("shade",point.pos)
 			_guidance_marker(marks,point.pos,GOLD,"战")
+		elif point.id == "world_visiting":
+			_guidance_marker(marks,point.pos,TEAL,"渡")
 
 func _guidance_marker(marks: Array[Dictionary], at: Vector2, color: Color, symbol: String) -> void:
 	var point := Vector2(at.x, maxf(67.0, at.y - 64.0))
@@ -622,6 +656,8 @@ func _journal() -> void:
 	_fill(FULL,Color("#0b1120ce"))
 	_panel(Rect2(43,23,554,314),true)
 	_text("江湖手记",67,70,29,CREAM,SERIF)
+	if g.world.available():
+		_touch_battle_button(Rect2(433,45,141,28),"跨区交接","handoff_open")
 	if g.afterstory.active:
 		_text("潮关余事",69,106,15,GOLD)
 		_line(Vector2(68,116),Vector2(573,116),LINE)
@@ -675,6 +711,63 @@ func _journal_back() -> void:
 	if not g.touch_ui():
 		_text("B  返回" if g.using_joypad else "Esc / J  返回",68,313,13,DIM)
 		_hit(Rect2(61,292,129,26),"cancel")
+
+func _world_journal() -> void:
+	_fill(FULL,Color("#0b1120ce"))
+	_panel(Rect2(50,25,540,302),true)
+	_text(g.world.journal_title(),74,67,27,CREAM,SERIF)
+	_right(g.world.phase_label(),409,64,15,GOLD)
+	_touch_battle_button(Rect2(425,42,141,28),"跨区交接","handoff_open")
+	var tasks: Array = g.world.journal()
+	for i in tasks.size():
+		var task: Dictionary = tasks[i]
+		var box := Rect2(73,87 + i * 102,494,92)
+		_fill(box,Color("#293046") if i == g.selected else Color("#161e30"))
+		_stroke(box,GOLD if i == g.selected else LINE)
+		_text(task.title,85,box.position.y+21,16,CREAM,SERIF)
+		var tag := "追踪中" if task.id == g.world.tracked else "线索 %d / %d" % [task.steps,task.evidence.size()]
+		var detail: String = task.description
+		if task.awaiting_receipt:
+			detail = task.follow_up
+			tag = "等待回访" if task.id != g.world.tracked else "追踪中"
+		elif task.complete:
+			detail = "报酬 · " + task.reward
+			tag = "已完成"
+		elif task.steps == task.evidence.size():
+			detail = task.ready if task.can_deliver else task.locked
+		_right(tag,552,box.position.y+21,12,TEAL)
+		_paragraph(detail,85,box.position.y+45,462,13,CREAM,17)
+		if not task.complete:
+			_text("报酬 · " + task.reward,85,box.position.y+80,11,GOLD)
+		_hit(box,"menu",i)
+	_text("点按或确认以切换追踪" if g.touch_ui() else "确认切换追踪   Esc / B 返回",74,309,12,DIM)
+
+func _handoff_journal() -> void:
+	_fill(FULL,Color("#0b1120ce"))
+	_panel(Rect2(43,23,554,304),true)
+	_text("跨区交接",67,70,29,CREAM,SERIF)
+	_touch_battle_button(Rect2(433,45,141,28),"返回手记","handoff_open")
+	var rows: Array = g.world.handoff_journal()
+	for i in rows.size():
+		var task: Dictionary = rows[i]
+		var row := Rect2(63,86+i*36,213,33)
+		_fill(row,Color("#293046") if g.selected == i else Color("#161e30"))
+		_stroke(row,GOLD if g.selected == i else LINE)
+		_text(task.title,74,row.position.y+22,14,CREAM)
+		_right(task.state,267,row.position.y+22,11,TEAL)
+		_hit(row,"handoff_row",i)
+	var picked: Dictionary = rows[g.selected]
+	var detail := Rect2(288,86,286,179)
+	_fill(detail,Color("#151d30"))
+	_stroke(detail,LINE)
+	_text("出发 · " + picked.from,300,110,13,DIM)
+	_paragraph("送达 · " + picked.to,300,139,262,13,TEAL,17)
+	_paragraph(picked.action,300,186,261,15,CREAM,21)
+	if picked.state != "已交接":
+		var caption := "取消追踪" if g.world.tracked == picked.id else "追踪此事"
+		_touch_battle_button(Rect2(426,275,148,29),caption,"confirm")
+	if not g.touch_ui():
+		_text("X 返回手记" if g.using_joypad else "Tab 返回手记",69,295,13,DIM)
 
 func _martial_heroes() -> void:
 	for i in g.stage.party.size():
@@ -935,7 +1028,7 @@ func _battle() -> void:
 	var view: Dictionary = combat_art.hud()
 	var location: String = "hall" if g.field_key == "returnhall" else g.field_key
 	var arena := Rect2(0,0,640,208)
-	if g.transit.active():
+	if g.transit.active() or not g.world.battle_point.is_empty():
 		var scenery: Texture2D = g.picture("field/" + location)
 		if scenery:
 			g.draw_texture_rect_region(scenery,arena,Rect2(Vector2(g.field_offset()/2.0,53),Vector2(320,104)))
@@ -948,7 +1041,7 @@ func _battle() -> void:
 	_dots("dust",0.16)
 	_text(g.battle_info()[0],22,32,24,CREAM,SERIF)
 	_text("回合 %02d" % view.round,23,54,13,GOLD)
-	if int(g.slot.chapter) == 3:
+	if int(g.slot.chapter) == 3 and g.world.battle_point.is_empty():
 		_text("魔念 %d / 6" % view.corruption,105,54,12,RED if view.corruption >= 4 else DIM)
 	var phase: String = view.foe[0].get("phase_label", "")
 	if not phase.is_empty():

@@ -1,0 +1,6 @@
+# 四区路线与跨区交接地形检查
+# 真实 Godot 场景边界、碰撞墙和危险区，4 像素宽步进验证连通性。
+# 覆盖区域入口、活动点、区域捷径和跨区道路两端，以及早期和战后交接点。
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+World phase2 data geometry: 1333 checks, 0 failures

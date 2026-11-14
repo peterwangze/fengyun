@@ -8,6 +8,7 @@ const Items = preload("res://scripts/items.gd")
 const Afterstory = preload("res://scripts/afterstory.gd")
 const Economy = preload("res://scripts/economy.gd")
 const Transit = preload("res://scripts/transit.gd")
+const WorldJourney = preload("res://scripts/world_journey.gd")
 const FILE := "user://jianghu.json"
 const SETTINGS := "user://settings.json"
 const VERSION := 1
@@ -28,6 +29,7 @@ func fresh(easy: bool) -> Dictionary:
 	slot["supplies"] = Items.fresh()
 	slot["supply_claims"] = {}
 	slot["journey"] = Transit.initial()
+	slot["world"] = WorldJourney.initial()
 	Economy.normalize(slot)
 	return slot
 
@@ -69,6 +71,8 @@ func read() -> Dictionary:
 			slot.hall = slot.get("hall", _initial_hall())
 			slot.campaign = slot.get("campaign", _initial_campaign(slot))
 			slot.chronicle = slot.get("chronicle",_initial_chronicle(slot.chapter + 1))
+			slot.world = slot.get("world",WorldJourney.initial())
+			WorldJourney.migrate(slot)
 			var legacy := not slot.has("loot_claims")
 			var tidal: Dictionary = slot.get("afterstory", {})
 			var before_forging := not slot.has("material_claims") or (not tidal.is_empty() and not tidal.has("material_claims"))
@@ -136,6 +140,8 @@ func _valid(slot: Dictionary) -> bool:
 	if slot.has("afterstory") and (not slot.finished or not Afterstory.valid(slot.afterstory)):
 		return false
 	if slot.has("journey") and not Transit.valid(slot):
+		return false
+	if slot.has("world") and not WorldJourney.valid(slot):
 		return false
 	return not slot.finished or (slot.chapter == 5 and seen.has(0) and seen.has(1))
 

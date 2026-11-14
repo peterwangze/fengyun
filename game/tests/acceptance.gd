@@ -7,6 +7,7 @@ const TrailGuide = preload("res://scripts/trail_guide.gd")
 const Battle = preload("res://scripts/battle.gd")
 const Items = preload("res://scripts/items.gd")
 const Economy = preload("res://scripts/economy.gd")
+const Stage2B = preload("res://tests/stage2b_journey.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const FORGING_GEAR := {"interrupt":"tide_whistle", "retaliate":"forge_guard", "exploit":"sword_tassel"}
@@ -57,6 +58,9 @@ var reinforced_fights := {}
 var cultivation_route := false
 var cultivation_observations: Array[String] = []
 var alternate_transit := false
+var stage2b_route := false
+var stage2b_skip := false
+var stage2b: RefCounted
 var traversed_maps: Array[Dictionary] = []
 var visited_arcs: Array[int] = []
 var arc_pacing: Array[Dictionary] = []
@@ -102,6 +106,10 @@ func _run() -> void:
 	forging_route = "--forging" in OS.get_cmdline_user_args()
 	cultivation_route = "--cultivation" in OS.get_cmdline_user_args()
 	alternate_transit = "--alternate-transit" in OS.get_cmdline_user_args()
+	stage2b_route = "--stage2b" in OS.get_cmdline_user_args()
+	stage2b_skip = "--stage2b-skip" in OS.get_cmdline_user_args()
+	if stage2b_route:
+		stage2b = Stage2B.new(self)
 	endgame = "--endgame" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
@@ -181,10 +189,14 @@ func _run() -> void:
 		if chapter == 2 and not await _walk_transit("lantern_pass", "forge", "pass_done"):
 			quit(1)
 			return
+		if chapter == 2 and stage2b != null and not stage2b_skip:
+			await stage2b.finish_fengxi()
 		if chapter == 5:
 			if not await _walk_transit("dragon_waterway", "cavern", "waterway_done"):
 				quit(1)
 				return
+			if stage2b != null and not stage2b_skip:
+				await stage2b.late_reception()
 			await _special("relic","cavern_guard")
 			_do_point("lost_relic")
 			_do_point("shatter_relic")
@@ -254,6 +266,8 @@ func _run() -> void:
 		if chapter == 3:
 			_do_point("apothecary")
 			_do_point("pool_intro")
+			if stage2b != null and not stage2b_skip:
+				await stage2b.watch_and_valley()
 			if forging_route and build_route in ROUTE_STYLES:
 				_check_shop_stock("medicine", "clear_silk", 0, "药庐三问结案后到货")
 			if pacing:
@@ -296,6 +310,10 @@ func _run() -> void:
 				if not await _walk_transit("fengxi_lanes", "village", "lanes_done"):
 					quit(1)
 					return
+				if stage2b != null and not stage2b_skip:
+					await stage2b.investigate_fengxi()
+			if chapter == 4 and fight == 0 and stage2b != null and not stage2b_skip:
+				await stage2b.deliver_palace()
 			if chapter == 2 and fight == 1 and not await _cross_forge():
 				quit(1)
 				return
@@ -335,6 +353,8 @@ func _run() -> void:
 				return
 			if chapter == 2 and fight == 0:
 				_verify_lantern_pass_reward()
+			if chapter == 4 and stage2b != null and not stage2b_skip:
+				stage2b.verify_palace_battle(fight)
 			if quests and chapter == 5 and fight == 1:
 				var aid_kind: String = game.slot.chronicle.quests.swordstory
 				var boss: Dictionary = game.encounter.foes[0]
@@ -479,6 +499,8 @@ func _run() -> void:
 			_do_point("exit")
 			_do_point("lesson")
 			_record_arc(3)
+			if stage2b != null and not stage2b_skip:
+				await stage2b.complete_swordhall()
 			if forging_route and build_route in ROUTE_STYLES:
 				_check_shop_stock("forge", "ember_iron", 1)
 			if not market_route.is_empty():
@@ -494,6 +516,8 @@ func _run() -> void:
 			if not await _walk_transit("outer_watch", "returnhall", "watch_done"):
 				quit(1)
 				return
+			if stage2b != null and not stage2b_skip:
+				await stage2b.investigate_watch()
 			await _special("first_tyrant","first_tyrant")
 			_choose(int(alternate))
 			_resume()
@@ -509,6 +533,8 @@ func _run() -> void:
 			if pacing:
 				_check_main(["pool_escape"],"Magic pool fence opened")
 			_do_point("pool_escape")
+			if stage2b != null and not stage2b_skip:
+				await stage2b.finish_valley()
 			if pacing:
 				_check_main(["exit"],"Magic pool farewell complete")
 		if chapter == 4:
@@ -609,6 +635,8 @@ func _run() -> void:
 	if pacing:
 		print("TRANSIT " + JSON.stringify(traversed_maps))
 		print("ARCS " + JSON.stringify(arc_pacing))
+	if stage2b != null:
+		stage2b.finish()
 	_check(visited_arcs == range(10), "all ten narrative chapters were reached in order")
 	var expected_transits: Array = MAIN_TRANSITS.duplicate()
 	if tidal:
@@ -751,10 +779,18 @@ func _close_arc() -> void:
 	entry.erase("silver_start")
 
 func _resume() -> void:
-	_key(KEY_ESCAPE)
-	_key(KEY_UP)
-	_key(KEY_ENTER)
+	_pause_to_title()
 	_check(game.mode == "title","pause returns to title")
+	_key(KEY_ENTER)
+
+func _pause_to_title() -> void:
+	_key(KEY_ESCAPE)
+	_select_menu_row(5)
+
+func _select_menu_row(row: int) -> void:
+	var steps := posmod(row - int(game.selected), game.menu_items().size())
+	for i in steps:
+		_key(KEY_DOWN)
 	_key(KEY_ENTER)
 
 func _verify_afterstory() -> void:
@@ -931,12 +967,9 @@ func _verify_afterstory() -> void:
 		print("TIDAL " + JSON.stringify({"route":selected_route, "ending":settlement, "encounters":tidal_battles}))
 
 func _resume_afterstory() -> void:
-	_key(KEY_ESCAPE)
-	_key(KEY_UP)
-	_key(KEY_ENTER)
+	_pause_to_title()
 	_check(game.mode == "title","Tidegate returns to title")
-	_key(KEY_UP)
-	_key(KEY_ENTER)
+	_select_menu_row(5)
 	_check(game.mode == "field" and game.afterstory.active,"title continues Tidegate")
 
 func _do_point(point: String) -> bool:
@@ -977,7 +1010,12 @@ func _special(point: String, id: String, trigger: bool = true) -> void:
 	if market_route == "training" and id == "first_tyrant":
 		_cast_learned("cloud_return", 0)
 	if id == "first_tyrant" and market_route != "training":
-		_check(game.encounter.bond == 1 and game.encounter.quest_aid_line.contains("岗门"), "outer watch rescue builds one combo charge")
+		if game.chronicle.has("watch_old_road_done"):
+			var tyrant: Dictionary = game.encounter.foes[0]
+			_check(tyrant.poise == tyrant.max_poise - 1 and game.encounter.bond == 0,
+				"timing the old road lowers Tyrant poise instead of building combo charge")
+		else:
+			_check(game.encounter.bond == 1 and game.encounter.quest_aid_line.contains("岗门"), "outer watch rescue builds one combo charge")
 	if id == "prepare_guard":
 		if game.chronicle.has("ridge_guide"):
 			var cloud: Dictionary = game.encounter.allies.filter(func(unit: Dictionary): return unit.id == "cloud").front()
@@ -1603,9 +1641,7 @@ func _verify_replay() -> void:
 
 func _open_arc_replay(arc: int) -> bool:
 	game._title()
-	_key(KEY_UP)
-	_key(KEY_UP)
-	_key(KEY_ENTER)
+	_select_menu_row(4)
 	if not _check(game.mode == "review" and game.menu_items().size() == 10, "title exposes ten chapter replays"):
 		return false
 	for i in arc:
@@ -1747,9 +1783,14 @@ func _walk_transit(room: String, destination: String, completion: String) -> boo
 	var visited: Array[String] = []
 	var battled: Array[String] = []
 	var flags: Array[String] = []
+	var took_branch := false
 	var quest_before: Dictionary = game.slot.chronicle.quests.duplicate()
 	var route: Dictionary = game.transit.data()
-	var exits: Array = route.steps.back().map(func(point: Dictionary): return point.id)
+	var exits: Array[String] = []
+	for i in route.steps.size():
+		for point in route.steps[i]:
+			if int(point.get("next", i + 1)) >= route.steps.size():
+				exits.append(point.id)
 	await _capture("transit-" + room + "-entry")
 	for i in 12:
 		if not game.transit.active() or game.field_key != room:
@@ -1763,6 +1804,7 @@ func _walk_transit(room: String, destination: String, completion: String) -> boo
 			current = ids.find(chosen)
 			if not _check(current >= 0, "%s expected route %s in %s" % [room, chosen, ids]):
 				return false
+			took_branch = true
 		var marker: Dictionary = markers[current]
 		var point: String = marker.id
 		var live: Dictionary = game.field_points().filter(func(entry: Dictionary): return entry.id == point).front()
@@ -1773,6 +1815,8 @@ func _walk_transit(room: String, destination: String, completion: String) -> boo
 		if point not in exits:
 			_check(game.field_points().all(func(entry: Dictionary): return entry.id not in exits or entry.get("optional", false)),
 				room + " gates exits until the preceding objectives are complete")
+		if point == "watch_old_gate" and not _retry_old_road_gate():
+			return false
 		if not _do_point(point):
 			return false
 		visited.append(point)
@@ -1819,7 +1863,7 @@ func _walk_transit(room: String, destination: String, completion: String) -> boo
 		_check(marks.get(flag, false) == flags.has(flag), room + " stores only the chosen branch outcome " + flag)
 	_check(visited.size() >= 3 and visited.back() in exits, room + " requires the authored sequence, including its east exit")
 	_check(quest_before == game.slot.chronicle.quests, room + " leaves voluntary side quests independent")
-	if not chosen.is_empty():
+	if took_branch:
 		_check(chosen in visited, "%s follows required alternative %s" % [room, chosen])
 	var distance := total_distance - start_distance
 	_check(distance >= 1024.0, room + " requires traversal beyond a single field screen")
@@ -1835,7 +1879,13 @@ func _transit_choices(room: String) -> String:
 		"courtyard_road":
 			return "escape_false_tracks" if alternate_transit or build_route in ["interrupt", "exploit"] else "escape_wounded"
 		"lantern_pass":
+			if stage2b_route and build_route in ["retaliate", "exploit"]:
+				return "pass_furnace"
 			return "pass_scouts" if alternate_transit or build_route in ["interrupt", "exploit"] else "pass_worker"
+		"outer_watch":
+			return "watch_old_road" if stage2b_route and build_route in ["interrupt", "exploit"] else "watch_guard"
+		"palace_sluice":
+			return "palace_sluice_gap" if stage2b_route and not stage2b_skip and build_route != "interrupt" else "palace_sluice_guard"
 		"dragon_waterway":
 			return "waterway_scout" if alternate_transit or build_route in ["interrupt", "exploit"] else "waterway_worker"
 		"broken_trestle":
@@ -1850,13 +1900,25 @@ func _transit_choices(room: String) -> String:
 
 func _verify_lantern_pass_reward() -> void:
 	var encounter: RefCounted = game.encounter
-	if game.chronicle.has("pass_help"):
+	if game.chronicle.has("pass_furnace_opened"):
+		var wind: Dictionary = encounter.allies.filter(func(unit: Dictionary): return unit.id == "wind").front()
+		_check(wind.ward, "furnace-road preparation wards Wind at the forge trial")
+	elif game.chronicle.has("pass_help"):
 		var cloud: Dictionary = encounter.allies.filter(func(unit: Dictionary): return unit.id == "cloud").front()
 		_check(cloud.ward and encounter.quest_aid_line.contains("运铁工"), "rescuing the worker protects Cloud at the forge trial")
 	else:
 		var smith: Dictionary = encounter.foes[0]
 		_check(game.chronicle.has("pass_evidence") and smith.id == "smith" and smith.poise == smith.max_poise - 1,
 			"the forged pass makes the first forge opponent start one poise lower")
+
+func _retry_old_road_gate() -> bool:
+	var saved: Dictionary = game.storage.read().journey
+	game.elapsed = floorf(game.elapsed / 8.0) * 8.0
+	if not _do_point("watch_old_gate"):
+		return false
+	_check(game.storage.read().journey == saved and game.mode == "field", "closed patrol window keeps the active road checkpoint")
+	game._process(4.1)
+	return _check(TrailGuide.objective(game) != "", "the patrol window still provides guidance after waiting")
 
 func _verify_transit_retry(point: String) -> bool:
 	var saved: Dictionary = game.storage.read()
@@ -1985,9 +2047,7 @@ func _wedding_route(rear: bool) -> bool:
 			return false
 		_key(KEY_E)
 	_check(game.slot.hall.staff.size() == 2 and game.slot.tonics == mini(9,stock+1),"both evacuations reward supply once")
-	_key(KEY_ESCAPE)
-	_key(KEY_UP)
-	_key(KEY_ENTER)
+	_pause_to_title()
 	_key(KEY_ENTER)
 	_check(game.field_key == "banquet" and game.slot.hall.wedding and game.slot.hall.staff.size() == 2,
 		"continue restores post-wedding room and both evacuations")
@@ -2607,8 +2667,7 @@ func _verify_legacy() -> void:
 		previous.campaign = game.storage._initial_campaign(previous)
 		_check(game.storage.write(previous),"old completed slot without Tidegate remains valid")
 		game._title()
-		_key(KEY_UP)
-		_key(KEY_ENTER)
+		_select_menu_row(5)
 		_check(game.afterstory.active and game.field_key == "tidal_ford" and game.storage.read().afterstory.tonics == 3,
 			"old completed slot can enter Tidegate with its own supplies")
 

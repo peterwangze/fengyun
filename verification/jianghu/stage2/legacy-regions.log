@@ -1,0 +1,293 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS the first entry to the mountain pass does not unlock the workshop yet
+PASS main transit checkpoints cannot be displaced by travel
+PASS walk to pass_cart on lantern_pass
+PASS interact with pass_cart
+PASS walk to pass_worker on lantern_pass
+PASS interact with pass_worker
+PASS walk to pass_rope on lantern_pass
+PASS interact with pass_rope
+PASS walk to pass_gate on lantern_pass
+PASS interact with pass_gate
+PASS walk to pass_exit on lantern_pass
+PASS interact with pass_exit
+PASS leaving the pass unlocks the workshop without claiming Sword Pool victories
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS seized Swordhall opens a real workshop
+PASS seized Swordhall leaves the forge decisions pending
+PASS seized workshop has not yet repaired the winch
+PASS walk to world_sword_maker on swordhall
+PASS interact with world_sword_maker
+PASS walk to world_sword_ledger on swordhall
+PASS interact with world_sword_ledger
+PASS walk to world_sword_road on swordhall
+PASS interact with world_sword_road
+PASS walk to world_sword_cache on lantern_pass
+PASS interact with world_sword_cache
+PASS recovering supplies leads to an actual optional fight
+PASS the optional defeat cannot spend persistent resources or mark quest progress
+PASS retry returns to the same regional optional encounter
+PASS optional supplies can be recovered with practical combat commands
+BATTLE sword cache rounds=3
+PASS battle victory commits the evidence and removes the repeatable encounter
+PASS walk to world_sword_keeper on lantern_pass
+PASS interact with world_sword_keeper
+PASS walk to world_sword_workshop on lantern_pass
+PASS interact with world_sword_workshop
+PASS both pairs of evidence are saved independent of order
+PASS even with evidence, the seized forge has not yet rekindled
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 凤溪
+PASS choosing a region enters its playable map
+PASS changing destination preserves both task chains
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS title continue restores the selected second region
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS walk to world_return on swordhall
+PASS interact with world_return
+PASS two regional visits return to the original main forge coordinate and progress
+PASS both unfinished quests survive returning to the main route
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS after returning, title continue restores the original main coordinate
+PASS milestone fixture preserves regional facts for rekindled
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS clearing the sword milestone unlocks both pending workshop conclusions
+PASS walk to world_sword_charter on swordhall
+PASS interact with world_sword_charter
+PASS the forge charter offers two choices
+PASS settling the charter returns to the actual workshop
+PASS walk to world_sword_supply on swordhall
+PASS interact with world_sword_supply
+PASS forge supply and charter can resolve in either order
+PASS regional resolutions grant the promised smithing materials and store distinct claim IDs
+PASS resolved workshop tasks do not reappear for duplicate payout
+PASS the receipt actions wait for a settled region
+PASS walk to world_sword_road on swordhall
+PASS interact with world_sword_road
+PASS walk to world_sword_shortcut on lantern_pass
+PASS interact with world_sword_shortcut
+PASS the standard road entrance still requires a substantial walk to its east shortcut
+PASS walk to world_sword_shortcut on swordhall
+PASS interact with world_sword_shortcut
+PASS the unlocked shortcut lands on the eastern side of the same road
+PASS the unlocked shortcut avoids most of the road walk
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS reloading preserves the exact shortcut arrival
+PASS walk to world_sword_shortcut on lantern_pass
+PASS interact with world_sword_shortcut
+PASS the physical shortcut works both ways
+WALK swordhall normal=1712.0px shortcut_both_ends=56.0px shortcut_landing=(1315.0,183.0)
+PASS the shortcut and a reload cannot repeat workshop rewards
+PASS walk to world_return on swordhall
+PASS interact with world_return
+PASS walk to exit on forge
+PASS interact with exit
+PASS the real exit to the sword hall clears the previous forge resume point
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS continue cannot revive the stale forge exit after another room is saved
+PASS milestone fixture preserves regional facts for settled
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS a later campaign joins the settled workshop phase
+PASS the chosen charter survives a later regional milestone
+PASS walk to world_sword_road on swordhall
+PASS interact with world_sword_road
+PASS walk to world_sword_supply_receipt on lantern_pass
+PASS interact with world_sword_supply_receipt
+PASS settled region saves sword_supply_receipt
+PASS settled follow-up cannot be repeatedly recorded sword_supply_receipt
+PASS walk to world_sword_charter_receipt on lantern_pass
+PASS interact with world_sword_charter_receipt
+PASS settled region saves sword_charter_receipt
+PASS settled follow-up cannot be repeatedly recorded sword_charter_receipt
+PASS checking receipts does not duplicate rewards
+PASS walk to world_sword_commission_forge on lantern_pass
+PASS interact with world_sword_commission_forge
+PASS the commission exposes the eastern repair bench
+PASS the commission branch opens a functioning forge
+BUDGET swordhall order=commission walk_seconds=82.7 dialogue_inputs=24
+PASS the first entry to the mountain pass does not unlock the workshop yet
+PASS main transit checkpoints cannot be displaced by travel
+PASS walk to pass_cart on lantern_pass
+PASS interact with pass_cart
+PASS walk to pass_worker on lantern_pass
+PASS interact with pass_worker
+PASS walk to pass_rope on lantern_pass
+PASS interact with pass_rope
+PASS walk to pass_gate on lantern_pass
+PASS interact with pass_gate
+PASS walk to pass_exit on lantern_pass
+PASS interact with pass_exit
+PASS leaving the pass unlocks the workshop without claiming Sword Pool victories
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS seized Swordhall opens a real workshop
+PASS seized Swordhall leaves the forge decisions pending
+PASS seized workshop has not yet repaired the winch
+PASS walk to world_sword_road on swordhall
+PASS interact with world_sword_road
+PASS walk to world_sword_keeper on lantern_pass
+PASS interact with world_sword_keeper
+PASS walk to world_sword_cache on lantern_pass
+PASS interact with world_sword_cache
+PASS recovering supplies leads to an actual optional fight
+PASS optional supplies can be recovered with practical combat commands
+BATTLE sword cache rounds=3
+PASS battle victory commits the evidence and removes the repeatable encounter
+PASS walk to world_sword_workshop on lantern_pass
+PASS interact with world_sword_workshop
+PASS walk to world_sword_ledger on swordhall
+PASS interact with world_sword_ledger
+PASS walk to world_sword_maker on swordhall
+PASS interact with world_sword_maker
+PASS both pairs of evidence are saved independent of order
+PASS even with evidence, the seized forge has not yet rekindled
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 凤溪
+PASS choosing a region enters its playable map
+PASS changing destination preserves both task chains
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS title continue restores the selected second region
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS walk to world_return on swordhall
+PASS interact with world_return
+PASS two regional visits return to the original main forge coordinate and progress
+PASS both unfinished quests survive returning to the main route
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS after returning, title continue restores the original main coordinate
+PASS milestone fixture preserves regional facts for rekindled
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS clearing the sword milestone unlocks both pending workshop conclusions
+PASS walk to world_sword_supply on swordhall
+PASS interact with world_sword_supply
+PASS walk to world_sword_charter on swordhall
+PASS interact with world_sword_charter
+PASS the forge charter offers two choices
+PASS settling the charter returns to the actual workshop
+PASS forge supply and charter can resolve in either order
+PASS regional resolutions grant the promised smithing materials and store distinct claim IDs
+PASS resolved workshop tasks do not reappear for duplicate payout
+PASS the receipt actions wait for a settled region
+PASS walk to world_sword_road on swordhall
+PASS interact with world_sword_road
+PASS walk to world_sword_shortcut on lantern_pass
+PASS interact with world_sword_shortcut
+PASS the standard road entrance still requires a substantial walk to its east shortcut
+PASS walk to world_sword_shortcut on swordhall
+PASS interact with world_sword_shortcut
+PASS the unlocked shortcut lands on the eastern side of the same road
+PASS the unlocked shortcut avoids most of the road walk
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS reloading preserves the exact shortcut arrival
+PASS walk to world_sword_shortcut on lantern_pass
+PASS interact with world_sword_shortcut
+PASS the physical shortcut works both ways
+WALK swordhall normal=1568.0px shortcut_both_ends=56.0px shortcut_landing=(1315.0,183.0)
+PASS the shortcut and a reload cannot repeat workshop rewards
+PASS walk to world_return on swordhall
+PASS interact with world_return
+PASS walk to exit on forge
+PASS interact with exit
+PASS the real exit to the sword hall clears the previous forge resume point
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS continue cannot revive the stale forge exit after another room is saved
+PASS milestone fixture preserves regional facts for settled
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS a later campaign joins the settled workshop phase
+PASS the chosen charter survives a later regional milestone
+PASS walk to world_sword_road on swordhall
+PASS interact with world_sword_road
+PASS walk to world_sword_supply_receipt on lantern_pass
+PASS interact with world_sword_supply_receipt
+PASS settled region saves sword_supply_receipt
+PASS settled follow-up cannot be repeatedly recorded sword_supply_receipt
+PASS walk to world_sword_charter_receipt on lantern_pass
+PASS interact with world_sword_charter_receipt
+PASS settled region saves sword_charter_receipt
+PASS settled follow-up cannot be repeatedly recorded sword_charter_receipt
+PASS checking receipts does not duplicate rewards
+PASS walk to world_sword_refuge_shop on lantern_pass
+PASS interact with world_sword_refuge_shop
+PASS the refuge exposes its own medicine cabinet
+PASS the shelter branch opens a functioning shop
+BUDGET swordhall order=refuge walk_seconds=79.2 dialogue_inputs=24
+PASS a pre-region Swordhall slot writes with original funds
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS migration leaves rewards and funds unchanged
+PASS legacy region unlock requires actual sword progress
+PASS a pre-region Swordhall slot writes with original funds
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS migration leaves rewards and funds unchanged
+PASS legacy region unlock requires actual sword progress
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 剑
+PASS choosing a region enters its playable map
+PASS legacy visited Swordhall can select the new region
+PASS a late older slot without story or region schema stays readable
+PASS pause offers title navigation
+PASS mid-visit restart reaches title
+PASS old late slot remains on its original chapter
+PASS pause opens a multi-region chooser
+PASS multi-region chooser becomes visible
+PASS region appears in chooser 凤溪
+PASS choosing a region enters its playable map
+PASS arriving in the final resource chapter alone does not reopen Fengxi
+PASS pre-handoff save writes with earned Fengxi testimony
+PASS legacy aid keeps its evidence and leaves a fresh delivery available
+PASS legacy Palace fixture disables its expanded chronicle
+PASS walk to fight on palace
+PASS interact with fight
+PASS legacy Palace still starts its ordinary battle
+PASS earned testimony still affects the legacy encounter
+PASS finished save starts Tidegate without an existing world visit
+PASS completed title exposes Tidegate
+PASS walk to brief on tidal_ford
+PASS interact with brief
+PASS walk to register on tidal_ford
+PASS interact with register
+PASS walk to seal on tidal_ford
+PASS interact with seal
+PASS walk to gate_entry on tidal_ford
+PASS interact with gate_entry
+PASS walk to canal_tally on tidal_canal
+PASS interact with canal_tally
+PASS Tidegate checkpoint is at the active canal crossing
+PASS title protects the active Tidegate checkpoint by leaving Jianghu unavailable
+ROUTE walking_pixels=17700 dialogue_inputs=56 locations={ "lantern_pass": true, "forge": true, "swordhall": true, "palace": true, "tidal_ford": true, "tidal_canal": true }
+Jianghu regions: 283 checks, 0 failures

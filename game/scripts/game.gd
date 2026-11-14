@@ -16,6 +16,7 @@ const Items = preload("res://scripts/items.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
 const Transit = preload("res://scripts/transit.gd")
 const Arcs = preload("res://scripts/campaign_arcs.gd")
+const WorldJourney = preload("res://scripts/world_journey.gd")
 const FOLLOW_GAP := 32.0
 const MENU_STICK_PRESS := 0.65
 const MENU_STICK_RELEASE := 0.30
@@ -26,6 +27,8 @@ var campaign: RefCounted
 var chronicle: RefCounted
 var afterstory: RefCounted
 var transit: Transit
+var world: WorldJourney
+var handoff_back := "journal"
 var storage: RefCounted
 var music := AudioStreamPlayer.new()
 var effects := AudioStreamPlayer.new()
@@ -121,6 +124,7 @@ func _ready() -> void:
 	chronicle = Chronicle.new(self)
 	afterstory = Afterstory.new(self)
 	transit = Transit.new(self)
+	world = WorldJourney.new(self)
 	_reset_gear_rewards()
 	screen = Screen.new(self)
 	if OS.has_feature("android") or "--touch-controls" in OS.get_cmdline_user_args():
@@ -213,20 +217,32 @@ func menu_items() -> Array:
 	match mode:
 		"title":
 			var resume := "继续旅程"
-			if slot.get("finished", false):
+			if slot.get("finished", false) and not world.active():
 				resume = "重看尾声"
 			var items := [[resume, not slot.is_empty()], ["开启新篇", true], ["设置", true], ["退出游戏", true],
 				["凤溪试玩" if slot.is_empty() else "章节回看", true]]
 			if slot.get("finished",false):
-				items.append([afterstory.title_item(),true])
+				items.append([afterstory.title_item(),not world.active()])
+				items.append([_world_menu_label(),world.available() and not world.active()])
 			return items
 		"new":
 			return [["江湖 · 标准", true], ["说书 · 轻松", true], ["返回", true]]
 		"overwrite":
 			return [["开启并覆盖旧档", true], ["保留旧档", true]]
 		"pause":
-			return [["回到旅程", true], ["江湖手记", true], ["设置", true], ["准备武学",true],
+			var items := [["回到旅程", true], ["江湖手记", true], ["设置", true], ["准备武学",true],
 				["行装与境界", true], ["回到标题", true]]
+			if world.available():
+				items.append(["返回主线" if world.active() else _world_menu_label(),true])
+				if world.active() and world.destinations().size() > 1:
+					items.append(["江湖行路",true])
+			return items
+		"world_map":
+			return world.destinations().map(func(place): return [place.title,true])
+		"world_journal":
+			return world.journal().map(func(task): return [task.title, true])
+		"handoff_journal":
+			return world.handoff_journal().map(func(task): return [task.title, true])
 		"martial": return chronicle.martial_items()
 		"cultivation":
 			var stances: Array = Martial.CULTIVATION[chronicle.martial_id()]
@@ -287,6 +303,8 @@ func _set_mode(next: String, choice: int = 0) -> void:
 func _title() -> void:
 	seal_chase = false
 	transit.battle = ""
+	world.tracked = ""
+	world.battle_point.clear()
 	chronicle.review = false
 	chronicle.special = ""
 	afterstory.reset()
@@ -304,7 +322,7 @@ func menu_confirm(index: int) -> void:
 		"title":
 			match index:
 				0:
-					if slot.finished:
+					if slot.finished and not world.active():
 						_show_ending()
 					else:
 						_enter_chapter(not slot.intro_seen)
@@ -319,6 +337,9 @@ func menu_confirm(index: int) -> void:
 					else:
 						_set_mode("review")
 				5: afterstory.resume()
+				6:
+					stage = Story.CHAPTERS[int(slot.chapter)]
+					_open_world_map()
 		"new":
 			if index == 2:
 				_title()
@@ -344,6 +365,22 @@ func menu_confirm(index: int) -> void:
 				3: _open_martial("pause")
 				4: _open_gear("pause")
 				5: _title()
+				6:
+					if world.active():
+						world.leave()
+					else:
+						_open_world_map()
+				7: _open_world_map()
+		"world_map":
+			world.from_main(world.destinations()[index].id)
+		"world_journal":
+			var task: Dictionary = world.journal()[index]
+			world.tracked = "" if task.id == world.tracked or (task.complete and not task.awaiting_receipt) else task.id
+			_set_mode(back_mode)
+		"handoff_journal":
+			var task: Dictionary = world.handoff_journal()[index]
+			world.tracked = "" if task.id == world.tracked or task.state == "已交接" else task.id
+			_set_mode(back_mode)
 		"martial": chronicle.equip(index)
 		"cultivation": _choose_cultivation(index)
 		"gear": _equip_gear(index)
@@ -368,6 +405,7 @@ func menu_confirm(index: int) -> void:
 		"victory":
 			_finish_result_audio()
 			transit.battle = ""
+			world.battle_point.clear()
 			if chronicle.special.is_empty():
 				_return_to_field()
 			else:
@@ -379,6 +417,7 @@ func menu_confirm(index: int) -> void:
 			else:
 				chronicle.special = ""
 				transit.battle = ""
+				world.battle_point.clear()
 				_return_to_field()
 		"ending":
 			if index == 1:
@@ -420,7 +459,11 @@ func rank() -> int:
 func _enter_chapter(intro: bool) -> void:
 	stage = Story.CHAPTERS[int(slot.chapter)]
 	first.reset_scene()
+	if world.resume():
+		return
 	if transit.resume():
+		return
+	if world.resume_main():
 		return
 	var entry: Array = chronicle.entry()
 	if entry.is_empty():
@@ -461,7 +504,9 @@ func _finish_intro() -> void:
 	_commit()
 	_return_to_field()
 
-func _commit() -> bool:
+func _commit(preserve_world_checkpoint: bool = false) -> bool:
+	if not preserve_world_checkpoint:
+		world.clear_old_checkpoint()
 	var supplies := Items.reconcile_quests(slot, slot.supplies, slot.supply_claims)
 	if afterstory.active and not afterstory.state().has("material_claims"):
 		Economy.normalize_tide(afterstory.state())
@@ -552,7 +597,7 @@ func walk(direction: Vector2, delta: float) -> void:
 		var traveled := step.length()
 		walk_distance += traveled
 		_follow_path(traveled)
-	if not first.active():
+	if not first.active() and not world.active():
 		campaign.update(delta)
 
 func _follow_path(traveled: float) -> void:
@@ -605,7 +650,7 @@ func passable(point: Vector2) -> bool:
 	for polygon in hazards:
 		if Geometry2D.is_point_in_polygon(point, polygon):
 			return false
-	if transit.active():
+	if transit.active() or world.active():
 		return true
 	if afterstory.active:
 		return not afterstory.blocked(point)
@@ -623,6 +668,8 @@ func _held(first: Key, second: Key) -> bool:
 	return Input.is_physical_key_pressed(first) or Input.is_physical_key_pressed(second)
 
 func field_points() -> Array:
+	if world.active():
+		return world.points()
 	if transit.active():
 		return transit.points()
 	var points: Array
@@ -631,12 +678,15 @@ func field_points() -> Array:
 	else:
 		points = first.points() if first.active() else campaign.all_points()
 		points.append_array(chronicle.points())
+		points.append_array(world.main_handoff_points())
 		var source := "cache:" + field_key
 		if TrailGuide.CACHES.has(field_key) and not slot.supply_claims.has(source):
 			var cache: Dictionary = TrailGuide.CACHES[field_key]
 			points.append({"id":"cache","pos":cache.pos,"name":cache.name,"index":-1})
 		if field_key == "inn" and chronicle.has("ferry_evidence") and not slot.supply_claims.has("hunt:inn"):
 			points.append({"id":"seal_chase","pos":Vector2(446,233),"name":"查看后窗的密探","index":-1})
+		if field_key == "village" and world.available():
+			points.append({"id":"world_visiting","pos":Vector2(232,230),"name":"走访凤溪渡路","index":-1})
 	if map.has("fights"):
 		points.append_array([
 			{"id":"shrine","pos":position_of("shrine"),"name":"石灯 · 存档","index":-1},
@@ -665,6 +715,15 @@ func interact() -> void:
 	if spot.is_empty():
 		return
 	sfx("confirm")
+	if world.active():
+		world.handle(spot)
+		return
+	if spot.id == "world_visiting":
+		world.from_main()
+		return
+	if spot.get("handoff",false):
+		world.handle(spot)
+		return
 	if transit.active():
 		transit.handle(spot)
 		return
@@ -785,6 +844,9 @@ func _show_ending() -> void:
 func _return_to_field() -> void:
 	seal_chase = false
 	_set_mode("field")
+	if world.active():
+		_play_music(world.music())
+		return
 	if afterstory.active:
 		_play_music("village" if field_key == "tidal_ford" else "palace")
 		return
@@ -796,6 +858,8 @@ func visible_encounter(index: int) -> bool:
 	return first.courtyard_fight(index) if first.active() else campaign.can_show_fight(index)
 
 func battle_info() -> Array:
+	if not world.battle_point.is_empty():
+		return world.encounter()
 	if not transit.battle.is_empty() and transit.active():
 		return transit.encounter()
 	if seal_chase:
@@ -828,14 +892,17 @@ func _start_battle() -> void:
 		training[id] = Martial.training(slot,id,rank())
 	var stock: int = afterstory.state().tonics if afterstory.active else slot.tonics
 	var supplies: Dictionary = afterstory.state().get("supplies", Items.fresh(2)) if afterstory.active else slot.supplies
+	var battle_chapter := int(slot.chapter) if world.battle_point.is_empty() else 2
 	encounter = Battle.new(stage.party, battle_info()[1], rank(),
-		stock, slot.easy, int(slot.chapter), slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies,builds,training)
+		stock, slot.easy, battle_chapter, slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies,builds,training)
 	encounter.seal_chase = seal_chase
 	if afterstory.active:
 		encounter.apply_quest_aid(afterstory.battle_aid())
-	elif not seal_chase and chronicle.enabled():
-		encounter.apply_quest_aid(chronicle.side.battle_aid(field_key,active_battle,chronicle.special))
-		encounter.apply_quest_aid(transit.battle_aid(active_battle,chronicle.special))
+	elif not seal_chase and world.battle_point.is_empty():
+		if chronicle.enabled():
+			encounter.apply_quest_aid(chronicle.side.battle_aid(field_key,active_battle,chronicle.special))
+			encounter.apply_quest_aid(transit.battle_aid(active_battle,chronicle.special))
+		encounter.apply_quest_aid(world.battle_aid(active_battle,chronicle.special))
 	pending_action = -1
 	bag_open = false
 	bag_index = 0
@@ -893,6 +960,11 @@ func _battle_act(action: int, at: int) -> void:
 		cue = "signal"
 	sfx(cue)
 	if encounter.result == "victory":
+		if not world.battle_point.is_empty():
+			debrief = "取得线索，可在手记查看后续。" if world.won() else "存档失败，线索可重新取得。"
+			result_cue = "win"
+			_set_mode("victory")
+			return
 		if not transit.battle.is_empty() and transit.active():
 			transit.won()
 			debrief = "路已打通，往下一处地标走。"
@@ -973,7 +1045,8 @@ func cancel() -> void:
 		"shop", "forge": _return_to_field()
 		"forge_confirm": _set_mode("forge",pending_recipe)
 		"cultivation": _set_mode("martial")
-		"settings", "journal", "martial": _set_mode(back_mode)
+		"settings", "journal", "world_journal", "martial", "world_map": _set_mode(back_mode)
+		"handoff_journal": _set_mode(handoff_back)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
 		"new": _title()
@@ -1093,6 +1166,8 @@ func click(kind: String, index: int) -> void:
 			var last := (Equipment.options(gear_kind).size() - 1) / 6
 			gear_page = clampi(gear_page + index,0,last)
 		"journal_row": journal_index = index
+		"handoff_open": _open_handoffs()
+		"handoff_row": selected = index
 		"journal_track": _confirm()
 		"confirm": _confirm()
 		"cancel": cancel()
@@ -1222,6 +1297,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					_select_gear_tab(gear_hero, 1 - gear_kind)
 				elif mode == "field":
 					_open_journal()
+				elif mode in ["journal","world_journal","handoff_journal"]:
+					_open_handoffs()
 			JOY_BUTTON_LEFT_SHOULDER:
 				if mode == "field":
 					_open_gear("field")
@@ -1274,6 +1351,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_select_gear_tab(gear_hero, 1 - gear_kind)
 			elif mode == "forge":
 				_toggle_forge_branches()
+			elif mode in ["journal","world_journal","handoff_journal"]:
+				_open_handoffs()
 		KEY_B:
 			if mode == "battle" and pending_action < 0:
 				if bag_open:
@@ -1320,12 +1399,35 @@ func _open_journal() -> void:
 	if mode == "field":
 		back_mode = "field"
 		_show_journal()
-	elif mode == "journal":
+	elif mode in ["journal","world_journal","handoff_journal"]:
 		cancel()
 
+func _open_handoffs() -> void:
+	if mode == "handoff_journal":
+		cancel()
+	elif world.available() and mode in ["journal","world_journal"]:
+		handoff_back = mode
+		var ids := world.handoff_journal().map(func(task): return task.id)
+		_set_mode("handoff_journal",maxi(0,ids.find(world.tracked)))
+
 func _show_journal() -> void:
+	if world.active():
+		_set_mode("world_journal")
+		return
 	journal_index = chronicle.side.journal_ids().find(tracked_quest) + 1
 	_set_mode("journal")
+
+func _world_menu_label() -> String:
+	var places := world.destinations()
+	return places[0].visit_label if places.size() == 1 else "江湖行路"
+
+func _open_world_map() -> void:
+	var places := world.destinations()
+	if places.size() == 1:
+		world.from_main(places[0].id)
+	else:
+		back_mode = mode
+		_set_mode("world_map")
 
 func journal_quest_id() -> String:
 	return "" if journal_index == 0 else chronicle.side.journal_ids()[journal_index - 1]

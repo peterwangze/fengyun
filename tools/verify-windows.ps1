@@ -123,6 +123,13 @@ try {
         Start-Sleep -Milliseconds 105
     }
 
+    function Select-TidegateFromTitle {
+        Press-Key 0x26
+        # The Jianghu row follows Tidegate beginning with version 3.1.
+        if ([version]$versionInfo.ProductVersion -ge [version]'3.1.0.0') { Press-Key 0x26 }
+        Press-Key 0x0D
+    }
+
     function Save-Screenshot([string]$Name, [switch]$Direct) {
         $target = Join-Path $ReportDirectory "$Name.png"
         Add-Type -AssemblyName System.Drawing
@@ -456,8 +463,7 @@ try {
         Set-ChapterFixture 5 24 @(0,1) -Finished
         $tidalLog = Join-Path $ReportDirectory 'windows-tidal.log'
         $game = Open-Game $tidalLog
-        Press-Key 0x26
-        Press-Key 0x0D
+        Select-TidegateFromTitle
         if ((Read-Slot).afterstory.room -ne 'tidal_ford') { throw 'Old completed save could not enter Tidegate.' }
         Save-Screenshot '24-windows-tidal-ford' -Direct
         Press-Key 0x57 670
@@ -509,8 +515,7 @@ try {
         Close-Game $game
         $tidalResumeLog = Join-Path $ReportDirectory 'windows-tidal-resume.log'
         $game = Open-Game $tidalResumeLog
-        Press-Key 0x26
-        Press-Key 0x0D
+        Select-TidegateFromTitle
         Save-Screenshot '27-windows-tidal-resume' -Direct
         Press-Key 0x1B
         Press-Key 0x26
@@ -525,8 +530,7 @@ try {
         Set-ChapterFixture 5 24 @(0,1) -Finished -Afterstory $settlementFixture
         $settlementLog = Join-Path $ReportDirectory 'windows-tidal-settlement.log'
         $game = Open-Game $settlementLog
-        Press-Key 0x26
-        Press-Key 0x0D
+        Select-TidegateFromTitle
         Press-Key 0x44 415
         Press-Key 0x57 970
         Press-Key 0x45

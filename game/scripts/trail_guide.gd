@@ -10,6 +10,8 @@ const SEAL_CHASE := ["客栈截印", ["shade","blade"], [
 ]]
 
 static func objective(g: Node2D) -> String:
+	if g.world.active():
+		return "用手记查看当地委托，或从旅途菜单返回主线。"
 	if g.transit.active():
 		return g.transit.objective()
 	if g.afterstory.active:
@@ -46,6 +48,8 @@ static func main_point(g: Node2D, points: Array) -> Dictionary:
 
 static func main_points(g: Node2D, points: Array) -> Array[Dictionary]:
 	var candidates: Array[Dictionary] = []
+	if g.world.active():
+		return candidates
 	if g.transit.active():
 		candidates.assign(points)
 		return candidates

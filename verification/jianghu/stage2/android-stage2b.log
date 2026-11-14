@@ -1,0 +1,14 @@
+Android 16 API 36, x86_64 scratch emulator; packaged release APK
+APK SHA-256 8ef885c45aced83b9af1a40ca773f1b7986b35f33ce2e642ac8def03801c4d6b
+PASS final signed APK upgrades public v3.0.0 under the same package ID
+PASS upgrade preserves scratch primary and backup byte for byte
+PASS signed release launched on a dedicated scratch Android emulator
+Landscape Android SurfaceView 0,0 – 2400,1080; touch mapped from 640 × 360
+PASS touch selects the outer watch and saves its return point at the apothecary
+PASS virtual joystick reaches the outer watch witness and completing dialogue saves the evidence
+PASS touch selects Valley and keeps the same apothecary return point
+PASS touch selects Swordhall and keeps the same apothecary return point
+PASS touch selects Fengxi and keeps the same apothecary return point
+PASS touch returns to the apothecary and records restart checkpoint
+PASS relaunch and Continue preserve checkpoint
+PASS the restarted packaged game renders on Android OpenGL ES without script errors

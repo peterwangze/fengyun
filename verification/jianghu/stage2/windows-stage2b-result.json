@@ -1,0 +1,21 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "3.1.0.0",
+  "SetupVersion": "3.1.0",
+  "UpdatedFrom": "3.0.0",
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "4800958b11b7f7898cbff9782756c72ad21185c6154bf9a78cbd76d2cbbc322b",
+  "SetupSHA256": "67a70bc162c3c409ac128e9cd6342cff184c928f9147253282543fdf47eb1898",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Installed packaged application cold launch; keyboard and mouse four-region picker; outer watch journal and cross-region handoff page; switch to Valley; return to apothecary; restart and Continue.",
+  "InstalledGameLaterChapters": [
+    "four-region map; outer watch and Valley entry",
+    "apothecary checkpoint persisted after restart"
+  ]
+}

@@ -43,6 +43,12 @@ const MANUAL_RECIPES := {
 }
 
 const SHOPS := {
+	"sword_refuge":{
+		"title":"山隘避难棚", "note":"炉工把剩余药材交给棚主，按旧价供下山队伍。",
+		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
+			{"id":"guard_powder","kind":"supply","price":4,"count":2},
+			{"id":"clear_silk","kind":"material","price":5,"count":1}],
+	},
 	"inn":{
 		"title":"凤溪行商", "note":"商队从西岸运来药品与挡雨的护衣。",
 		"goods":[
@@ -108,6 +114,17 @@ const DROPS := {
 	"quest:swordstory":{"silver":5},
 	"quest:shift":{"silver":4,"materials":{"clear_silk":1},"insight":"sage"},
 	"quest:stairs":{"silver":5,"materials":{"clear_silk":1}},
+	"quest:fengxi_testimony":{"gear":"frost_seal_cord","line":"秦霜将系印的旧绳交给你。"},
+	"quest:fengxi_medicine":{"gear":"dream_herb_wrap","line":"第二梦托船工把留好的草药护衣交给你。"},
+	"quest:sword_supply":{"materials":{"ember_iron":1,"clear_silk":1}},
+	"quest:sword_charter":{"silver":4},
+	"quest:watch_register":{"silver":4,"materials":{"ember_iron":1}},
+	"quest:watch_relay":{"silver":2,"materials":{"ember_iron":1}},
+	"quest:valley_carry":{"silver":4,"materials":{"clear_silk":1}},
+	"quest:valley_latch":{"materials":{"clear_silk":1}},
+	"handoff:medicine":{"materials":{"clear_silk":1}},
+	"handoff:charter_commission":{"materials":{"ember_iron":1}},
+	"handoff:charter_refuge":{"silver":3},
 	"quest:hidden_ledger":{"materials":{"star_steel":1}},
 	"quest:hidden_ledger/defend":{"manual":"crosswind","insight":"wind"},
 	"chest:hall":{"silver":4,"materials":{"clear_silk":1}},
