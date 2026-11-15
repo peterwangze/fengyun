@@ -1,0 +1,24 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "3.3.0.0",
+  "SetupVersion": "3.3.0",
+  "UpdatedFrom": "3.2.0",
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "33f198a1163fb49ae70786ba4f53efb003307019560ca949f522c460ad54ef1c",
+  "SetupSHA256": "a64fc5fd27bb34a5c03a731b121d4134af983f7832561aa2bde70a42576d4e1e",
+  "Authenticode": "NotSigned",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Installed packaged game, six regions before the main campaign is complete, seventh Tidegate region after public settlement, walked to relief roll and collected it, opened region journal, restarted directly into Tidegate, and returned to title while retaining the fact. Entered from the original postgame dock via its physical exit and returned to the exact dock coordinates.",
+  "InstalledGameLaterChapters": [
+    "Tidegate sixth/seventh gating",
+    "public relief roll",
+    "postgame dock transition out and back",
+    "Tidegate checkpoint and completed campaign preserved"
+  ]
+}

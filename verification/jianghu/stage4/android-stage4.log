@@ -1,0 +1,19 @@
+Android 16 API 36, x86_64 scratch emulator; packaged release APK
+APK SHA-256 b850fff38ad8df6ffcb44e176b3550f914da1c2dbbc21ac029014cf5f37e1dd8
+PASS final signed APK upgrades public v3.2.0 under the same package ID
+PASS upgrade preserves scratch primary and backup byte for byte
+PASS signed release launched on a dedicated scratch Android emulator
+Landscape Android SurfaceView 0,0 – 2400,1080; touch mapped from 640 × 360
+PASS Tidegate remains locked before the main campaign is complete
+PASS the sixth option is playable before the main campaign is complete
+PASS post-settlement flow starts from the exact public 3.2.0 save bytes
+PASS old settled game opens Tidegate as the seventh region with the public result intact
+PASS virtual joystick and dialogue obtain and save the post-settlement relief roll
+PASS relaunch and Continue preserve Tidegate checkpoint, relief roll, and original settlement
+PASS returning to the title leaves the campaign completed and relief roll recorded
+PASS original postgame scene reaches regional Tidegate through the physical dock exit
+PASS leaving regional Tidegate restores the exact old postgame dock coordinates
+PASS the restarted packaged game renders on Android OpenGL ES without script errors
+PASS apksigner verified v2/v3 and the same release certificate SHA-256 as v3.2.0: adaf6fded6e87931f9fa40493acebd846535caa29816694b8a3f79e7ad99f41c
+PASS zipalign verified 16 KiB native library alignment
+Package code 30300, minimum Android SDK 24, target SDK 36; arm64-v8a, armeabi-v7a and x86_64 ABIs

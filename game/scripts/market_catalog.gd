@@ -92,6 +92,23 @@ const SHOPS := {
 			{"id":"tidal_iron","kind":"material","price":3,"count":0,"restock":[{"when":"tide:register","count":1,"hint":"核对名册后到货"}]},
 		],
 	},
+	"tide_relief_public":{
+		"title":"公开粮棚补给摊","note":"两户领粮回单核清后，分粮人留了一批便宜补给。",
+		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
+			{"id":"guard_powder","kind":"supply","price":3,"count":2},
+			{"id":"tidal_iron","kind":"material","price":4,"count":1}],
+	},
+	"tide_convoy":{
+		"title":"州府回执货台","note":"仓签与护送记录封好后，验粮人把多余修具料拨到货台。",
+		"goods":[{"id":"tonic","kind":"tonic","price":4,"count":2},
+			{"id":"breath_pill","kind":"supply","price":3,"count":2},
+			{"id":"tidal_iron","kind":"material","price":3,"count":2}],
+	},
+	"tide_clinic":{
+		"title":"归人药棚","note":"凤溪和凌云山接济的药材到岸，药师按进货清单开柜。",
+		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
+			{"id":"guard_powder","kind":"supply","price":3,"count":2}],
+	},
 }
 
 const DROPS := {
@@ -130,6 +147,9 @@ const DROPS := {
 	"quest:mountain_west":{"materials":{"clear_silk":1}},
 	"quest:mountain_medicine":{"materials":{"clear_silk":1}},
 	"quest:mountain_rearguard":{"materials":{"ember_iron":1}},
+	"quest:tide_review":{"silver":4,"materials":{"tidal_iron":1}},
+	"quest:tide_relief_public":{"silver":4,"materials":{"tidal_iron":1}},
+	"quest:tide_relief_witness":{"silver":4,"materials":{"tidal_iron":2}},
 	"quest:hidden_ledger":{"materials":{"star_steel":1}},
 	"quest:hidden_ledger/defend":{"manual":"crosswind","insight":"wind"},
 	"chest:hall":{"silver":4,"materials":{"clear_silk":1}},

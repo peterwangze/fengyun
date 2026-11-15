@@ -1,0 +1,10 @@
+res://tests/route.gd --profile=qa_route
+Route and exploration: 0 failures
+res://tests/branch_payoffs.gd --profile=qa_branch_payoffs
+Quest branch payoffs: 0 failures
+res://tests/jianghu_regions.gd --profile=qa_jianghu_regions
+Jianghu regions: 283 checks, 0 failures
+res://tests/journal.gd --profile=qa_journal
+Quest journal: 0 failures
+res://tests/touch_controls.gd --profile=qa_touch_controls --touch-controls
+Touch controls: 0 failures

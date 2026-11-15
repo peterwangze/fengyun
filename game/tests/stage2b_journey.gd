@@ -142,7 +142,8 @@ func finish() -> void:
 	var saved := HANDOFFS.filter(func(id): return actual.get(id,false))
 	if a.stage2b_skip:
 		var optional: Array = actual.keys().filter(func(id: String):
-			return not id.begins_with("palace_") and not id.begins_with("mountain_") and id != "dawn_relief_witnessed")
+			return (not id.begins_with("palace_") and not id.begins_with("mountain_")
+				and not id.begins_with("tide_") and id != "dawn_relief_witnessed"))
 		_check(saved.is_empty() and optional.is_empty(), "the fresh no-purchase route clears the game without stage-two optional tasks")
 	else:
 		_check(saved == HANDOFFS, "one fresh campaign delivers all five cross-region handoffs")

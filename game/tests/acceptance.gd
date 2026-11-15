@@ -9,6 +9,7 @@ const Items = preload("res://scripts/items.gd")
 const Economy = preload("res://scripts/economy.gd")
 const Stage2B = preload("res://tests/stage2b_journey.gd")
 const Stage3 = preload("res://tests/stage3_journey.gd")
+const Stage4 = preload("res://tests/stage4_journey.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const FORGING_GEAR := {"interrupt":"tide_whistle", "retaliate":"forge_guard", "exploit":"sword_tassel"}
@@ -63,6 +64,7 @@ var stage2b_route := false
 var stage2b_skip := false
 var stage2b: RefCounted
 var stage3: RefCounted
+var stage4: RefCounted
 var traversed_maps: Array[Dictionary] = []
 var visited_arcs: Array[int] = []
 var arc_pacing: Array[Dictionary] = []
@@ -113,6 +115,8 @@ func _run() -> void:
 	if stage2b_route:
 		stage2b = Stage2B.new(self)
 	stage3 = Stage3.new(self, "--stage3" in OS.get_cmdline_user_args())
+	if "--stage4" in OS.get_cmdline_user_args():
+		stage4 = Stage4.new(self)
 	endgame = "--endgame" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
@@ -665,6 +669,8 @@ func _run() -> void:
 	if forging_route:
 		_verify_forging_migration()
 	stage3.verify_migrated_checkpoints()
+	if stage4 != null:
+		await stage4.verify_legacy()
 	if failures == 0:
 		print("PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery")
 		if low_motion:
@@ -811,7 +817,11 @@ func _verify_afterstory() -> void:
 	await _capture("tidal-ford")
 	var opening_tonics: int = game.afterstory.state().tonics
 	var opening_powder: int = game.afterstory.state().supplies.guard_powder
+	if stage4 != null:
+		stage4.check_before_briefing()
 	_do_point("brief")
+	if stage4 != null:
+		await stage4.check_arrivals()
 	if forging_route and build_route == "retaliate":
 		_check_shop_stock("tidegate", "tidal_iron", 0, "核对名册后到货")
 		_check_unowned_forge("tidegate", "granary_vest")
@@ -891,7 +901,8 @@ func _verify_afterstory() -> void:
 	_resume_afterstory()
 	_check(game.field_key == "tidal_fort" and game.afterstory.state().route == selected_route,
 		"room and entry route survive reload")
-	if not tidal_sluice:
+	var save_alu := not tidal_sluice and (stage4 == null or not build_route.is_empty())
+	if save_alu:
 		_do_point("aid")
 		if not await _play_battle():
 			return
@@ -951,12 +962,17 @@ func _verify_afterstory() -> void:
 	_check(game.afterstory.state().chief and not game.afterstory.state().ledger,"boss result saves before taking the ledger")
 	_do_point("ledger")
 	_do_point("return_ford")
+	if stage4 != null and not await stage4.before_settlement():
+		return
+	var settlement := "witness" if tidal_sluice else "public"
+	if stage4 != null:
+		settlement = stage4.settlement(settlement)
 	_do_point("report")
 	_key(KEY_ESCAPE)
 	_check(game.mode == "field" and game.afterstory.state().resolution == "","cancelling the settlement leaves it open")
 	_do_point("report")
 	if _check(game.mode == "choice", "the final settlement offers two choices"):
-		if tidal_sluice:
+		if settlement == "witness":
 			_key(KEY_DOWN)
 		_key(KEY_ENTER)
 		var ending_evidence := "船单" if tidal_sluice else "卸粮人"
@@ -967,15 +983,16 @@ func _verify_afterstory() -> void:
 		_check(game.lines.any(func(line: Array): return line[0] == "江杏") == palace_witness,
 			"the signed Palace record reaches Tidegate only after the outer-court receipt")
 		_drain_dialogue()
-	var settlement := "witness" if tidal_sluice else "public"
 	_check(game.afterstory.state().resolution == settlement,"the selected settlement is saved")
 	await _capture("tidal-complete")
 	_resume_afterstory()
 	var current: Dictionary = game.storage.read()
-	_check(current.finished and current.afterstory.resolution == settlement and current.afterstory.aid == (not tidal_sluice),
+	_check(current.finished and current.afterstory.resolution == settlement and current.afterstory.aid == save_alu,
 		"finished Tidegate and rescue choice survive title reload")
 	for key in ["chapter","cleared","campaign","merit","tonics","hall"]:
 		_check(current[key] == baseline[key],"Tidegate preserves the main campaign's " + key)
+	if stage4 != null and not await stage4.after_settlement(settlement):
+		return
 	print("PASS Tidegate route=%s rescue=%s ending=%s" % [selected_route,str(current.afterstory.aid),settlement])
 	if pacing:
 		print("TIDAL " + JSON.stringify({"route":selected_route, "ending":settlement, "encounters":tidal_battles}))

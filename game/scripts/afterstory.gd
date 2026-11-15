@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Items = preload("res://scripts/items.gd")
+const Economy = preload("res://scripts/economy.gd")
 
 const STAGE := {"num":"外","title":"潮关余事","party":["wind","cloud"]}
 const ENCOUNTERS := {
@@ -32,12 +33,17 @@ func _init(game: Node2D) -> void:
 static func initial() -> Dictionary:
 	return {"room":"tidal_ford","route":"","tonics":3,"supplies":Items.fresh(2),"brief":false,
 		"register":false,"seal":false,"sluice":false,"gate":false,"aid":false,
-		"chief":false,"ledger":false,"resolution":""}
+		"chief":false,"ledger":false,"resolution":"","at":[]}
 
 static func valid(value: Variant) -> bool:
 	if not value is Dictionary or value.get("room") not in ["tidal_ford","tidal_fort"]:
 		return false
 	if value.get("route") not in ["","gate","sluice"] or value.get("resolution") not in ["","public","witness"]:
+		return false
+	var at: Variant = value.get("at",[])
+	if not at is Array or (
+		not at.is_empty() and (at.size() != 2 or not _coordinate(at[0],640) or not _coordinate(at[1],360))
+	):
 		return false
 	var tonics: Variant = value.get("tonics")
 	if not (tonics is int or tonics is float) or tonics < 0 or tonics > 6 or floorf(tonics) != tonics:
@@ -69,6 +75,9 @@ static func valid(value: Variant) -> bool:
 		return false
 	return value.resolution == "" or (value.ledger and value.room == "tidal_ford")
 
+static func _coordinate(value: Variant, bound: int) -> bool:
+	return (value is float or value is int) and is_finite(float(value)) and value >= 0 and value < bound
+
 func state() -> Dictionary:
 	return g.slot.afterstory
 
@@ -93,7 +102,14 @@ func title_item() -> String:
 	var saved: Dictionary = g.slot.get("afterstory",{})
 	if saved.is_empty():
 		return "潮关余事"
-	return "回访盐汊渡口" if saved.resolution != "" else "继续潮关余事"
+	return "回访潮关" if saved.resolution != "" else "继续潮关余事"
+
+func ensure_account() -> void:
+	if not g.slot.has("afterstory"):
+		g.slot.afterstory = initial()
+	if not state().has("material_claims"):
+		Economy.normalize_tide(state())
+	state().supplies = Items.clean(state().get("supplies",Items.fresh(2)))
 
 func resume() -> void:
 	if g.chronicle.review or not g.slot.get("finished",false):
@@ -101,12 +117,10 @@ func resume() -> void:
 	active = true
 	battle = ""
 	g.stage = STAGE
-	if not g.slot.has("afterstory"):
-		g.slot["afterstory"] = initial()
-	state().supplies = Items.clean(state().get("supplies", Items.fresh(2)))
+	ensure_account()
 	var opened := _open_crew_sluice()
 	if not g.transit.resume():
-		_enter(state().room)
+		_enter(state().room,true)
 	if opened:
 		g._notice("凤溪渡工已抬起水栅。")
 
@@ -114,10 +128,16 @@ func reset() -> void:
 	active = false
 	battle = ""
 
-func _enter(room: String) -> void:
+func _enter(room: String, restore: bool = false) -> void:
 	state().room = room
 	var arrival := "east" if room == "tidal_fort" and state().route == "sluice" else "spawn"
 	g._load_field(room,arrival)
+	var at: Array = state().get("at",[])
+	if restore and not at.is_empty() and g.passable(Vector2(at[0],at[1])):
+		g.player = Vector2(at[0],at[1])
+		g._place_follower()
+	else:
+		state().at = []
 	g._commit()
 	g._return_to_field()
 
@@ -127,7 +147,7 @@ func subtitle() -> String:
 func objective() -> String:
 	var flags := state()
 	if flags.resolution != "":
-		return "余事已结，可在渡口回访。"
+		return "沿码头进潮关三地，看覆核、归灯分粮和结案后的去向。"
 	if g.field_key == "tidal_ford":
 		if not flags.brief: return "向陶伯问清粮票的来路。"
 		if not flags.register and not flags.seal: return "查明领粮名册与粮箱封条。"
@@ -156,6 +176,7 @@ func points() -> Array:
 			_add_workbench(result)
 			_add_fengxi_contact(result)
 			_add_dry_store(result)
+			_add_revisit(result,"tide_ford",Vector2(240,261))
 			return result
 		result.append(_spot("brief","向陶伯问粮票" if not flags.brief else "和陶伯说话","boatman_front"))
 		if not flags.brief:
@@ -170,6 +191,7 @@ func points() -> Array:
 			if flags.route == "" and not flags.sluice: result.append(_spot("sluice","松开水栅绞盘"))
 			if flags.sluice and flags.route in ["","sluice"]: result.append(_spot("sluice_entry","从水栅侧道进粮仓"))
 		if flags.ledger: result.append(_spot("report","交还账簿","maid"))
+		_add_revisit(result,"tide_ford",Vector2(240,261))
 		return result
 	result.append(_spot("return_ford","返回盐汊渡口"))
 	if flags.route == "gate" and not flags.gate:
@@ -180,7 +202,13 @@ func points() -> Array:
 		result.append(_spot("chief","质问韩朔","tidal_chief"))
 	elif not flags.ledger:
 		result.append(_spot("ledger","收回粮仓账簿"))
+	if flags.ledger:
+		_add_revisit(result,"tide_fort",Vector2(380,275))
 	return result
+
+func _add_revisit(points: Array, area: String, position: Vector2) -> void:
+	points.append({"id":"tide_visit","name":"沿潮关三地回访","pos":position,"optional":true,"sprite":"guide",
+		"region_entry":"tide","region_area":area})
 
 func _add_workbench(points: Array) -> void:
 	points.append({"id":"shop_tidegate","name":"查看盐汊杂货","pos":TIDEGATE_SHOP,"sprite":"guide","optional":true})
@@ -259,6 +287,7 @@ func handle(id: String) -> void:
 				note = "凤溪乡亲会垫出周转粮。公开账簿可当场发粮，交州府则用它撑过清点。"
 			if not flags.aid:
 				note += " 阿芦仍可救。"
+			note += " 可先从渡口入渠覆核，再交账。"
 			g.chronicle.choose("粮账该如何交代",
 				[["公开账簿，按名册开仓","public"],["留存证词，交由州府清点","witness"]],
 				_resolve,note)
@@ -399,6 +428,12 @@ func _resolve(resolution: String) -> void:
 		scene.append(["陶伯",manifest])
 	if g.slot.world.tasks.get("palace_survival") == "witness" and g.slot.world.tasks.has("palace_survival_receipt"):
 		scene.append(["江杏","我签过茶房那份记录，外庭发令的时刻也在里面。随粮账添一份，沿途可核对是谁扣了运粮的船。"])
+	if g.slot.world.tasks.has("tide_review"):
+		var evidence: String = {
+			"canal":"装卸棚的复写凭单","worker":"卸粮人的签验","manifest":"舟工按印的船单",
+			"alu":"阿芦认过的粮票","testimony":"许成的封船证词","jiang":"江杏的署名记录","watch":"范著的换岗抄页",
+		}.get(g.slot.world.get("tide_source",""),"验印副件")
+		scene.append(["徐掌簿",evidence + "和公秤的实数已对过。覆核联跟原账分存，谁要问，可以照着批次查。"])
 	g._talk(scene,func():
 		state().resolution = resolution
 		g._commit()

@@ -106,7 +106,7 @@ static func offer(slot: Dictionary, account: Dictionary, shop: String, index: in
 			detail = Catalog.MATERIALS[id].source
 			if account.materials.get(id,0) >= MATERIAL_CAP: limit = "材料已满"
 		"tonic":
-			if account.tonics >= (6 if shop == "tidegate" else 9): limit = "药囊已满"
+			if account.tonics >= (6 if account.has("resolution") else 9): limit = "药囊已满"
 	if remaining <= 0 and limit.is_empty(): limit = hint if not hint.is_empty() else "售罄"
 	if account.silver < good.price and limit.is_empty(): limit = "银两不足"
 	return {"name":name,"detail":detail,"remaining":remaining,"price":good.price,"limit":limit,"delivery":hint}

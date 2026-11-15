@@ -6,10 +6,12 @@ const Watch = preload("res://scripts/world_watch.gd")
 const Valley = preload("res://scripts/world_valley.gd")
 const Palace = preload("res://scripts/world_palace.gd")
 const Mountain = preload("res://scripts/world_mountain.gd")
+const Tide = preload("res://scripts/world_tide.gd")
 const Economy = preload("res://scripts/economy.gd")
 const CampaignLinks = preload("res://scripts/campaign_links.gd")
 const REGIONS := {"fengxi":Fengxi,"swordhall":Swordhall,"outer_watch":Watch,"valley":Valley,
-	"palace":Palace,"mountain":Mountain}
+	"palace":Palace,"mountain":Mountain,"tide":Tide}
+const TIDE_ROOMS := ["tidal_ford","tidal_fort"]
 const PALACE_PROOFS := ["palace_river_decree","palace_dispatch_record"]
 const RESCUES := ["mountain_west","mountain_medicine","mountain_rearguard"]
 const LINKS := [
@@ -39,6 +41,10 @@ const LINKS := [
 		"name":"沿铁板记下的暗道绕去东阶","requires_quests":{"hidden_ledger":"done_trade"}},
 	{"id":"road_ledger_cavern","area":"mountain_steps","at":Vector2(1188,258),"destination":"mountain_cavern","arrival":Vector2(507,205),
 		"name":"循铁板暗道回龙脉洞口","requires_quests":{"hidden_ledger":"done_trade"}},
+	{"id":"road_fengxi_tide","area":"shore","at":Vector2(94,195),"destination":"tide_ford","arrival":Vector2(190,252),
+		"name":"从凤溪码头乘船去潮关","requires_lanterns":true},
+	{"id":"road_tide_fengxi","area":"tide_ford","at":Vector2(155,275),"destination":"shore","arrival":Vector2(118,219),
+		"name":"搭回船去凤溪"},
 ]
 const MAIN_ROOMS := {"village":1,"inn":1,"forge":2,"swordhall":2,"returnhall":2,
 	"pool":3,"apothecary":3,"palace":4,"jail":4,"tearoom":4,"cavern":5,"lodge":5,"peak":5,"dawn":5}
@@ -51,7 +57,7 @@ func _init(game: Node2D) -> void:
 	g = game
 
 static func initial() -> Dictionary:
-	return {"area":"","entry":[],"return":{},"resume":{},"tasks":{},"legacy_aid":[],"finale":[]}
+	return {"area":"","entry":[],"return":{},"resume":{},"tasks":{},"legacy_aid":[],"finale":[],"tide_source":""}
 
 static func migrate(slot: Dictionary) -> void:
 	var state: Dictionary = slot.world
@@ -96,6 +102,7 @@ static func valid(slot: Dictionary) -> bool:
 	known["palace_fire_safe"] = [true]
 	known["palace_fire_patrol"] = [true]
 	known["dawn_relief_witnessed"] = [true]
+	known["tide_late_alu"] = [true]
 	if (facts.has("palace_fire_safe") or facts.has("palace_fire_patrol")) and slot.chapter < 4:
 		return false
 	if facts.has("dawn_relief_witnessed") and slot.chapter != 5:
@@ -108,6 +115,8 @@ static func valid(slot: Dictionary) -> bool:
 	for key in facts:
 		if not known.has(key) or facts[key] not in known[key]:
 			return false
+	if not _valid_tide(slot,state,facts):
+		return false
 	var origin: Dictionary = state["return"]
 	var entry: Variant = state.get("entry",[])
 	var checkpoint: Variant = state.get("resume",{})
@@ -115,7 +124,7 @@ static func valid(slot: Dictionary) -> bool:
 		return false
 	if not checkpoint.is_empty() and (not state.area.is_empty() or slot.finished or not unlocked(slot)
 		or checkpoint.get("chapter") != slot.chapter or slot.get("journey",{}).get("active","") != ""
-		or not _valid_origin(checkpoint,int(slot.chapter))):
+		or not _valid_origin(checkpoint,slot)):
 		return false
 	if state.area.is_empty():
 		return origin.is_empty() and entry.is_empty() and (facts.is_empty() or unlocked(slot))
@@ -126,10 +135,58 @@ static func valid(slot: Dictionary) -> bool:
 		return false
 	if state.area == "mountain_altar" and not Mountain.altar_open(slot):
 		return false
-	return _valid_origin(origin,int(slot.chapter))
+	if region_id == "tide" and not slot.has("afterstory"):
+		return false
+	return _valid_origin(origin,slot)
 
-static func _valid_origin(origin: Dictionary, chapter: int) -> bool:
-	return MAIN_ROOMS.get(origin.get("room"),-1) == chapter and _coordinates(origin.get("at"),640)
+static func _valid_origin(origin: Dictionary, slot: Dictionary) -> bool:
+	var room: Variant = origin.get("room")
+	if room in TIDE_ROOMS:
+		return slot.finished and slot.get("afterstory",{}).get("room","") == room and _coordinates(origin.get("at"),640)
+	return MAIN_ROOMS.get(room,-1) == int(slot.chapter) and _coordinates(origin.get("at"),640)
+
+static func _valid_tide(slot: Dictionary, state: Dictionary, facts: Dictionary) -> bool:
+	var tide: Dictionary = slot.get("afterstory",{})
+	var source: Variant = state.get("tide_source","")
+	if not source is String or (facts.has("tide_review_source") != (source != "")):
+		return false
+	if source != "" and not _proof_available(slot,source):
+		return false
+	if (facts.has("tide_review_count") or facts.has("tide_review_seal")) and not tide.get("ledger",false):
+		return false
+	if facts.has("tide_late_alu") and (not tide.get("aid",false) or tide.get("resolution","").is_empty()):
+		return false
+	for id in ["tide_relief_roll","tide_relief_dispatch","tide_relief_arrival","tide_relief_west","tide_relief_east"]:
+		if facts.has(id) and tide.get("resolution","").is_empty():
+			return false
+	if (facts.has("tide_relief_dispatch") and not facts.has("tide_relief_roll")
+			or facts.has("tide_relief_arrival") and not facts.has("tide_relief_dispatch")
+			or (facts.has("tide_relief_west") or facts.has("tide_relief_east")) and not facts.has("tide_relief_arrival")):
+		return false
+	return not facts.has("tide_relief") or facts.tide_relief == tide.get("resolution","")
+
+static func _proof_available(slot: Dictionary, source: String) -> bool:
+	var after: Dictionary = slot.get("afterstory",{})
+	var facts: Dictionary = slot.world.tasks
+	match source:
+		"canal": return after.get("brief",false)
+		"alu": return after.get("aid",false)
+		"manifest": return after.get("canal_manifest",false)
+		"worker": return after.get("canal_witness",false)
+		"testimony": return facts.has("testimony_handoff") and facts.get("testimony","") == "signed"
+		"jiang": return facts.has("palace_survival_receipt") and facts.get("palace_survival","") == "witness"
+		"watch": return facts.has("register_handoff") and facts.get("watch_register","") == "public"
+	return false
+
+static func _tide_help(slot: Dictionary, key: String) -> bool:
+	var quests: Dictionary = slot.chronicle.quests
+	var facts: Dictionary = slot.world.tasks
+	match key:
+		"boat": return quests.get("lamps","") in ["wait_boat","done_boat"]
+		"grain": return quests.get("lamps","") in ["wait_goods","done_goods"]
+		"clinic": return facts.has("medicine_handoff") or facts.has("mountain_medicine") or facts.get("valley_carry","") == "medicine" and facts.has("carry_handoff")
+		"convoy": return facts.has("register_handoff") or facts.has("mountain_rearguard")
+	return false
 
 static func _valid_quest(slot: Dictionary, region: String, definition: Dictionary, facts: Dictionary) -> bool:
 	var complete := facts.has(definition.id)
@@ -159,7 +216,13 @@ func active() -> bool:
 	return not g.afterstory.active and not g.slot.get("world",{}).get("area","").is_empty()
 
 func available() -> bool:
-	return not g.chronicle.review and not g.afterstory.active and g.slot.get("journey",{}).get("active","").is_empty() and unlocked(g.slot)
+	return not g.chronicle.review and g.slot.get("journey",{}).get("active","").is_empty() and unlocked(g.slot)
+
+func uses_tide_account() -> bool:
+	return active() and region() == "tide"
+
+func departure_label() -> String:
+	return "回潮关余事" if g.slot.world["return"].get("room") in TIDE_ROOMS else "返回主线"
 
 func fire_pending() -> bool:
 	return g.slot.chapter == 4 and g.chronicle.has("fire_signal") and not g.chronicle.has("evacuated") and not g.chronicle.review
@@ -198,15 +261,19 @@ func from_main(destination: String = "fengxi", area: String = "") -> void:
 	var touring := active()
 	var previous: Dictionary = g.slot.duplicate(true)
 	if not touring:
-		var room: String = "dawn" if g.slot.finished else g.field_key
-		var position: Vector2 = Vector2(218,244) if g.slot.finished else g.player
+		var from_ending: bool = g.slot.finished and not g.afterstory.active
+		var room: String = "dawn" if from_ending else g.field_key
+		var position: Vector2 = Vector2(218,244) if from_ending else g.player
 		g.slot.world["return"] = {"room":room,"at":[position.x,position.y]}
 		g.slot.world.resume = {}
 	g.slot.world.area = REGIONS[destination].ENTRY if area.is_empty() else area
 	g.slot.world.entry = []
+	if destination == "tide":
+		g.afterstory.ensure_account()
 	if not g._commit():
 		g.slot = previous
 		return
+	g.afterstory.reset()
 	_load()
 
 func escape_fire() -> void:
@@ -281,12 +348,17 @@ func leave() -> bool:
 	g.slot.world.area = ""
 	g.slot.world.entry = []
 	g.slot.world["return"] = {}
+	if origin.room in TIDE_ROOMS:
+		g.slot.afterstory.at = origin.at
 	if not g.slot.finished:
 		origin.chapter = g.slot.chapter
 		g.slot.world.resume = origin
 	if not g._commit(true):
 		g.slot = previous
 		return false
+	if origin.room in TIDE_ROOMS:
+		g.afterstory.resume()
+		return true
 	if g.slot.finished:
 		g._title()
 		return true
@@ -339,6 +411,8 @@ func points() -> Array:
 func _point_unlocked(point: Dictionary, facts: Dictionary, current: String) -> bool:
 	var any_facts: Array = point.get("requires_any",[])
 	var quests: Dictionary = point.get("requires_quests",{})
+	var tide: Dictionary = point.get("requires_tide",{})
+	var tide_state: Dictionary = g.slot.get("afterstory",{})
 	return (
 		(not point.has("phases") or current in point.phases)
 		and g.slot.chapter >= point.get("min_chapter",0)
@@ -348,6 +422,10 @@ func _point_unlocked(point: Dictionary, facts: Dictionary, current: String) -> b
 		and point.get("missing",[]).all(func(id): return not facts.has(id))
 		and (any_facts.is_empty() or any_facts.any(func(id): return facts.has(id)))
 		and quests.keys().all(func(id): return g.slot.chronicle.quests.get(id,"") == quests[id])
+		and tide.keys().all(func(id): return tide_state.get(id,false if tide[id] is bool else "") == tide[id])
+		and point.get("requires_help",[]).all(func(id): return _tide_help(g.slot,id))
+		and point.get("missing_help",[]).all(func(id): return not _tide_help(g.slot,id))
+		and (not point.has("proof") or _proof_available(g.slot,point.proof))
 		and (not point.has("altar_open") or Mountain.altar_open(g.slot) == point.altar_open)
 		and (not point.get("requires_lanterns",false) or Fengxi.phase(g.slot) == "reopened")
 	)
@@ -388,11 +466,15 @@ func handle(point: Dictionary) -> void:
 		read_finale()
 	elif point.get("fire_finish",false):
 		_finish_fire(point)
+	elif point.get("tide_main",false):
+		_enter_tide_story()
 	elif point.id == "world_return":
 		leave()
 	elif point.has("destination"):
 		var previous: Dictionary = g.slot.duplicate(true)
 		g.slot.world.area = point.destination
+		if _region_for_area(point.destination) == "tide":
+			g.afterstory.ensure_account()
 		if fire_pending() and point.destination == "palace_court":
 			g.slot.world.tasks.palace_fire_safe = true
 		var arrival: Vector2 = point.get("arrival",Vector2.ZERO)
@@ -413,6 +495,19 @@ func handle(point: Dictionary) -> void:
 		g.chronicle.choose(point.name,point.choices,_result.bind(point),point.get("note",""))
 	elif point.has("lines"):
 		g._talk(point.lines,_finish_point.bind(point))
+
+func _enter_tide_story() -> void:
+	var previous: Dictionary = g.slot.duplicate(true)
+	var origin: Dictionary = g.slot.world["return"]
+	g.slot.world.area = ""
+	g.slot.world.entry = []
+	g.slot.world["return"] = {}
+	if origin.room in TIDE_ROOMS:
+		g.slot.afterstory.at = origin.at
+	if not g._commit(true):
+		g.slot = previous
+		return
+	g.afterstory.resume()
 
 func _finish_fire(_point: Dictionary) -> void:
 	var missing: Array = PALACE_PROOFS.filter(func(id): return not g.slot.world.tasks.has(id))
@@ -448,22 +543,30 @@ func _finish_fire(_point: Dictionary) -> void:
 
 func _finish_point(point: Dictionary) -> void:
 	if not point.get("evidence","").is_empty():
-		_apply_fact(point.evidence,true)
+		_apply_fact(point.evidence,true,false,point.get("proof",""))
 	elif point.has("result"):
-		_apply_fact(point.result,"done")
+		_apply_fact(point.result,point.get("result_value","done"))
 	g._return_to_field()
 
 func _result(chosen: String, point: Dictionary) -> void:
 	_apply_fact(point.result,chosen)
 	g._return_to_field()
 
-func _apply_fact(key: String, value: Variant, persist_combat: bool = false) -> bool:
+func _apply_fact(key: String, value: Variant, persist_combat: bool = false, proof: String = "") -> bool:
 	var before: Dictionary = g.slot.duplicate(true)
 	var prior_rewards: int = g.gear_rewards.size()
 	g.slot.world.tasks[key] = value
+	if not proof.is_empty():
+		g.slot.world.tide_source = proof
+	var account: Dictionary = g.shop_account()
 	if persist_combat:
-		g.slot.tonics = g.encounter.tonics
-		g.slot.supplies = g.encounter.supplies
+		account.tonics = g.encounter.tonics
+		account.supplies = g.encounter.supplies
+		if uses_tide_account() and battle_point.get("battle_tide_flag","") == "aid":
+			account.aid = true
+			account.tonics = mini(6,account.tonics + 2)
+			for reward in Economy.claim(g.slot,account,"tidal:aid",4):
+				g.gear_rewards.append("获得 · " + reward)
 	var rewards := PackedStringArray()
 	var linked := CampaignLinks.reward(g.slot,key)
 	if not linked.is_empty():
@@ -475,8 +578,9 @@ func _apply_fact(key: String, value: Variant, persist_combat: bool = false) -> b
 		var data: Script = Palace if not active() and g.slot.chapter == 4 else REGIONS[region()]
 		for definition in data.QUESTS:
 			if key == definition.id:
-				if definition.has("source"):
-					rewards = Economy.claim(g.slot,g.slot,definition.source)
+				var source: String = definition.get("source_by_outcome",{}).get(value,definition.get("source",""))
+				if not source.is_empty():
+					rewards = Economy.claim(g.slot,account,source)
 				if definition.has("supply"):
 					g._reward_supply(definition.supply)
 	if not g._commit():

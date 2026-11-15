@@ -347,14 +347,18 @@ func _field(interactive: bool = true) -> void:
 	_line(Vector2(0,51),Vector2(640,51),LINE)
 	_fill(Rect2(19,13,31,29),Color("#352c3b"))
 	_stroke(Rect2(19,13,31,29),GOLD)
-	_center(Arcs.number(g.arc_index()) if not g.afterstory.active else g.stage.num,34,34,17,GOLD,SERIF)
-	_text(Arcs.ARCS[g.arc_index()].title if not g.afterstory.active else g.stage.title,62,28,20,CREAM,SERIF)
-	var place: String = g.afterstory.subtitle() if g.afterstory.active else Chronicle.SUBTITLE.get(
-		g.field_key,g.first.subtitle() if g.first.active() else g.campaign.subtitle())
-	if g.transit.active():
-		place = g.transit.data().title
+	var at_tide: bool = g.afterstory.active or g.world.uses_tide_account()
+	_center("外" if at_tide else Arcs.number(g.arc_index()),34,34,17,GOLD,SERIF)
+	_text("潮关余事" if at_tide else Arcs.ARCS[g.arc_index()].title,62,28,20,CREAM,SERIF)
+	var place: String
 	if g.world.active():
 		place = g.world.title()
+	elif g.transit.active():
+		place = g.transit.data().title
+	elif g.afterstory.active:
+		place = g.afterstory.subtitle()
+	else:
+		place = Chronicle.SUBTITLE.get(g.field_key,g.first.subtitle() if g.first.active() else g.campaign.subtitle())
 	_text(place,63,45,12,DIM)
 	var main_count: int = int(g.slot.cleared.has(0)) + int(g.slot.cleared.has(1))
 	var status := "主线进度  %d / 2" % main_count
@@ -372,7 +376,7 @@ func _field(interactive: bool = true) -> void:
 	var footer_top: float = g.touch_controls.FOOTER_TOP if touch_field else 321.0
 	_fill(Rect2(0,footer_top,640,360-footer_top),Color("#12192b") if touch_field else Color("#12192bf8"))
 	_line(Vector2(0,footer_top),Vector2(640,footer_top),LINE)
-	var medicine: int = g.afterstory.state().tonics if g.afterstory.active else g.slot.tonics
+	var medicine: int = g.shop_account().tonics
 	_text("金创药  ×%d" % medicine,20,345,14,TEAL)
 	if touch_field:
 		g.touch_controls.paint_footer(g, g.nearest().get("name", ""))
@@ -450,8 +454,9 @@ func _afterstory_field(units: Array, marks: Array[Dictionary]) -> void:
 		match spot.id:
 			"seal","ledger","dry_store": _map_prop(p,"chest")
 			"sluice": campaign_art._prop("winch",p,0.8)
+			"tide_visit": _map_prop(p,"exit_open")
 		if g.mode == "field":
-			if spot.id in ["gate_entry","sluice_entry","return_ford"]:
+			if spot.id in ["gate_entry","sluice_entry","return_ford","tide_visit"]:
 				_door_label(spot.name,p)
 			var marker := p - Vector2(0,52 if not spot.sprite.is_empty() else 30)
 			marks.append({"point":marker,"color":GOLD if spot.optional else TEAL,

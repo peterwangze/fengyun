@@ -1,14 +1,14 @@
 # 风云：山河劫
 
-简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.2.0 扩充绝宫火场与凌云山撤离，六个区域随剧情变化，玩家的救援与取证结果延续到终战和凤溪归人。
+简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.3.0 将潮关纳入七区回访网络，加入「粮账覆核」以及公开分粮和州府会验的两条战后路线。
 
 ## 开始游戏
 
-**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.2.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.2.0/Fengyun-3.2.0-android.apk)
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.3.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.3.0/Fengyun-3.3.0-android.apk)
 
-**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.2.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.2.0/Fengyun-3.2.0-windows-x64-setup.exe)
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.3.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.3.0/Fengyun-3.3.0-windows-x64-setup.exe)
 
-[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.2.0) · [第三方许可](Windows/Licenses)
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.3.0) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
@@ -24,7 +24,7 @@
 
 这部同人改编从天下会婚宴写到凤溪点灯，主线取自 2002 年电视剧《风云》，原作漫画为马荣成作品。救援、绕行和迎敌会改变遭遇数量。重返天下会、龙脉易手、雨夜换血、最终守山与凤溪尾声各有独立章节。 [战役设计](CAMPAIGN.md) · [电视剧分集梗概](https://watch.plex.tv/zh/show/wind-and-cloud-conquer-the-world-2002/season/1)
 
-通关后可从尾声或标题进入原创外篇「潮关余事」。在盐汊查名册和关印，经装卸渠沿正门或水栅入仓。两路取得的证词或运单分别影响战斗和结案。外篇使用独立补给，旧通关档可直接进入。
+通关后可从尾声或标题进入「潮关余事」，也可从「江湖行路」或凤溪码头进入潮关。取得粮账后可沿三地调查批次、独立证据、公秤和封绳。结案后，在渡口进入回访，公开分账要复称并给两户实发，交州府要护送卷证并取回执。局部捷径和服务受前期选择及回访任务影响，潮关使用独立钱袋和补给，旧通关档和旧结案档可直接进入。 [第四阶段交付验收](verification/jianghu/stage4/README.md)
 
 - **凤溪**可走石桥或解缆渡河。西岸客栈可核对调令、接应信使和认识第二梦。留意天池杀手的鸣哨预告。
 - **剑池与魔池**可走泄火主桥或北侧石栈。取剑后随无名试招，再回天下会迎战雄霸。聂风在魔池用固守或第二梦的回春诀压住魔念。
@@ -116,7 +116,7 @@ Android 使用 `Android` 导出预设。安装 OpenJDK 17、Android SDK 和匹�
 
 ```powershell
 New-Item -ItemType Directory -Force Android
-& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-3.2.0-android.apk')
+& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-3.3.0-android.apk')
 ```
 
 查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[3.0.0 验收](verification/mastery/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。

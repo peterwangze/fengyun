@@ -233,7 +233,7 @@ func menu_items() -> Array:
 			var items := [["回到旅程", true], ["江湖手记", true], ["设置", true], ["准备武学",true],
 				["行装与境界", true], ["回到标题", true]]
 			if world.available():
-				items.append(["返回主线" if world.active() else _world_menu_label(),world.can_leave()])
+				items.append([world.departure_label() if world.active() else _world_menu_label(),world.can_leave()])
 				if world.active() and world.can_leave() and world.destinations().size() > 1:
 					items.append(["江湖行路",true])
 			return items
@@ -454,7 +454,7 @@ func arc_index() -> int:
 	return Arcs.index(slot)
 
 func rank() -> int:
-	if afterstory.active:
+	if afterstory.active or world.uses_tide_account():
 		return 6
 	return 1 + int(slot.get("merit", 0) / 4.0)
 
@@ -525,7 +525,7 @@ func _commit(preserve_world_checkpoint: bool = false) -> bool:
 	for find in finds:
 		gear_rewards.append("获得 · " + find)
 	var current_rank := rank()
-	if not afterstory.active:
+	if not afterstory.active and not world.uses_tide_account():
 		if known_rank < Martial.SYNERGY_TIER and current_rank >= Martial.SYNERGY_TIER:
 			gear_rewards.append("境界 2 · 行装与武学现可搭配")
 		elif known_rank < Martial.SYNERGY_ADVANCED_TIER and current_rank >= Martial.SYNERGY_ADVANCED_TIER:
@@ -900,11 +900,13 @@ func _start_battle() -> void:
 		gear[id] = Equipment.modifiers(slot,id)
 		builds[id] = Martial.synergies(slot,id,rank())
 		training[id] = Martial.training(slot,id,rank())
-	var stock: int = afterstory.state().tonics if afterstory.active else slot.tonics
-	var supplies: Dictionary = afterstory.state().get("supplies", Items.fresh(2)) if afterstory.active else slot.supplies
-	var battle_chapter := int(slot.chapter) if world.battle_point.is_empty() else 2
+	var account := shop_account()
+	var stock: int = account.tonics
+	var supplies: Dictionary = account.supplies
+	var battle_chapter := int(slot.chapter) if world.battle_point.is_empty() or world.uses_tide_account() else 2
 	encounter = Battle.new(stage.party, battle_info()[1], rank(),
-		stock, slot.easy, battle_chapter, slot.campaign.sword,prepared,afterstory.active or chronicle.enabled(),gear,supplies,builds,training)
+		stock, slot.easy, battle_chapter, slot.campaign.sword,prepared,
+		afterstory.active or world.uses_tide_account() or chronicle.enabled(),gear,supplies,builds,training)
 	encounter.seal_chase = seal_chase
 	if afterstory.active:
 		encounter.apply_quest_aid(afterstory.battle_aid())
@@ -1204,7 +1206,7 @@ func _toggle_forge_branches() -> void:
 		_set_mode("forge")
 
 func shop_account() -> Dictionary:
-	return afterstory.state() if afterstory.active else slot
+	return afterstory.state() if afterstory.active or world.uses_tide_account() else slot
 
 func _buy_good(index: int) -> void:
 	if index == Economy.SHOPS[shop_id].goods.size():

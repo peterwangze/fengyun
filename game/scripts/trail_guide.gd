@@ -11,6 +11,19 @@ const SEAL_CHASE := ["客栈截印", ["shade","blade"], [
 
 static func objective(g: Node2D) -> String:
 	if g.world.active():
+		if g.world.uses_tide_account():
+			var tasks: Dictionary = g.slot.world.tasks
+			match g.world.phase():
+				"arrivals": return "可查西侧装卸渠；追查粮账须回渡口找陶伯。"
+				"records":
+					return "覆核已完成。回陶伯处商议如何处置粮账。" if tasks.has("tide_review") else "从装卸渠、证人和仓秤取证，在渡口覆核。"
+				"public":
+					if not tasks.has("tide_relief"):
+						return "查渡口粮册，在装卸渠复称并向两户分粮。"
+				"witness":
+					if not tasks.has("tide_relief"):
+						return "在仓案封卷，走装卸渠护送，再签收回执。"
+			return "回访渡口与粮仓，核对实发簿或州府回执。"
 		if g.world.fire_pending() and g.world.region() == "palace":
 			match g.slot.world.area:
 				"palace_tea": return "主廊已塌，从后院东阶下西闸；已开侧门也可走。"
