@@ -1,0 +1,23 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "3.4.0.0",
+  "SetupVersion": "3.4.0",
+  "UpdatedFrom": "3.3.1",
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "bafb1feb9b73566f885d1060f7d4504f948658f5a0175b74c62e447d7ef0aacf",
+  "SetupSHA256": "243ff8969abc99cc8e9e67f3d05e8066a0ecf3a2791518dcc9133dd6b6228ec8",
+  "Authenticode": "NotSigned",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Installed game, seven-region atlas and place view, legacy completed save, physical warehouse road to county office, intake dialogue and state, journal, exact area reload, physical return.",
+  "InstalledGameLaterChapters": [
+    "seven-region atlas and place view",
+    "county entry and saved intake",
+    "county checkpoint and physical return"
+  ]
+}

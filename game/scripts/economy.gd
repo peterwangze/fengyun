@@ -122,6 +122,7 @@ static func _arrived(slot: Dictionary, account: Dictionary, when: String) -> boo
 	match parts[0]:
 		"mark": return slot.chronicle.marks.get(parts[1],false)
 		"quest": return String(slot.chronicle.quests.get(parts[1],"")).begins_with("done_")
+		"world": return slot.get("world",{}).get("tasks",{}).has(parts[1])
 		"tide": return account.get(parts[1],false)
 		"chapter": return int(slot.chapter) >= int(parts[1])
 		"clear":

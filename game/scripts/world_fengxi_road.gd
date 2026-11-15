@@ -1,0 +1,73 @@
+extends RefCounted
+
+const AREAS := {
+	"fengxi_postroad":{"field":"fengxi_postroad","spawn":"spawn","title":"凤溪 · 石塘驿道"},
+}
+
+const LINKS := [
+	{"id":"road_shore_postroad","area":"market","at":Vector2(1052,242),"destination":"fengxi_postroad",
+		"arrival":Vector2(102,252),"name":"从集市东口走石塘驿道","landmark":"集市东口","min_chapter":2},
+	{"id":"road_postroad_shore","area":"fengxi_postroad","at":Vector2(101,241),"destination":"market",
+		"arrival":Vector2(1006,251),"name":"沿西台阶回凤溪集市","landmark":"西台阶"},
+	{"id":"road_postroad_sword","area":"fengxi_postroad","at":Vector2(1449,231),"destination":"sword_road",
+		"arrival":Vector2(127,239),"name":"过东岗进入拜剑山庄运铁道","landmark":"东岗门"},
+	{"id":"road_sword_postroad","area":"sword_road","at":Vector2(84,226),"destination":"fengxi_postroad",
+		"arrival":Vector2(1417,243),"name":"沿运铁道西行往石塘驿道","landmark":"运铁道西口"},
+]
+
+const QUESTS := [
+	{"id":"postroad_relay","title":"石塘走失的运粮车",
+		"evidence":["postroad_cart","postroad_trace"],
+		"description":"在西段查空车和缰绳，问清去向。可沿北坡找把式，也可拦下南岔扣车的人。",
+		"locked":"东岗重新接货后，把车夫的消息带到驿亭。",
+		"ready":"去东岗西边的驿亭，向管事说明木箱和车夫的去向。",
+		"reward":"管事放下旧堤踏石，让经过驿道的人少绕一段路。",
+		"follow_up":"凤溪复航后从西段回访，核对粮车的交接单。",
+		"receipt":"postroad_receipt","outcomes":["done"],
+		"delivery_phases":["blockade","reopened"],"receipt_phases":["reopened"]},
+]
+
+const POINTS := [
+	{"id":"postroad_east_shut","area":"fengxi_postroad","at":Vector2(1449,231),"prop":"exit",
+		"name":"问东岗何时能进运铁道","landmark":"东岗门","blocked_destination":"sword_road",
+		"lines":[["东岗守人","山庄的运铁道还没开放。等拜剑山庄接货，再从这座门过去。西边的市街一直能回。"]]},
+	{"id":"postroad_sign","area":"fengxi_postroad","at":Vector2(215,222),"prop":"signal",
+		"name":"看驿亭给运粮人留下的木牌","phases":["blockade"],
+		"lines":[["驿亭木牌","凤溪渡船停航，空车改走石塘。沿主路向东就到运铁道。北坡有脚印，南岔有人扣车，误了工期的来驿亭报信。"]]},
+	{"id":"postroad_sign","area":"fengxi_postroad","at":Vector2(215,222),"prop":"signal",
+		"name":"看凤溪复航后重挂的驿牌","phases":["reopened"],
+		"lines":[["驿亭木牌","渡船复航了。山庄的空车仍能从这里回集市装货。早先停渡丢过粮车的人，去西段找交接单。"]]},
+	{"id":"postroad_cart","area":"fengxi_postroad","at":Vector2(376,261),"prop":"chest",
+		"name":"查看歪在路边的空车和断缰","landmark":"路边断缰车","evidence":"postroad_cart","phases":["blockade","reopened"],
+		"lines":[["聂风","车斗里只有谷壳。车辙往南，车夫用的单拐却往北。"],
+			["步惊云","可循北坡的单拐印找他，或先去南岔拦住占车的人。主路上的车别拦。"]]},
+	{"id":"postroad_ridge","area":"fengxi_postroad","at":Vector2(568,202),"sprite":"servant",
+		"name":"循单拐印在北坡接应车夫","landmark":"北坡拐印","evidence":"postroad_trace","requires":["postroad_cart"],
+		"lines":[["车夫","我腿没伤。扣车的人只拿了空车，四袋粮还锁在东岗库里。"],
+			["车夫","替我到驿亭告诉管事，车轴上坎过不去，带楔木来，我沿北坡走。"]]},
+	{"id":"postroad_wardens","area":"fengxi_postroad","at":Vector2(829,269),"sprite":"guard",
+		"name":"拦住借封渡扣车的差役","evidence":"postroad_trace","requires":["postroad_cart"],
+		"phases":["blockade"],"foes":["guard","blade"],"safe_retreat":Vector2(773,249),
+		"lines":[["差役","城里的船都锁着，车也得留下。"],
+			["步惊云","押货的令得写明哪一车。先把车夫的路让开。"]]},
+	{"id":"postroad_wardens","area":"fengxi_postroad","at":Vector2(829,269),"sprite":"shade",
+		"name":"击退冒用旧关印的劫货人","evidence":"postroad_trace","requires":["postroad_cart"],
+		"phases":["reopened"],"foes":["shade","blade"],"safe_retreat":Vector2(773,249),
+		"lines":[["劫货人","河上才复航几天，谁会来管山路上一辆车？"],
+			["聂风","在渡口等粮的人会来。旧印放下，让他们按车牌对数。"]]},
+	{"id":"postroad_relay","area":"fengxi_postroad","at":Vector2(1244,222),"sprite":"guide",
+		"name":"到东岗驿亭报上车牌与粮袋下落","landmark":"东岗驿亭","requires":["postroad_cart","postroad_trace"],
+		"result":"postroad_relay","excludes":"postroad_relay","phases":["blockade","reopened"],
+		"lines":[["驿亭管事","四袋粮已在东库对过。我去接车夫，给坏车轴垫上楔木。"],
+			["驿亭管事","旧堤那几块踏石我已放好。以后从这里回西段，可以绕开车辙深的路。"]]},
+	{"id":"postroad_causeway_east","area":"fengxi_postroad","at":Vector2(440,233),"prop":"exit_open",
+		"name":"沿复通的旧堤踏石去东岗","destination":"fengxi_postroad","arrival":Vector2(1174,248),
+		"requires":["postroad_relay"]},
+	{"id":"postroad_causeway_west","area":"fengxi_postroad","at":Vector2(1210,246),"prop":"exit_open",
+		"name":"踏旧堤石路回驿道西段","destination":"fengxi_postroad","arrival":Vector2(466,242),
+		"requires":["postroad_relay"]},
+	{"id":"postroad_receipt","area":"fengxi_postroad","at":Vector2(538,232),"prop":"signal",
+		"name":"核对复航后送回凤溪的交接单","requires":["postroad_relay"],"evidence":"postroad_receipt",
+		"phases":["reopened"],
+		"lines":[["交接单","西棚收回空车，石塘接回车夫，东岗把四袋粮交小船带回凤溪。路上实收实付，与旧车牌一一对上。"]]},
+]

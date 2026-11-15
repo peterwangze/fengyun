@@ -1,0 +1,43 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS save phase fixture for resource chapter 1
+PASS regional entry loads the evidence shore
+PASS ordinary movement selects world_fengxi_market
+PASS shore stairs load the 1,104 pixel market field and texture
+PASS inspection phase shows the gatekeeper instead of an open road
+PASS ordinary movement selects world_market_drygate
+PASS ordinary movement selects world_market_sacks
+PASS ordinary movement selects world_market_guild
+PASS grain hall door loads the dedicated interior and texture
+PASS supply counter is closed before reweighing
+PASS ordinary movement selects world_market_scale
+PASS both clues can be collected before embargo, but reweighing awaits the recount
+PASS continue restores both proofs and the indoor regional checkpoint
+PASS ordinary movement selects world_guild_market
+PASS ordinary movement selects world_market_shore
+PASS leaving the market network restores the campaign field
+PASS save phase fixture for resource chapter 2
+PASS regional entry loads the blockade shore
+PASS ordinary movement selects world_fengxi_market
+PASS shore stairs load the 1,104 pixel market field and texture
+PASS embargo switches the east gate to the actual post road
+PASS food relief worker reflects the embargo
+PASS ordinary movement selects world_market_guild
+PASS ordinary movement selects world_market_tally
+PASS reweighing grants the published materials and silver exactly once
+PASS ordinary movement selects world_market_supplies
+PASS the restored supply counter opens its own ordinary shop
+PASS buying one tonic saves the new counter's independent stock
+PASS reload preserves service and prevents a duplicate reward
+PASS ordinary movement selects world_guild_market
+PASS recount changes live market dialogue before boats return
+PASS reopened phase receipt is absent during embargo
+PASS market network always provides a safe return
+PASS save phase fixture for resource chapter 5
+PASS regional entry loads the reopened shore
+PASS ordinary movement selects world_fengxi_market
+PASS shore stairs load the 1,104 pixel market field and texture
+PASS ordinary movement selects world_market_scale_receipt
+PASS visiting the reopened soup shelter records the return of residents' rice
+PASS the public soup kitchen stays after its one-time receipt
+Fengxi market: 40 checks, 0 failures

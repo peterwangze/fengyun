@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Fengxi = preload("res://scripts/world_fengxi.gd")
+const FengxiRoad = preload("res://scripts/world_fengxi_road.gd")
 const Swordhall = preload("res://scripts/world_swordhall.gd")
 const Watch = preload("res://scripts/world_watch.gd")
 const Valley = preload("res://scripts/world_valley.gd")
@@ -9,6 +10,7 @@ const Mountain = preload("res://scripts/world_mountain.gd")
 const Tide = preload("res://scripts/world_tide.gd")
 const Economy = preload("res://scripts/economy.gd")
 const CampaignLinks = preload("res://scripts/campaign_links.gd")
+const Atlas = preload("res://scripts/world_atlas.gd")
 const REGIONS := {"fengxi":Fengxi,"swordhall":Swordhall,"outer_watch":Watch,"valley":Valley,
 	"palace":Palace,"mountain":Mountain,"tide":Tide}
 const TIDE_ROOMS := ["tidal_ford","tidal_fort"]
@@ -45,7 +47,7 @@ const LINKS := [
 		"name":"从凤溪码头乘船去潮关","requires_lanterns":true},
 	{"id":"road_tide_fengxi","area":"tide_ford","at":Vector2(155,275),"destination":"shore","arrival":Vector2(118,219),
 		"name":"搭回船去凤溪"},
-]
+] + FengxiRoad.LINKS
 const MAIN_ROOMS := {"village":1,"inn":1,"forge":2,"swordhall":2,"returnhall":2,
 	"pool":3,"apothecary":3,"palace":4,"jail":4,"tearoom":4,"cavern":5,"lodge":5,"peak":5,"dawn":5}
 
@@ -163,6 +165,11 @@ static func _valid_tide(slot: Dictionary, state: Dictionary, facts: Dictionary) 
 			or facts.has("tide_relief_arrival") and not facts.has("tide_relief_dispatch")
 			or (facts.has("tide_relief_west") or facts.has("tide_relief_east")) and not facts.has("tide_relief_arrival")):
 		return false
+	if state.area == "tide_county_office" or ["tide_county_intake","tide_county_dispatch","tide_county_order","tide_county_followthrough"].any(func(id): return facts.has(id)):
+		if not facts.has("tide_relief_receipt"):
+			return false
+		if facts.has("tide_county_order") and facts.tide_county_order != tide.get("resolution",""):
+			return false
 	return not facts.has("tide_relief") or facts.tide_relief == tide.get("resolution","")
 
 static func _proof_available(slot: Dictionary, source: String) -> bool:
@@ -236,6 +243,56 @@ func destinations() -> Array[Dictionary]:
 		if region_unlocked(g.slot,id):
 			result.append({"id":id,"title":REGIONS[id].TITLE,"visit_label":REGIONS[id].VISIT_LABEL})
 	return result
+
+func atlas_route_open(origin: String, destination: String) -> bool:
+	return _atlas_route_direction(origin,destination) or _atlas_route_direction(destination,origin)
+
+func _atlas_route_direction(origin: String, destination: String) -> bool:
+	if not region_unlocked(g.slot,origin) or not region_unlocked(g.slot,destination):
+		return false
+	var here: Script = REGIONS[origin]
+	var current: String = here.phase(g.slot)
+	var roads := LINKS.filter(func(point: Dictionary): return _region_for_area(point.destination) == destination)
+	for area in here.AREAS:
+		if not _area_points(area,roads,current).is_empty():
+			return true
+	return false
+
+func atlas_place_ids(id: String) -> Array:
+	return REGIONS[id].AREAS.keys().filter(func(area: String): return Atlas.PLACES.has(area)) if REGIONS.has(id) else []
+
+func atlas_place(id: String, area: String) -> Dictionary:
+	var data: Script = REGIONS[id]
+	var current: String = data.phase(g.slot)
+	var place: Array = Atlas.PLACES[area]
+	var connections := PackedStringArray()
+	var services := PackedStringArray()
+	var open: bool = _atlas_place_open(data,current,area)
+	for point in _area_points(area,data.POINTS + LINKS,current):
+		if point.has("destination") and Atlas.PLACES.has(point.destination):
+			var target: String = Atlas.PLACES[point.destination][0]
+			if target not in connections:
+				connections.append(target)
+		if point.has("shop"):
+			services.append(Economy.SHOPS[point.shop].title)
+		if point.has("forge"):
+			services.append(Economy.FORGES[point.forge].title)
+	return {"name":place[0],"kind":place[1],"landmarks":place[2],"summary":place[3],
+		"connections":connections,"services":services,"phase":data.PHASES[current],"open":open}
+
+func _atlas_place_open(data: Script, current: String, target: String) -> bool:
+	var queue: Array[String] = [data.ENTRY]
+	var visited := {data.ENTRY:true}
+	while not queue.is_empty():
+		var area: String = queue.pop_front()
+		if area == target:
+			return true
+		for point in _area_points(area,data.POINTS + LINKS,current):
+			var next: String = point.get("destination","")
+			if data.AREAS.has(next) and not visited.has(next):
+				visited[next] = true
+				queue.append(next)
+	return false
 
 func region() -> String:
 	return _region_for_area(g.slot.world.area) if active() else "fengxi"
@@ -426,6 +483,7 @@ func _point_unlocked(point: Dictionary, facts: Dictionary, current: String) -> b
 	var tide_state: Dictionary = g.slot.get("afterstory",{})
 	return (
 		(not point.has("phases") or current in point.phases)
+		and (not point.has("blocked_destination") or not region_unlocked(g.slot,_region_for_area(point.blocked_destination)))
 		and g.slot.chapter >= point.get("min_chapter",0)
 		and (not point.has("active_chapter") or g.slot.chapter == point.active_chapter)
 		and not g.chronicle.has(point.get("before_mark",""))
@@ -689,6 +747,15 @@ func _finale_groups() -> Dictionary:
 		groups.evidence.append(["旧岗录事","来客可以按范著留下的实名点查。" if facts.watch_register == "public" else "旧岗的匿名副页已验过。我们只记时间，没有记谁给的。"])
 	if facts.has("carry_handoff"):
 		groups.care.append(["许槐","绝宫腾出的护脉药我送到了药棚。" if facts.valley_carry == "medicine" else "邪皇的换气字条交还了。后来学拳的人也能照着抄。"])
+	if facts.has("watch_pass_followthrough"):
+		var record := "岗下送来的药担凭副印点收。那张副页在验印桌，沿路给几家送药，都有时刻对得上。" if facts.watch_medicine_pass == "countermark" else "背坡那挑药担已经送齐。照当初说好的，这里只记药箱，不抄过岗人的名字。"
+		groups.evidence.append(["岗下驿户",record])
+	if facts.has("palace_mooring_receipt"):
+		var record := "苇津公所称过的粮送进了几家灶房。柳家那份用过了，鲍家还留着公秤的领票。" if facts.palace_mooring == "ration" else "渡埠的证词从芦堤转进公所。我们只记副联的号，找人得凭预约从侧门进去。"
+		groups.care.append(["苇津渡工",record])
+	if facts.has("mountain_beam_receipt"):
+		var record := "竹井坳先修了飞栈，送下山的人带回第一块检修木。桥的通行牌还在撤离石阶。" if facts.mountain_beam == "bridge" else "那根梁留在了避险屋。伤者歇稳以后，我们沿新开的检修石径下山。"
+		groups.work.append(["竹井木匠",record])
 	var ledger: String = g.slot.chronicle.quests.get("hidden_ledger","")
 	if ledger.begins_with("done_"):
 		groups.work.append(["领簿山民","倒灯拓片认得出每一户，归来的人能对上姓名。" if ledger == "done_defend" else "我们照铁板暗道越过封锁。薄铁板已送到渡口供人核对。"])
@@ -736,6 +803,7 @@ func _next_task_points(matches: Callable) -> Array:
 	var current: String = g.slot.world.area
 	var phase_id := phase()
 	var data: Script = REGIONS[region()]
+	var candidates: Array = data.POINTS + LINKS
 	var visited := {current:true}
 	var frontier := []
 	for point in here:
@@ -747,7 +815,7 @@ func _next_task_points(matches: Callable) -> Array:
 		var exits := []
 		var following := []
 		for step in frontier:
-			var available := _area_points(step.area,data.POINTS,phase_id)
+			var available := _area_points(step.area,candidates,phase_id)
 			if available.any(matches):
 				if not exits.has(step.first):
 					exits.append(step.first)

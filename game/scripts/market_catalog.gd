@@ -43,6 +43,24 @@ const MANUAL_RECIPES := {
 }
 
 const SHOPS := {
+	"mountain_refuge":{
+		"title":"竹井避险屋药柜", "note":"屋檐撑稳后，守炉人把分下来的救急药摆在门边。",
+		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
+			{"id":"guard_powder","kind":"supply","price":3,"count":1},
+			{"id":"breath_pill","kind":"supply","price":3,"count":1}],
+	},
+	"palace_quay":{
+		"title":"苇津平秤补给摊","note":"两户领到欠粮后，渡埠把剩余的药和理粮用的韧丝摆上了台。",
+		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
+			{"id":"guard_powder","kind":"supply","price":3,"count":2},
+			{"id":"clear_silk","kind":"material","price":4,"count":1}],
+	},
+	"fengxi_relief":{
+		"title":"丰义粮行补给柜","note":"退回押仓粮后，吴师傅把剩下的散药和缝粮袋用的韧丝按进货价摆上柜。",
+		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
+			{"id":"guard_powder","kind":"supply","price":3,"count":1},
+			{"id":"clear_silk","kind":"material","price":4,"count":1}],
+	},
 	"sword_refuge":{
 		"title":"山隘避难棚", "note":"炉工把剩余药材交给棚主，按旧价供下山队伍。",
 		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
@@ -76,7 +94,8 @@ const SHOPS := {
 		"goods":[
 			{"id":"tonic","kind":"tonic","price":3,"count":3,"restock":[{"when":"clear:3:0","count":1,"hint":"击退魔池魔念后补货"}]},
 			{"id":"breath_pill","kind":"supply","price":3,"count":3},
-			{"id":"guard_powder","kind":"supply","price":4,"count":3},
+			{"id":"guard_powder","kind":"supply","price":4,"count":3,
+				"restock":[{"when":"world:valley_herbs","count":1,"hint":"松药坡验收干药后补货"}]},
 			{"id":"apothecary_gourd","kind":"gear","price":17,"count":1},
 			{"id":"clear_silk","kind":"material","price":5,"count":0,"restock":[{"when":"quest:remedy","count":2,"hint":"药庐三问结案后到货"}]},
 		],
@@ -109,6 +128,18 @@ const SHOPS := {
 		"goods":[{"id":"tonic","kind":"tonic","price":3,"count":2},
 			{"id":"guard_powder","kind":"supply","price":3,"count":2}],
 	},
+	"watch_courier_stock":{
+		"title":"外哨行脚药柜","note":"盖药铺副印的担子走东桥。货柜备了止伤药、破势针和捆药用的韧丝。",
+		"goods":[{"id":"tonic","kind":"tonic","price":4,"count":2},
+			{"id":"stagger_needle","kind":"supply","price":5,"count":1},
+			{"id":"clear_silk","kind":"material","price":5,"count":1}],
+	},
+	"watch_medic_stock":{
+		"title":"岗下药棚","note":"沟底脚夫送来备药，先留给晚来的伤者，余下的可换。",
+		"goods":[{"id":"breath_pill","kind":"supply","price":3,"count":2},
+			{"id":"guard_powder","kind":"supply","price":4,"count":2},
+			{"id":"tonic","kind":"tonic","price":3,"count":1}],
+	},
 }
 
 const DROPS := {
@@ -133,8 +164,10 @@ const DROPS := {
 	"quest:stairs":{"silver":5,"materials":{"clear_silk":1}},
 	"quest:fengxi_testimony":{"gear":"frost_seal_cord","line":"秦霜将系印的旧绳交给你。"},
 	"quest:fengxi_medicine":{"gear":"dream_herb_wrap","line":"第二梦托船工把留好的草药护衣交给你。"},
+	"quest:fengxi_scales":{"silver":3,"materials":{"clear_silk":1}},
 	"quest:sword_supply":{"materials":{"ember_iron":1,"clear_silk":1}},
 	"quest:sword_charter":{"silver":4},
+	"quest:sword_charcoal":{"materials":{"ember_iron":1}},
 	"quest:watch_register":{"silver":4,"materials":{"ember_iron":1}},
 	"quest:watch_relay":{"silver":2,"materials":{"ember_iron":1}},
 	"quest:valley_carry":{"silver":4,"materials":{"clear_silk":1}},
@@ -147,6 +180,7 @@ const DROPS := {
 	"quest:mountain_west":{"materials":{"clear_silk":1}},
 	"quest:mountain_medicine":{"materials":{"clear_silk":1}},
 	"quest:mountain_rearguard":{"materials":{"ember_iron":1}},
+	"quest:mountain_beam":{"silver":3,"materials":{"clear_silk":1}},
 	"quest:tide_review":{"silver":4,"materials":{"tidal_iron":1}},
 	"quest:tide_relief_public":{"silver":4,"materials":{"tidal_iron":1}},
 	"quest:tide_relief_witness":{"silver":4,"materials":{"tidal_iron":2}},

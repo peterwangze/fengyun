@@ -1,0 +1,121 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS fixture starts in playable fractured mountain
+PASS fresh fracture begins with the altar locked
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_west_roll
+PASS interaction commits world_mountain_west_roll
+PASS walkable point world_mountain_west_reed
+PASS interaction commits world_mountain_west_reed
+PASS walkable point world_mountain_west_luo
+PASS interaction commits world_mountain_west_luo
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_west_settle
+PASS interaction commits world_mountain_west_settle
+PASS west marking alone does not skip the blood rite
+PASS blood rite plus west settlement opens the altar
+PASS actual altar interaction becomes available after evacuation
+PASS actual final fight starts
+PASS the final battle aid follows the medicine result
+PASS boss was beaten with genuine battle actions
+PASS real victory writes only the pre-battle west result
+PASS mountain reopens footsteps after the final battle
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_medicine_custodian
+PASS interaction commits world_mountain_medicine_custodian
+PASS walkable point world_mountain_medicine_pack
+PASS interaction commits world_mountain_medicine_pack
+PASS the medicine route has the correct precursor and stage
+PASS walkable point world_mountain_medicine_escort
+PASS interaction commits world_mountain_medicine_escort
+PASS walkable point world_mountain_lodge
+PASS interaction commits world_mountain_lodge
+PASS walkable point world_mountain_medicine_confirm
+PASS interaction commits world_mountain_medicine_confirm
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_cavern
+PASS interaction commits world_mountain_cavern
+PASS walkable point world_mountain_rearguard_dispatch
+PASS interaction commits world_mountain_rearguard_dispatch
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_rearguard_marks
+PASS interaction commits world_mountain_rearguard_marks
+PASS the rearguard route has the correct precursor and stage
+PASS walkable point world_mountain_rearguard_chase
+PASS interaction commits world_mountain_rearguard_chase
+PASS walkable point world_mountain_rearguard_confirm
+PASS interaction commits world_mountain_rearguard_confirm
+PASS both routes gain persistent late results in lanterns phase
+PASS late completion leaves the actual boss snapshot unchanged
+PASS the Dawn report identifies late medicine and rearguard as two separate supplemental records
+PASS walkable point world_mountain_rearguard_receipt
+PASS interaction commits world_mountain_rearguard_receipt
+PASS a late follow-up receipt saves without duplication
+PASS fixture starts in playable fractured mountain
+PASS the blood rite alone does not open the altar
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_medicine_custodian
+PASS interaction commits world_mountain_medicine_custodian
+PASS walkable point world_mountain_medicine_pack
+PASS interaction commits world_mountain_medicine_pack
+PASS the medicine route has the correct precursor and stage
+PASS walkable point world_mountain_medicine_escort
+PASS interaction commits world_mountain_medicine_escort
+PASS walkable point world_mountain_lodge
+PASS interaction commits world_mountain_lodge
+PASS walkable point world_mountain_medicine_confirm
+PASS interaction commits world_mountain_medicine_confirm
+PASS medicine alone can also open the altar after blood rite
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_cavern
+PASS interaction commits world_mountain_cavern
+PASS walkable point world_mountain_rearguard_dispatch
+PASS interaction commits world_mountain_rearguard_dispatch
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_rearguard_marks
+PASS interaction commits world_mountain_rearguard_marks
+PASS the rearguard route has the correct precursor and stage
+PASS walkable point world_mountain_rearguard_chase
+PASS interaction commits world_mountain_rearguard_chase
+PASS walkable point world_mountain_rearguard_confirm
+PASS interaction commits world_mountain_rearguard_confirm
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_cavern
+PASS interaction commits world_mountain_cavern
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_west_roll
+PASS interaction commits world_mountain_west_roll
+PASS walkable point world_mountain_west_reed
+PASS interaction commits world_mountain_west_reed
+PASS walkable point world_mountain_west_luo
+PASS interaction commits world_mountain_west_luo
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_west_settle
+PASS interaction commits world_mountain_west_settle
+PASS all three rescue results coexist before the final battle
+PASS actual altar interaction becomes available after evacuation
+PASS actual final fight starts
+PASS the final battle aid follows the medicine result
+PASS boss was beaten with genuine battle actions
+PASS actual boss win freezes all three pre-battle rescues
+PASS no pre-battle rescue is mislabeled as a late entry
+Stage3 Mountain supplemental: 118 checks, 0 failures

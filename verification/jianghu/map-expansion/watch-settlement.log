@@ -1,0 +1,129 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS isolated pre-existing checkpoint admits the next visit
+PASS old lodge remains the regional entry
+PASS first visit keeps the sect checkpoint closed
+PASS the established lodge to original patrol path stays available
+PASS walk to world_watch_to_market on returnhall
+PASS interact with world_watch_to_market
+PASS sealed market has its own cook and food distribution
+PASS walk to world_watch_pass_roster on watch_gate_market
+PASS interact with world_watch_pass_roster
+PASS walk to world_watch_market_to_scree on watch_gate_market
+PASS interact with world_watch_market_to_scree
+PASS the wilderness survey can start, while the ordinary east gate stays shut
+PASS walk to world_watch_pass_track on watch_scree_road
+PASS interact with world_watch_pass_track
+PASS walk to world_watch_scree_to_market on watch_scree_road
+PASS interact with world_watch_scree_to_market
+PASS walk to world_watch_market_to_dispatch on watch_gate_market
+PASS interact with world_watch_market_to_dispatch
+PASS sealed dispatch continues its original scheduling and accepts no new order
+PASS sealed evidence survives but does not unlock the petition
+PASS isolated pre-existing checkpoint admits the next visit
+PASS old lodge remains the regional entry
+PASS chapter handoff opens the occupied phase
+PASS walk to world_watch_to_market on returnhall
+PASS interact with world_watch_to_market
+PASS occupation replaces the cook with box inspection
+PASS walk to world_watch_market_to_dispatch on watch_gate_market
+PASS interact with world_watch_market_to_dispatch
+PASS the occupied dispatch office checks substitute seals
+PASS reload preserves the building and actual landing
+PASS walk to world_watch_pass_order on watch_dispatch_house
+PASS interact with world_watch_pass_order
+PASS shopkeeper route prompts a real choice
+PASS chosen procedure saves immediately and the follow-up waits for testimony
+PASS another route cannot overwrite the order
+PASS walk to world_watch_pass_shop on watch_dispatch_house
+PASS interact with world_watch_pass_shop
+PASS the chosen path opens its own finite supplies
+PASS the open shop spends real stock
+PASS occupied state still needs the actual authorized path
+PASS walk to world_watch_pass_dispatch on watch_dispatch_house
+PASS interact with world_watch_pass_dispatch
+PASS the new route reaches the original patrol path
+PASS walk to world_watch_pass_dispatch on outer_watch
+PASS interact with world_watch_pass_dispatch
+PASS the same route supports a physical return
+PASS isolated pre-existing checkpoint admits the next visit
+PASS old lodge remains the regional entry
+PASS testimony opens each follow-up without erasing the chosen route
+PASS walk to world_watch_to_market on returnhall
+PASS interact with world_watch_to_market
+PASS witness phase has a civilian public kitchen
+PASS walk to world_watch_market_to_scree on watch_gate_market
+PASS interact with world_watch_market_to_scree
+PASS the witness phase also opens the ordinary east gate for everyone
+PASS walk to world_watch_scree_to_east on watch_scree_road
+PASS interact with world_watch_scree_to_east
+PASS walk to world_watch_pass_followthrough on outer_watch
+PASS interact with world_watch_pass_followthrough
+PASS recipient confirmation completes the saved task
+PASS the optional visit returns to the original campaign
+WATCH branch=countermark distance=5300
+PASS isolated pre-existing checkpoint admits the next visit
+PASS old lodge remains the regional entry
+PASS first visit keeps the sect checkpoint closed
+PASS the established lodge to original patrol path stays available
+PASS walk to world_watch_to_market on returnhall
+PASS interact with world_watch_to_market
+PASS sealed market has its own cook and food distribution
+PASS walk to world_watch_pass_roster on watch_gate_market
+PASS interact with world_watch_pass_roster
+PASS walk to world_watch_market_to_scree on watch_gate_market
+PASS interact with world_watch_market_to_scree
+PASS the wilderness survey can start, while the ordinary east gate stays shut
+PASS walk to world_watch_pass_track on watch_scree_road
+PASS interact with world_watch_pass_track
+PASS walk to world_watch_scree_to_market on watch_scree_road
+PASS interact with world_watch_scree_to_market
+PASS walk to world_watch_market_to_dispatch on watch_gate_market
+PASS interact with world_watch_market_to_dispatch
+PASS sealed dispatch continues its original scheduling and accepts no new order
+PASS sealed evidence survives but does not unlock the petition
+PASS isolated pre-existing checkpoint admits the next visit
+PASS old lodge remains the regional entry
+PASS chapter handoff opens the occupied phase
+PASS walk to world_watch_to_market on returnhall
+PASS interact with world_watch_to_market
+PASS occupation replaces the cook with box inspection
+PASS walk to world_watch_market_to_dispatch on watch_gate_market
+PASS interact with world_watch_market_to_dispatch
+PASS the occupied dispatch office checks substitute seals
+PASS reload preserves the building and actual landing
+PASS walk to world_watch_pass_order on watch_dispatch_house
+PASS interact with world_watch_pass_order
+PASS shopkeeper route prompts a real choice
+PASS chosen procedure saves immediately and the follow-up waits for testimony
+PASS another route cannot overwrite the order
+PASS walk to world_watch_dispatch_to_market on watch_dispatch_house
+PASS interact with world_watch_dispatch_to_market
+PASS walk to world_watch_pass_shop on watch_gate_market
+PASS interact with world_watch_pass_shop
+PASS the chosen path opens its own finite supplies
+PASS the open shop spends real stock
+PASS walk to world_watch_market_to_scree on watch_gate_market
+PASS interact with world_watch_market_to_scree
+PASS occupied state still needs the actual authorized path
+PASS walk to world_watch_pass_covered on watch_scree_road
+PASS interact with world_watch_pass_covered
+PASS the new route reaches the original patrol path
+PASS walk to world_watch_pass_covered on outer_watch
+PASS interact with world_watch_pass_covered
+PASS the same route supports a physical return
+PASS isolated pre-existing checkpoint admits the next visit
+PASS old lodge remains the regional entry
+PASS testimony opens each follow-up without erasing the chosen route
+PASS walk to world_watch_to_market on returnhall
+PASS interact with world_watch_to_market
+PASS witness phase has a civilian public kitchen
+PASS walk to world_watch_market_to_scree on watch_gate_market
+PASS interact with world_watch_market_to_scree
+PASS the witness phase also opens the ordinary east gate for everyone
+PASS walk to world_watch_pass_followthrough on watch_scree_road
+PASS interact with world_watch_pass_followthrough
+PASS recipient confirmation completes the saved task
+PASS the optional visit returns to the original campaign
+WATCH branch=covered distance=6364
+Watch settlement: 124 checks, 0 failures; walked 11664 pixels

@@ -1,0 +1,118 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 595.95 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5060 Laptop GPU
+
+PASS write valid approach stage fixture
+PASS normal Mountain visit enters the approach phase
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_foothill
+PASS walk and select world_foothill_well
+PASS new settlement uses its own outdoor map
+PASS the working well introduces the paths before the fracture
+PASS capture lingyun-foothill-well
+PASS walk and select world_foothill_refuge
+PASS walk and select world_refuge_beam
+PASS the settlement door leads into a distinct functional room
+PASS no displaced residents or stocked cabinet before the fracture
+PASS capture lingyun-refuge-approach
+PASS walk and select world_refuge_foothill
+PASS walk and select world_foothill_ridge
+PASS walk and select world_ridge_beam
+PASS capture lingyun-feizhan-crossing
+PASS walk and select world_ridge_gate
+PASS walk the real ledge from settlement to the ridge gate
+PASS both shortcuts are closed in the initial story phase
+PASS two proofs are trackable before the branch becomes actionable
+PASS both proofs and the new ridge area survive title Continue
+PASS write valid fractured stage fixture
+PASS normal Mountain visit enters the fractured phase
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_foothill
+PASS walk and select world_foothill_refuge
+PASS walk and select world_refuge_patient
+PASS after the fracture families use the refuge beds
+PASS five journal entries include the distinct optional task
+PASS capture lingyun-journal
+PASS journal leads to the actual carpenter rather than the altar
+PASS walk and select world_refuge_beam_choice
+PASS carpenter offers an explicit building choice
+PASS correct branch and once-only modest repair pay
+PASS the pharmacy opens only when the shelter is shored up
+PASS reload keeps bridge and prevents a second choice or payment
+PASS walk and select world_refuge_foothill
+PASS walk and select world_foothill_ridge
+PASS the construction choice supplies no main rescue or altar access
+PASS walk and select world_ridge_steps_bridge
+PASS capture lingyun-feizhan-east
+PASS bridge lands at ordinary stone stairs while the existing altar stays closed
+PASS walk and select world_steps_ridge_bridge
+PASS bridge is a real two-way link
+PASS no construction receipt before the final battle outcome
+PASS write valid lanterns stage fixture
+PASS normal Mountain visit enters the lanterns phase
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_foothill
+PASS the working well returns during lanterns
+PASS walk and select world_foothill_ridge
+PASS walk and select world_ridge_steps_bridge
+PASS the stone-step delivery reflects the branch actually taken
+PASS journal marks the pending construction follow-up
+PASS walk and select world_steps_beam_receipt
+PASS hands-on receipt is persisted only after the late interaction
+PASS the late receipt is one-time
+PASS the completed boss's frozen rescue record survives the construction handoff
+PASS walk and select world_steps_ridge_bridge
+PASS late route can be traversed back from the stone steps
+PASS write valid fractured stage fixture
+PASS normal Mountain visit enters the fractured phase
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_foothill
+PASS walk and select world_foothill_refuge
+PASS walk and select world_refuge_patient
+PASS after the fracture families use the refuge beds
+PASS five journal entries include the distinct optional task
+PASS journal leads to the actual carpenter rather than the altar
+PASS walk and select world_refuge_beam_choice
+PASS carpenter offers an explicit building choice
+PASS correct branch and once-only modest repair pay
+PASS the pharmacy opens only when the shelter is shored up
+PASS walk and select world_refuge_counter
+PASS the refuge cabinet is a genuine inventory service
+PASS capture lingyun-refuge-cabinet
+PASS purchase decrements the cabinet's finite stock
+PASS reload keeps shelter and prevents a second choice or payment
+PASS walk and select world_refuge_foothill
+PASS walk and select world_foothill_ridge
+PASS the construction choice supplies no main rescue or altar access
+PASS shelter path remains sealed before battle
+PASS walk and select world_ridge_gate
+PASS walk and select world_ridge_foothill
+PASS walk and select world_foothill_hearth
+PASS walk and select world_mountain_steps
+PASS shelter has a safe old route to the same steps
+PASS no construction receipt before the final battle outcome
+PASS write valid lanterns stage fixture
+PASS normal Mountain visit enters the lanterns phase
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_foothill
+PASS the working well returns during lanterns
+PASS walk and select world_foothill_ridge
+PASS walk and select world_ridge_steps_shelter
+PASS the stone-step delivery reflects the branch actually taken
+PASS journal marks the pending construction follow-up
+PASS walk and select world_steps_beam_receipt
+PASS hands-on receipt is persisted only after the late interaction
+PASS the late receipt is one-time
+PASS the completed boss's frozen rescue record survives the construction handoff
+PASS walk and select world_steps_ridge_shelter
+PASS late route can be traversed back from the stone steps
+PASS capture lingyun-feizhan-lanterns
+PASS write valid lanterns stage fixture
+PASS normal Mountain visit enters the lanterns phase
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_foothill
+PASS walk and select world_foothill_refuge
+PASS walk and select world_refuge_beam_choice
+PASS carpenter offers an explicit building choice
+PASS correct branch and once-only modest repair pay
+PASS late optional construction is possible without changing the boss result
+Lingyun settlement: 114 checks, 0 failures

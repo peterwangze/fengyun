@@ -1,0 +1,71 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS an earlier completed campaign loads
+PASS open regional atlas from normal title
+PASS travel to swordhall through the atlas
+PASS exact interaction world_sword_hamlet
+PASS traversable anchor world_sword_hamlet
+PASS completed world_sword_hamlet
+PASS the charcoal track clearly indicates its gate
+PASS exact interaction world_sword_charcoal_sample
+PASS traversable anchor world_sword_charcoal_sample
+PASS completed world_sword_charcoal_sample
+PASS exact interaction world_sword_charcoal_mark
+PASS traversable anchor world_sword_charcoal_mark
+PASS completed world_sword_charcoal_mark
+PASS exact interaction world_sword_hamlet_return
+PASS traversable anchor world_sword_hamlet_return
+PASS completed world_sword_hamlet_return
+PASS exact interaction world_sword_charcoal_turnin
+PASS traversable anchor world_sword_charcoal_turnin
+PASS completed world_sword_charcoal_turnin
+PASS the workshop verifies material before opening the road
+PASS the iron reward enters the claim ledger once
+PASS exact interaction world_sword_hamlet
+PASS traversable anchor world_sword_hamlet
+PASS completed world_sword_hamlet
+PASS exact interaction world_sword_hamlet_to_road
+PASS traversable anchor world_sword_hamlet_to_road
+PASS completed world_sword_hamlet_to_road
+PASS exact interaction world_sword_road_to_hamlet
+PASS traversable anchor world_sword_road_to_hamlet
+PASS completed world_sword_road_to_hamlet
+PASS the new link works both ways
+PASS exact interaction world_sword_charcoal_receipt
+PASS traversable anchor world_sword_charcoal_receipt
+PASS completed world_sword_charcoal_receipt
+PASS continue restores the hamlet without reissuing a receipt
+PASS open regional atlas from normal title
+PASS travel to valley through the atlas
+PASS exact interaction world_valley_to_herbs
+PASS traversable anchor world_valley_to_herbs
+PASS completed world_valley_to_herbs
+PASS wet branches block the new route before the clinic hears the report
+PASS exact interaction world_valley_herb_stone
+PASS traversable anchor world_valley_herb_stone
+PASS completed world_valley_herb_stone
+PASS exact interaction world_valley_herb_tag
+PASS traversable anchor world_valley_herb_tag
+PASS completed world_valley_herb_tag
+PASS exact interaction world_herbs_to_valley
+PASS traversable anchor world_herbs_to_valley
+PASS completed world_herbs_to_valley
+PASS exact interaction world_valley_herb_report
+PASS traversable anchor world_valley_herb_report
+PASS completed world_valley_herb_report
+PASS actual dry herbs restock one dose in the existing pharmacy
+PASS exact interaction world_valley_to_herbs
+PASS traversable anchor world_valley_to_herbs
+PASS completed world_valley_to_herbs
+PASS exact interaction world_herbs_to_trestle
+PASS traversable anchor world_herbs_to_trestle
+PASS completed world_herbs_to_trestle
+PASS exact interaction world_trestle_to_herbs
+PASS traversable anchor world_trestle_to_herbs
+PASS completed world_trestle_to_herbs
+PASS exact interaction world_valley_herb_followthrough
+PASS traversable anchor world_valley_herb_followthrough
+PASS completed world_valley_herb_followthrough
+PASS two-way back slope and later delivery receipt persist
+PASS the optional loops leave the legacy Tidegate choice intact
+Map support routes: 68 checks, 0 failures

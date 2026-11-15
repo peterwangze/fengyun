@@ -1,0 +1,107 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS public: old completed save loads before the new quest
+PASS county office stays within the existing seven regions
+PASS walk to world_tide_to_canal on tidal_ford
+PASS interact with world_tide_to_canal
+PASS walk to world_tide_canal_to_fort on tidal_canal
+PASS interact with world_tide_canal_to_fort
+PASS the existing relief receipt is required for the county road
+PASS an old save cannot open the county office prematurely
+PASS an authentic receipt-state fixture loads
+PASS walk to world_tide_to_canal on tidal_ford
+PASS interact with world_tide_to_canal
+PASS walk to world_tide_canal_to_fort on tidal_canal
+PASS interact with world_tide_canal_to_fort
+PASS walk to world_tide_to_county on tidal_fort
+PASS interact with world_tide_to_county
+PASS county road has a walkable office arrival
+PASS desk and shortcut await the two facts
+PASS reload restores county office and arrival
+PASS walk to world_tide_county_intake on tide_county_office
+PASS interact with world_tide_county_intake
+PASS walk to world_tide_county_dispatch on tide_county_office
+PASS interact with world_tide_county_dispatch
+PASS journal reflects both procedural details
+PASS walk to world_tide_county_order on tide_county_office
+PASS interact with world_tide_county_order
+PASS original settlement determines the saved county order
+PASS county order pays no items or currency
+PASS the order directs follow-through and cannot be reissued
+PASS save validation rejects an order for the opposite settlement
+PASS walk to world_tide_county_supply on tide_county_office
+PASS interact with world_tide_county_supply
+PASS county opens the corresponding supply desk
+PASS county shelf uses actual Tidegate stock and silver
+PASS walk to world_tide_county_shortcut on tide_county_office
+PASS interact with world_tide_county_shortcut
+PASS new route follows the original settlement: tide_ford
+PASS walk to world_tide_county_followthrough on tidal_ford
+PASS interact with world_tide_county_followthrough
+PASS seeing the dispatch in operation completes the procedural follow-up
+PASS walk to world_tide_county_shortcut on tidal_ford
+PASS interact with world_tide_county_shortcut
+PASS walk to world_tide_county_to_fort on tide_county_office
+PASS interact with world_tide_county_to_fort
+PASS both directions of the shortcut and the original warehouse return work
+PASS walk to world_tide_fort_to_canal on tidal_fort
+PASS interact with world_tide_fort_to_canal
+PASS walk to world_tide_canal_to_ford on tidal_canal
+PASS interact with world_tide_canal_to_ford
+PASS walk to world_tide_shop on tidal_ford
+PASS interact with world_tide_shop
+PASS the original dock desk shares the same stock without refilling purchased items
+PASS settled visit can return to the title
+PASS witness: old completed save loads before the new quest
+PASS county office stays within the existing seven regions
+PASS walk to world_tide_to_canal on tidal_ford
+PASS interact with world_tide_to_canal
+PASS walk to world_tide_canal_to_fort on tidal_canal
+PASS interact with world_tide_canal_to_fort
+PASS the existing relief receipt is required for the county road
+PASS an old save cannot open the county office prematurely
+PASS an authentic receipt-state fixture loads
+PASS walk to world_tide_to_canal on tidal_ford
+PASS interact with world_tide_to_canal
+PASS walk to world_tide_canal_to_fort on tidal_canal
+PASS interact with world_tide_canal_to_fort
+PASS walk to world_tide_to_county on tidal_fort
+PASS interact with world_tide_to_county
+PASS county road has a walkable office arrival
+PASS desk and shortcut await the two facts
+PASS reload restores county office and arrival
+PASS walk to world_tide_county_dispatch on tide_county_office
+PASS interact with world_tide_county_dispatch
+PASS walk to world_tide_county_intake on tide_county_office
+PASS interact with world_tide_county_intake
+PASS journal reflects both procedural details
+PASS walk to world_tide_county_order on tide_county_office
+PASS interact with world_tide_county_order
+PASS original settlement determines the saved county order
+PASS county order pays no items or currency
+PASS the order directs follow-through and cannot be reissued
+PASS save validation rejects an order for the opposite settlement
+PASS walk to world_tide_county_supply on tide_county_office
+PASS interact with world_tide_county_supply
+PASS county opens the corresponding supply desk
+PASS county shelf uses actual Tidegate stock and silver
+PASS walk to world_tide_county_shortcut on tide_county_office
+PASS interact with world_tide_county_shortcut
+PASS new route follows the original settlement: tide_canal
+PASS walk to world_tide_county_followthrough on tidal_canal
+PASS interact with world_tide_county_followthrough
+PASS seeing the dispatch in operation completes the procedural follow-up
+PASS walk to world_tide_county_shortcut on tidal_canal
+PASS interact with world_tide_county_shortcut
+PASS walk to world_tide_county_to_fort on tide_county_office
+PASS interact with world_tide_county_to_fort
+PASS both directions of the shortcut and the original warehouse return work
+PASS walk to world_tide_fort_to_canal on tidal_fort
+PASS interact with world_tide_fort_to_canal
+PASS walk to world_tide_canal_to_ford on tidal_canal
+PASS interact with world_tide_canal_to_ford
+PASS walk to world_tide_shop on tidal_ford
+PASS interact with world_tide_shop
+PASS the original dock desk shares the same stock without refilling purchased items
+PASS settled visit can return to the title
+County office: 104 checks, 0 failures; walked 14520 pixels

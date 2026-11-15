@@ -11,8 +11,17 @@ const SEAL_CHASE := ["客栈截印", ["shade","blade"], [
 
 static func objective(g: Node2D) -> String:
 	if g.world.active():
+		var area: String = g.slot.world.area
+		var tasks: Dictionary = g.slot.world.tasks
 		if g.world.uses_tide_account():
-			var tasks: Dictionary = g.slot.world.tasks
+			if area == "tide_county_office":
+				if tasks.has("tide_county_followthrough"): return "续办已结，可经粮仓或东门短路返回。"
+				match tasks.get("tide_county_order",""):
+					"public": return "走东门到盐汊东埠，核对粮车卸货。"
+					"witness": return "持会验牌从东门去渠北，核对候审安排。"
+				return "查外院两处安排，再到中庭找程录事。"
+			if area == "tide_fort" and tasks.has("tide_relief_receipt") and not tasks.has("tide_county_order"):
+				return "可从粮仓东门去州署外院，查收续办单。"
 			match g.world.phase():
 				"arrivals": return "可查西侧装卸渠；追查粮账须回渡口找陶伯。"
 				"records":
@@ -29,6 +38,21 @@ static func objective(g: Node2D) -> String:
 				"palace_tea": return "主廊已塌，从后院东阶下西闸；已开侧门也可走。"
 				"palace_west": return "抄西闸岗令，沿西台阶退回安全外庭。"
 				"palace_court": return "在外庭核对发令记录，带齐两份证据后向至尊辞行。"
+		match area:
+			"market": return "西阶回渡口，街中进粮行，东门往石塘。"
+			"fengxi_weighhouse": return "柜前问吴师傅。秤砣和账页在东侧。"
+			"fengxi_postroad": return "主路通东岗。也可沿北坡找车夫，或查南岔扣车人。"
+			"sword_charcoal_hamlet": return "西口回剑庐。验清炭样可开运铁旧道。"
+			"watch_gate_market": return "集市进簿房验印，东口下白石沟。"
+			"watch_dispatch_house": return "查齐药担户籍和驿路，再决定怎么出关。"
+			"watch_scree_road": return "沿沟往东岗。已护药时可走背坡。"
+			"valley_herb_slope": return "查石桩和晒筐，回药庐验清干药。"
+			"palace_quay": return "西口回外庭，公所验票，东阶接芦岸。"
+			"palace_storehouse": return "查案簿副单，可回渡埠与渡工商议。"
+			"palace_reedpath": return "堤道连接苇津渡埠和西闸。"
+			"mountain_foothill": return "井旁问守井人，避险屋查梁，东阶上飞栈。"
+			"mountain_refuge": return "查看备用梁。要勘路，出屋往飞栈坡。"
+			"mountain_ridge_route": return "查受损的吊栈，依木匠留下的路记通行。"
 		return "用手记查看当地委托，或从暂歇菜单返回主线。"
 	if g.transit.active():
 		return g.transit.objective()

@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Road = preload("res://scripts/world_fengxi_road.gd")
 const TITLE := "凤溪渡口"
 const VISIT_LABEL := "回访凤溪"
 const JOURNAL_TITLE := "凤溪手记"
@@ -27,6 +28,9 @@ const AREAS := {
 	},
 	"inn":{"field":"inn","spawn":"spawn","title":"凤溪 · 西岸客栈"},
 	"lanes":{"field":"fengxi_lanes","spawn":"spawn","title":"凤溪 · 渡口雨巷"},
+	"market":{"field":"fengxi_market","spawn":"spawn","title":"凤溪 · 西岸集市"},
+	"fengxi_weighhouse":{"field":"fengxi_guild","spawn":"spawn","title":"凤溪 · 丰义粮行"},
+	"fengxi_postroad":Road.AREAS.fengxi_postroad,
 }
 
 const QUESTS := [
@@ -42,11 +46,27 @@ const QUESTS := [
 		"locked":"封渡以后，找西岸老船工分药。",
 		"ready":"西岸船篷旁有老船工，可凭药单分药。",
 		"reward":"草药护衣 · 加强治疗和护持减伤，气血上限减 8。另开后渡近路。","follow_up":"复航后，去雨巷东货棚核对领药回条。","receipt":"medicine_receipt"},
-]
+	{"id":"fengxi_scales","title":"一杆秤，两本账","evidence":["fengxi_scale_mark","fengxi_sack_owner"],
+		"outcomes":["done"],"delivery_phases":["blockade","reopened"],"receipt_phases":["reopened"],
+		"source":"quest:fengxi_scales","receipt":"fengxi_scale_receipt",
+		"description":"去集市粮行查秤砣，再问东棚缝袋的曹嫂，查清秤上少掉的那一斤。",
+		"locked":"封渡后，商会开始清点押仓的粮，可把两样证据交给称重的吴师傅。",
+		"ready":"进集市中段的丰义粮行，找吴师傅重新过秤。",
+		"reward":"工钱 3 两、韧丝一份。吴师傅在粮行开平价补给柜。",
+		"follow_up":"复航后去集市西边施粥棚，核实少记的粮是否还给住户。"},
+] + Road.QUESTS
 
 const POINTS := [
 	{"id":"world_inn","area":"shore","at":Vector2(98,174),"name":"进西岸客栈",
-		"prop":"exit_open","destination":"inn"},
+		"prop":"exit_open","destination":"inn","landmark":"西岸客栈"},
+	{"id":"world_fengxi_market","area":"shore","at":Vector2(56,267),"name":"从西岸石阶进入集市",
+		"prop":"exit_open","destination":"market","landmark":"西岸集市"},
+	{"id":"world_market_shore","area":"market","at":Vector2(67,260),"name":"下西侧石阶回凤溪渡口",
+		"prop":"exit_open","destination":"shore","arrival":Vector2(81,246),"landmark":"西岸渡口"},
+	{"id":"world_market_guild","area":"market","at":Vector2(585,216),"name":"跨过木门槛进丰义粮行",
+		"prop":"exit_open","destination":"fengxi_weighhouse","landmark":"丰义粮行"},
+	{"id":"world_guild_market","area":"fengxi_weighhouse","at":Vector2(319,304),"name":"出正门回集市街面",
+		"prop":"exit_open","destination":"market","arrival":Vector2(585,250)},
 	{"id":"world_lanes","area":"shore","at":Vector2(174,220),"name":"沿石堤进渡口雨巷",
 		"prop":"exit_open","destination":"lanes"},
 	{"id":"world_shore","area":"inn","at":Vector2(319,286),"name":"回西岸渡口",
@@ -108,4 +128,41 @@ const POINTS := [
 	{"id":"world_lane_returned","area":"lanes","at":Vector2(1109,245),"name":"看雨巷复运的货牌",
 		"prop":"signal","phases":["reopened"],
 		"lines":[["新挂的货牌","药箱放上层，米粮靠背墙。正埠复航，请先让领药的病家过。"]]},
-]
+	{"id":"world_market_notice","area":"market","at":Vector2(219,232),"name":"问西棚掌勺人如何分粮",
+		"sprite":"maid","phases":["evidence"],
+		"lines":[["施粥人","白天还有船到，家里没灶的，就来西棚喝一碗。去买干粮要到中间的粮行过秤。"]]},
+	{"id":"world_market_notice","area":"market","at":Vector2(219,232),"name":"看看封渡后的施粥棚",
+		"sprite":"maid","phases":["blockade"],"missing":["fengxi_scales"],
+		"lines":[["施粥人","封渡把运粮的船停了。今天粥稀，病人才有第二碗。粮行要是能退回扣错的米，明日就够用了。"]]},
+	{"id":"world_market_notice","area":"market","at":Vector2(219,232),"name":"看看重新起火的粥灶",
+		"sprite":"maid","phases":["blockade"],"requires":["fengxi_scales"],
+		"lines":[["施粥人","吴师傅拿重称的账来，今天就给我腾回一口米。炉子刚重新烧上，带孩子的先到檐下等。"]]},
+	{"id":"world_market_notice","area":"market","at":Vector2(219,232),"name":"问西棚新到的米去了哪里",
+		"sprite":"maid","phases":["reopened"],"missing":["fengxi_scales"],
+		"lines":[["施粥人","船回来了，库门也开了。旧秤上的扣数还没改，先到粮行问吴师傅吧。"]]},
+	{"id":"world_market_drygate","area":"market","at":Vector2(1052,242),"name":"问东门守街人什么时候通车",
+		"sprite":"guard","phases":["evidence"],"landmark":"东门",
+		"lines":[["守街人","石塘道还没清完。今夜粮袋只走渡口，去山隘的人先跟运铁向导接头。东门等驿亭通知。"]]},
+	{"id":"world_market_sacks","area":"market","at":Vector2(788,234),"name":"到东棚问曹嫂粮袋上的结",
+		"sprite":"maid","evidence":"fengxi_sack_owner",
+		"lines":[["曹嫂","袋口是我缝的。红线这几袋是住户凑的稻子，商粮的袋上才沾蓝印。两本账，巡卫硬要算成一笔。"],
+			["曹嫂","吴师傅照着盖印的秤砣过了数，赔掉的倒是各家自己凑来的粮。你替我把这根红线头收好。"]]},
+	{"id":"world_market_scale","area":"fengxi_weighhouse","at":Vector2(466,181),"name":"在旧账旁核对秤砣的铅封",
+		"prop":"signal","evidence":"fengxi_scale_mark",
+		"lines":[["聂风","秤砣底下新嵌了铅，秤杆却没重新打记。每称一袋，就少记一斤。"],
+			["旧账","扣住的粮按商账入库。红线袋另记于住户册，尚缺缝袋人的凭信。"]]},
+	{"id":"world_market_tally","area":"fengxi_weighhouse","at":Vector2(356,199),"name":"把红线和旧账交给吴师傅复秤",
+		"sprite":"guide","phases":["blockade","reopened"],"result":"fengxi_scales","excludes":"fengxi_scales",
+		"requires":["fengxi_scale_mark","fengxi_sack_owner"],
+		"lines":[["吴师傅","红线袋单放，先把铅片拆了，再把秤砣还给秤杆。旧账和这份重称记录，我各留一本。"],
+			["吴师傅","多扣的粮退回西棚。柜里还有散药和缝包的线，过路人也能来买，照进货价算。"]]},
+	{"id":"world_market_supplies","area":"fengxi_weighhouse","at":Vector2(491,233),"name":"在粮行补给柜买散药与韧丝",
+		"sprite":"servant","shop":"fengxi_relief","requires":["fengxi_scales"]},
+	{"id":"world_market_scale_receipt","area":"market","at":Vector2(219,232),"name":"在西棚核对住户领回的粮",
+		"sprite":"maid","requires":["fengxi_scales"],"phases":["reopened"],"evidence":"fengxi_scale_receipt",
+		"lines":[["施粥人","曹嫂把四户都认过了。一袋退给有灶的人家，另三袋留在棚里煮粥。账上的斤数照新秤写。"],
+			["曹嫂","我今晚把红线换到新袋上。明日送米上石塘驿道，管驿亭的照包口认粮。"]]},
+	{"id":"world_market_notice","area":"market","at":Vector2(219,232),"name":"和西棚施粥人打招呼",
+		"sprite":"maid","requires":["fengxi_scale_receipt"],"phases":["reopened"],
+		"lines":[["施粥人","过桥的人带了两把青菜。今夜粥稠，给客栈外头还没进屋的人也留了一碗。"]]},
+] + Road.POINTS

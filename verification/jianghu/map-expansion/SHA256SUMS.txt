@@ -1,0 +1,2 @@
+b0b6fbce5f30c64d4d362f0d6f9a9ae24c5c53ad751f76c7c842070ace2dc5c5  Fengyun-3.5.0-windows-x64-setup.exe
+bf71d5536b5abb8ef06e5b37dc98b223d93f0195311aa2ee69b990eb9c66ed52  Fengyun-3.5.0-android.apk

@@ -10,6 +10,7 @@ const Economy = preload("res://scripts/economy.gd")
 const Stage2B = preload("res://tests/stage2b_journey.gd")
 const Stage3 = preload("res://tests/stage3_journey.gd")
 const Stage4 = preload("res://tests/stage4_journey.gd")
+const MapExpansion = preload("res://tests/map_expansion_journey.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const FORGING_GEAR := {"interrupt":"tide_whistle", "retaliate":"forge_guard", "exploit":"sword_tassel"}
@@ -998,6 +999,8 @@ func _verify_afterstory() -> void:
 	if stage4 != null and not await stage4.after_settlement(settlement):
 		return
 	if stage4 != null and full_campaign and not await stage4.verify_fengxi_receipt(settlement):
+		return
+	if "--map-expansion" in OS.get_cmdline_user_args() and not MapExpansion.new(self).verify(settlement):
 		return
 	print("PASS Tidegate route=%s rescue=%s ending=%s" % [selected_route,str(current.afterstory.aid),settlement])
 	if pacing:

@@ -1,0 +1,14 @@
+Android 16 API 36, x86_64 scratch emulator; packaged release APK
+APK SHA-256 813928dd19ed1dd78cabbc9bbece078fba95da0151033a5185ef7c59fcc72e59
+PASS signed APK upgrades public v3.3.1 under the same package ID
+PASS upgrade preserves scratch primary and backup byte for byte
+Landscape Android SurfaceView 0,0 – 2400,1080; touch mapped from 640 × 360
+PASS new atlas directly opens one of the seven established regions
+PASS touch movement reaches new county office from the physical warehouse gate
+PASS county intake dialogue writes its evidence
+PASS Continue preserves county office and evidence
+PASS physical county gate returns to warehouse
+PASS restarted Android release renders without script errors
+PASS apksigner verified v2/v3 and the same release certificate SHA-256 as v3.3.1: adaf6fded6e87931f9fa40493acebd846535caa29816694b8a3f79e7ad99f41c
+PASS zipalign verified 16 KiB native library alignment
+Package code 30400, minimum Android SDK 24, target SDK 36; arm64-v8a, armeabi-v7a and x86_64 ABIs

@@ -1,0 +1,23 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "3.5.0.0",
+  "SetupVersion": "3.5.0",
+  "UpdatedFrom": "3.3.1",
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "ab27be51771edbf01aa9a000be40faa58f926da032f233d66234eab42c2a0c66",
+  "SetupSHA256": "b0b6fbce5f30c64d4d362f0d6f9a9ae24c5c53ad751f76c7c842070ace2dc5c5",
+  "Authenticode": "NotSigned",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Installed game, seven-region atlas and nine-place regional directory, legacy completed save, physical old-yard stairs to Watch market, resident dialogue and journal evidence, exact area reload.",
+  "InstalledGameLaterChapters": [
+    "nine-place Lingyun directory and lowest selection",
+    "real Watch market arrival, resident evidence",
+    "journal and persistent area after restart"
+  ]
+}

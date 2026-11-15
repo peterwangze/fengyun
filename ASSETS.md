@@ -44,3 +44,7 @@
 | `summit_steps` | 背坡避险石阶、诱敌吊桥和祭台入口 |
 | `tidal_canal` | 卸粮棚、潮沟船单、绞盘和粮仓石阶 |
 
+3.4.0 使用内置 GPT 图像生成工具补绘西岸集市、丰义粮行、石塘驿道和州署外院。市街、粮行、驿道保留原有场景的俯斜视角、脚点比例与像素尺度。州署外院参考项目内的潮关粮仓和茶房侧廊，原稿 1672 × 941 以 Lanczos 缩放至 320 × 180，轻度锐化并量化到 164 色。门槛、院墙、秤台与野外分岔的碰撞由同名场景 JSON 配置。 [集市与粮行原图](art-source/fengxi-market/README.md) · [石塘驿道处理记录](art-source/fengxi-postroad/README.md) · [实景验收](verification/jianghu/layered-maps/README.md)
+
+3.5.0 继续用内置 GPT 图像生成工具补绘 11 处实际场景，并用本机工具调色、导入和对齐碰撞。拜剑山庄打炭匠里参考凤溪集市和运铁山隘，强调连续石路、炭车、验炭窑和东侧旧道。1672 × 941 缩至 320 × 180。生死门松药坡参考断栈和药庐，强调横向石路、中段药寮与晒筐、两端坡口。2172 × 724 原稿取纵向 92 至 602 行，缩至 768 × 180。两张运行图均使用 Lanczos 缩放、轻度锐化和 172 色无抖动量化。 [天下会素材](art-source/watch-settlement/README.md) · [绝宫素材](art-source/palace-layers/README.md) · [凌云山素材](art-source/lingyun/README.md)
+

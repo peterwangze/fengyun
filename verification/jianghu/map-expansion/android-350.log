@@ -1,0 +1,15 @@
+Android 16 API 36, x86_64 scratch emulator; packaged release APK
+APK SHA-256 bf71d5536b5abb8ef06e5b37dc98b223d93f0195311aa2ee69b990eb9c66ed52
+PASS signed APK upgrades public v3.3.1 under the same package ID
+PASS upgrade preserves scratch primary and backup byte for byte
+Landscape Android SurfaceView 0,0 – 2400,1080; touch mapped from 640 × 360
+PASS seven-region atlas and nine-place directory open the Watch region
+PASS touch movement reaches Watch market from the original old-yard stairs
+PASS Watch resident dialogue writes the medicine roster evidence
+PASS Continue preserves Watch market and medicine roster evidence
+PASS restarted Android release renders without script errors
+
+Version 3.5.0 (30500); package io.github.peterwangze.fengyun; minimum SDK 24, target SDK 36.
+Native ABIs arm64-v8a, armeabi-v7a, x86_64. Runtime QA used x86_64.
+apksigner v2 and v3 verified; persistent release certificate SHA-256 adaf6fded6e87931f9fa40493acebd846535caa29816694b8a3f79e7ad99f41c.
+ZIP 16 KiB alignment verified.

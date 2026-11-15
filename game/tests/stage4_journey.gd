@@ -124,7 +124,7 @@ func _review(source_point: String, source: String) -> bool:
 	var main: Dictionary = _main_account()
 	_check(not _has("world_tide_review"), "an original ledger alone cannot complete independent review")
 	a._key(KEY_J)
-	_check(g.mode == "world_journal" and g.menu_items().map(func(row: Array): return row[0]) == ["粮账覆核","归灯分粮"],
+	_check(g.mode == "world_journal" and g.menu_items().map(func(row: Array): return row[0]) == ["粮账覆核","归灯分粮","州署的续办单"],
 		"Tidegate exposes both tasks in its playable journal")
 	await a._capture("stage4-tide-journal")
 	a._key(KEY_ENTER)

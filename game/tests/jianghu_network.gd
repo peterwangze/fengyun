@@ -375,7 +375,9 @@ func _verify_reopened_receipts(saved: Dictionary, reverse: bool) -> void:
 	_check(game.storage.read().world.tasks.get("medicine_receipt", false), "the two successful medicine deliveries are confirmed in the east warehouse")
 	_reload()
 	_check(not _has_point("world_medicine_receipt"), "confirmed medicine receipts do not reappear after saving")
-	_check(game.world.journal().all(func(task): return task.complete and not task.awaiting_receipt), "both regional journal cards are now complete")
+	var original_tasks: Array = game.world.journal().filter(func(task): return task.id in ["testimony","medicine"])
+	_check(original_tasks.size() == 2 and original_tasks.all(func(task): return task.complete and not task.awaiting_receipt),
+		"both original regional journal cards are now complete")
 	var stored: Dictionary = game.storage.read()
 	_check(stored.loot_claims == inventory.loot_claims and stored.silver == inventory.silver, "following up does not pay either task reward again")
 	game._title()

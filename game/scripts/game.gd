@@ -29,6 +29,7 @@ var afterstory: RefCounted
 var transit: Transit
 var world: WorldJourney
 var handoff_back := "journal"
+var atlas_index := 0
 var storage: RefCounted
 var music := AudioStreamPlayer.new()
 var effects := AudioStreamPlayer.new()
@@ -236,9 +237,13 @@ func menu_items() -> Array:
 				items.append([world.departure_label() if world.active() else _world_menu_label(),world.can_leave()])
 				if world.active() and world.can_leave() and world.destinations().size() > 1:
 					items.append(["江湖行路",true])
+				if world.can_leave():
+					items.append(["查看江湖舆图",true])
 			return items
 		"world_map":
 			return world.destinations().map(func(place): return [place.title,true])
+		"world_places":
+			return world.atlas_place_ids(atlas_region()).map(func(id): return [id,true])
 		"world_journal":
 			return world.journal().map(func(task): return [task.title, true])
 		"handoff_journal":
@@ -370,9 +375,12 @@ func menu_confirm(index: int) -> void:
 						world.leave()
 					else:
 						_open_world_map()
-				7: _open_world_map()
+				7: _open_world_map(items[index][0] == "查看江湖舆图")
+				8: _open_world_map(true)
 		"world_map":
 			world.from_main(world.destinations()[index].id)
+		"world_places":
+			world.from_main(atlas_region())
 		"world_journal":
 			var task: Dictionary = world.journal()[index]
 			if task.get("expired",false) or task.get("closed",false):
@@ -1060,6 +1068,7 @@ func cancel() -> void:
 		"forge_confirm": _set_mode("forge",pending_recipe)
 		"cultivation": _set_mode("martial")
 		"settings", "journal", "world_journal", "martial", "world_map": _set_mode(back_mode)
+		"world_places": _set_mode("world_map",atlas_index)
 		"handoff_journal": _set_mode(handoff_back)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
@@ -1183,6 +1192,8 @@ func click(kind: String, index: int) -> void:
 		"world_row": selected = index
 		"handoff_open": _open_handoffs()
 		"handoff_row": selected = index
+		"atlas_places": _open_atlas_places(index)
+		"atlas_place_row": selected = index
 		"journal_track": _confirm()
 		"confirm": _confirm()
 		"cancel": cancel()
@@ -1314,6 +1325,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					_open_journal()
 				elif mode in ["journal","world_journal","handoff_journal"]:
 					_open_handoffs()
+				elif mode == "world_map":
+					_open_atlas_places(selected)
 			JOY_BUTTON_LEFT_SHOULDER:
 				if mode == "field":
 					_open_gear("field")
@@ -1344,6 +1357,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				_apply_settings()
 		KEY_J:
 			_open_journal()
+		KEY_M:
+			if mode in ["field","pause"]:
+				_open_world_map(true)
+			elif mode in ["world_map","world_places"]:
+				cancel()
 		KEY_K:
 			if mode == "field":
 				_open_martial("field")
@@ -1368,6 +1386,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_toggle_forge_branches()
 			elif mode in ["journal","world_journal","handoff_journal"]:
 				_open_handoffs()
+			elif mode == "world_map":
+				_open_atlas_places(selected)
 		KEY_B:
 			if mode == "battle" and pending_action < 0:
 				if bag_open:
@@ -1436,13 +1456,29 @@ func _world_menu_label() -> String:
 	var places := world.destinations()
 	return places[0].visit_label if places.size() == 1 else "江湖行路"
 
-func _open_world_map() -> void:
+func _open_world_map(show_atlas: bool = false) -> void:
+	if not world.available() or not world.can_leave():
+		return
 	var places := world.destinations()
-	if places.size() == 1:
+	if places.size() == 1 and not show_atlas:
 		world.from_main(places[0].id)
-	else:
+	elif not places.is_empty():
 		back_mode = mode
-		_set_mode("world_map")
+		var current := 0
+		if world.active():
+			current = maxi(0,places.find_custom(func(place: Dictionary): return place.id == world.region()))
+		_set_mode("world_map",current)
+
+func _open_atlas_places(index: int) -> void:
+	if mode != "world_map" or index < 0 or index >= world.destinations().size():
+		return
+	atlas_index = index
+	var places := world.atlas_place_ids(atlas_region())
+	var at := places.find(slot.world.area) if world.active() else 0
+	_set_mode("world_places",maxi(0,at))
+
+func atlas_region() -> String:
+	return world.destinations()[atlas_index].id
 
 func journal_quest_id() -> String:
 	return "" if journal_index == 0 else chronicle.side.journal_ids()[journal_index - 1]

@@ -10,6 +10,7 @@ const Equipment = preload("res://scripts/equipment.gd")
 const Economy = preload("res://scripts/economy.gd")
 const TrailGuide = preload("res://scripts/trail_guide.gd")
 const Arcs = preload("res://scripts/campaign_arcs.gd")
+const Atlas = preload("res://scripts/world_atlas.gd")
 const SANS = preload("res://assets/fonts/body.tres")
 const SERIF = preload("res://assets/fonts/display.tres")
 const GOLD := Color("#e8c185")
@@ -216,15 +217,9 @@ func paint() -> void:
 			_field(false)
 			_handoff_journal()
 		"world_map":
-			if g.back_mode == "title":
-				_title(false)
-			else:
-				_field(false)
-			_fill(FULL,Color("#080d1bb5"))
-			_panel(Rect2(142,39,356,285),true)
-			_center("江湖行路",320,82,29,CREAM,SERIF)
-			_center("选择已解锁的区域。主线仍从原地点继续。",320,106,14,DIM)
-			_menu(Vector2(174,121),292,23,4)
+			_atlas_overview()
+		"world_places":
+			_atlas_places()
 		"ending": _ending()
 	if g.toast_time > 0 and g.mode in ["field","battle","dialogue"]:
 		var yy := 290 if g.mode == "field" else 171
@@ -270,7 +265,7 @@ func _modal(title: String, note: String) -> void:
 		_panel(Rect2(142,23,356,309),true)
 		_center(title,320,67,29,CREAM,SERIF)
 		_paragraph(note,170,94,300,14,DIM,19)
-		_menu(Vector2(174,120),292,22,4)
+		_menu(Vector2(174,120),292,20,3)
 	else:
 		_panel(Rect2(142,43,356,275),true)
 		_center(title,320,88,29,CREAM,SERIF)
@@ -288,6 +283,7 @@ func _field(interactive: bool = true) -> void:
 	if g.transit.active() and g.field_key == "dragon_waterway" and g.slot.journey.step == 0:
 		units = [_traveler("cloud",g.player,g.field_direction,g.facing,_walk_frame(g.moving,g.walk_distance))]
 	var marks: Array[Dictionary] = []
+	var landmarks: Array[Dictionary] = []
 	if g.transit.active() or g.world.active():
 		if g.world.active() and g.world.region() == "palace" and g.world.phase() == "aftermath" and g.field_key == "tearoom":
 			_palace_fire(g.world.fire_pending())
@@ -296,6 +292,8 @@ func _field(interactive: bool = true) -> void:
 				units.append(_unit(point.sprite,point.pos,0,true))
 			if point.has("prop"):
 				_map_prop(point.pos,point.prop)
+			if interactive and point.has("landmark") and g.player.distance_to(point.pos) < 110:
+				landmarks.append(point)
 			if g.world.active() and interactive:
 				var color := GOLD if point.has("evidence") or point.has("result") else TEAL
 				var symbol: String = "主" if TrailGuide.is_fire_goal(g,point) else "·"
@@ -326,6 +324,8 @@ func _field(interactive: bool = true) -> void:
 	_draw_field_actors(units)
 	if g.field_key in ["garden","village","lodge","inn","apothecary","tearoom","cavern","tidal_ford","tidal_fort"]:
 		_picture("field/%s_canopy" % g.field_key)
+	for point in landmarks:
+		_door_label(point.landmark,point.pos + Vector2(0,-62))
 	if g.first.wedding_playing:
 		_wedding_impact()
 	if interactive:
@@ -389,7 +389,10 @@ func _field(interactive: bool = true) -> void:
 			_right("B  返回船埠" if g.using_joypad else "Esc  返回船埠",619,345,13,DIM)
 		_hit(Rect2(192,324,258,32),"confirm")
 	elif not g.touch_ui():
-		_right("X  手记   Y  武学   Start  暂停" if g.using_joypad else "J  手记   K  武学   Esc  暂停",619,345,11,DIM)
+		var keys := "X 手记   Y 武学   Start 暂停" if g.using_joypad else "J 手记   K 武学   Esc 暂停"
+		if not g.using_joypad and g.world.available() and g.world.can_leave():
+			keys = "J 手记   M 舆图   Esc 暂停"
+		_right(keys,619,345,11,DIM)
 	if interactive:
 		var spot: Dictionary = g.nearest()
 		if spot.is_empty():
@@ -398,6 +401,94 @@ func _field(interactive: bool = true) -> void:
 			_fill(Rect2(201,329,239,24),Color("#333047"))
 			_center(interact_key + "   " + spot.name,320,346,14,GOLD)
 			_hit(Rect2(201,325,239,31),"confirm")
+
+func _atlas_base() -> void:
+	if g.back_mode == "title":
+		_title(false)
+	else:
+		_field(false)
+	_fill(FULL,Color("#080d1be8"))
+	_panel(Rect2(18,22,604,291),true)
+
+func _atlas_overview() -> void:
+	_atlas_base()
+	_text("江湖舆图",33,59,28,CREAM,SERIF)
+	_text("中原与沿海州郡",177,58,14,GOLD)
+	_right("实线可走 · 虚线待开",603,57,13,DIM)
+	var chart := Rect2(31,78,293,205)
+	_fill(chart,Color("#202b35"))
+	_stroke(chart,LINE)
+	_atlas_land(Vector2(51,100),[Vector2(0,0),Vector2(188,-6),Vector2(265,41),Vector2(240,133),Vector2(203,160),Vector2(129,132),Vector2(40,158),Vector2(-7,101)],Color("#353a39"))
+	_atlas_land(Vector2(46,149),[Vector2(25,-22),Vector2(104,-14),Vector2(161,23),Vector2(114,64),Vector2(42,42),Vector2(0,62)],Color("#3b443c"))
+	_atlas_land(Vector2(84,224),[Vector2(-36,-3),Vector2(26,-14),Vector2(102,-6),Vector2(164,21),Vector2(140,35),Vector2(70,24),Vector2(16,34)],Color("#315457"))
+	_atlas_land(Vector2(236,255),[Vector2(-14,-11),Vector2(40,-15),Vector2(84,-5),Vector2(84,23),Vector2(20,23)],Color("#3a4946"))
+	var destinations: Array = g.world.destinations()
+	var open_ids := destinations.map(func(place: Dictionary): return place.id)
+	var focus: String = open_ids[g.selected]
+	for route in Atlas.ROUTES:
+		var start: Vector2 = Atlas.REGIONS[route[0]].at
+		var end: Vector2 = Atlas.REGIONS[route[1]].at
+		var navigable: bool = g.world.atlas_route_open(route[0],route[1])
+		var color := Color("#81b8af") if route[2] == "渡船" else Color("#b29869")
+		if navigable:
+			_line(start,end,color,2)
+		else:
+			for at in range(0,8,2):
+				_line(start.lerp(end,at / 8.0),start.lerp(end,(at + 1) / 8.0),Color("#6a7380"))
+	for id in Atlas.REGIONS:
+		var region: Dictionary = Atlas.REGIONS[id]
+		var open: bool = id in open_ids
+		var tint := GOLD if id == focus else (CREAM if open else FAINT)
+		_diamond(region.at,7 if id == focus else 5,tint)
+		var below: bool = id in ["swordhall","outer_watch","tide"]
+		_center(region.label,region.at.x,region.at.y + (18 if below else -10),12,tint)
+		if open:
+			_hit(Rect2(region.at - Vector2(22,15),Vector2(44,31)),"atlas_places",open_ids.find(id))
+	_menu(Vector2(340,86),260,23,4)
+	_text("%s · %s" % [Atlas.REGIONS[focus].district,Atlas.REGIONS[focus].label],34,302,13,GOLD)
+	var inspect := Rect2(343,282,254,25)
+	_gear_tab(inspect,"查看区域地点" if g.touch_ui() else ("X  查看区域地点" if g.using_joypad else "Tab  查看区域地点"),false,"atlas_places",g.selected)
+
+func _atlas_land(origin: Vector2, offsets: Array, color: Color) -> void:
+	var outline := PackedVector2Array()
+	for point in offsets:
+		outline.append(origin + point)
+	g.draw_colored_polygon(outline,color)
+
+func _atlas_places() -> void:
+	_atlas_base()
+	var region: String = g.atlas_region()
+	var places: Array = g.world.atlas_place_ids(region)
+	if places.is_empty():
+		return
+	var current: Dictionary = g.world.atlas_place(region,places[g.selected])
+	_text(Atlas.REGIONS[region].district,33,49,14,GOLD)
+	_text(Atlas.REGIONS[region].label,33,79,25,CREAM,SERIF)
+	_right(current.phase,602,63,14,GOLD)
+	var compact := places.size() > 6
+	var row_height := 21 if compact else 27
+	var row_gap := 3 if compact else 4
+	for index in places.size():
+		var place: Array = Atlas.PLACES[places[index]]
+		var box := Rect2(33,91 + index * (row_height + row_gap),231,row_height)
+		var baseline := box.get_center().y + 5
+		var chosen: bool = index == g.selected
+		_fill(box,Color("#363244") if chosen else Color("#151d2e"))
+		_stroke(box,GOLD if chosen else LINE)
+		_text(place[0],43,baseline,14,CREAM)
+		_right(place[1],254,baseline,11,DIM)
+		_hit(box,"atlas_place_row",index)
+	_panel(Rect2(279,95,322,172))
+	_text(current.name,293,121,19,CREAM,SERIF)
+	_text(current.landmarks,294,144,13,GOLD)
+	_paragraph(current.summary,294,163,294,13,DIM,18)
+	var connections: PackedStringArray = current.connections
+	var services: PackedStringArray = current.services
+	var route_note := "通往 " + "、".join(connections.slice(0,3)) if current.open else "等当地通路开放"
+	_paragraph(route_note,294,224,294,12,TEAL,16)
+	if current.open and not services.is_empty():
+		_text("服务 · " + "、".join(services.slice(0,2)),294,254,12,GOLD)
+	_button("前往区域入口",Rect2(279,278,322,26),g.selected)
 
 func _field_guidance(marks: Array[Dictionary]) -> void:
 	var points: Array = g.field_points()
@@ -759,13 +850,15 @@ func _world_journal() -> void:
 			return task.ready if task.can_deliver else task.locked
 		return task.description
 	if tasks.size() >= 3:
+		var row_stride := 42 if tasks.size() > 4 else 48
+		var row_height := row_stride - 6
 		for i in tasks.size():
 			var task: Dictionary = tasks[i]
-			var row := Rect2(73,86+i*48,198,42)
+			var row := Rect2(73,86+i*row_stride,198,row_height)
 			_fill(row,Color("#293046") if i == g.selected else Color("#161e30"))
 			_stroke(row,GOLD if i == g.selected else LINE)
 			_text(task.title,84,row.position.y+17,13,CREAM,SERIF)
-			_text(state.call(task),84,row.position.y+34,11,TEAL)
+			_text(state.call(task),84,row.end.y-7,11,TEAL)
 			_hit(row,"world_row",i)
 		var picked: Dictionary = tasks[g.selected]
 		_fill(Rect2(285,86,281,188),Color("#151d30"))
