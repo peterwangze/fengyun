@@ -1,0 +1,271 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS write representative 3.2-compatible canal starting save
+PASS settled legacy save can revisit Tidegate
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_source_free
+PASS interaction returns to field: world_tide_review_source_free
+PASS normal interaction persists provenance canal
+PASS reload restores the region and its selected witness: canal
+PASS used source cannot be taken again
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS other available source NPCs cannot overwrite chosen evidence
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_mark
+PASS interaction returns to field: world_tide_review_mark
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_count
+PASS interaction returns to field: world_tide_review_count
+PASS actual point on walkable ground: world_tide_review_seal
+PASS interaction returns to field: world_tide_review_seal
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS actual point on walkable ground: world_tide_review
+PASS interaction returns to field: world_tide_review
+PASS any valid proof completes review and rewards exactly four local silver: canal
+PASS review does not add to the main-story account
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS actual point on walkable ground: world_tide_review_receipt
+PASS interaction returns to field: world_tide_review_receipt
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS review opens the two-way ferry and leaves a permanent stamp
+PASS reject forged alu before earning evidence
+PASS write representative 3.2-compatible alu starting save
+PASS settled legacy save can revisit Tidegate
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_source_alu
+PASS interaction returns to field: world_tide_review_source_alu
+PASS normal interaction persists provenance alu
+PASS reload restores the region and its selected witness: alu
+PASS used source cannot be taken again
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS other available source NPCs cannot overwrite chosen evidence
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_mark
+PASS interaction returns to field: world_tide_review_mark
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_count
+PASS interaction returns to field: world_tide_review_count
+PASS actual point on walkable ground: world_tide_review_seal
+PASS interaction returns to field: world_tide_review_seal
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS actual point on walkable ground: world_tide_review
+PASS interaction returns to field: world_tide_review
+PASS any valid proof completes review and rewards exactly four local silver: alu
+PASS review does not add to the main-story account
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS actual point on walkable ground: world_tide_review_receipt
+PASS interaction returns to field: world_tide_review_receipt
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS review opens the two-way ferry and leaves a permanent stamp
+PASS reject forged manifest before earning evidence
+PASS write representative 3.2-compatible manifest starting save
+PASS settled legacy save can revisit Tidegate
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_source_manifest
+PASS interaction returns to field: world_tide_review_source_manifest
+PASS normal interaction persists provenance manifest
+PASS reload restores the region and its selected witness: manifest
+PASS used source cannot be taken again
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS other available source NPCs cannot overwrite chosen evidence
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_mark
+PASS interaction returns to field: world_tide_review_mark
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_count
+PASS interaction returns to field: world_tide_review_count
+PASS actual point on walkable ground: world_tide_review_seal
+PASS interaction returns to field: world_tide_review_seal
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS actual point on walkable ground: world_tide_review
+PASS interaction returns to field: world_tide_review
+PASS any valid proof completes review and rewards exactly four local silver: manifest
+PASS review does not add to the main-story account
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS actual point on walkable ground: world_tide_review_receipt
+PASS interaction returns to field: world_tide_review_receipt
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS review opens the two-way ferry and leaves a permanent stamp
+PASS reject forged worker before earning evidence
+PASS write representative 3.2-compatible worker starting save
+PASS settled legacy save can revisit Tidegate
+PASS actual point on walkable ground: world_tide_review_source_worker
+PASS interaction returns to field: world_tide_review_source_worker
+PASS normal interaction persists provenance worker
+PASS reload restores the region and its selected witness: worker
+PASS used source cannot be taken again
+PASS other available source NPCs cannot overwrite chosen evidence
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_mark
+PASS interaction returns to field: world_tide_review_mark
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_count
+PASS interaction returns to field: world_tide_review_count
+PASS actual point on walkable ground: world_tide_review_seal
+PASS interaction returns to field: world_tide_review_seal
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS actual point on walkable ground: world_tide_review
+PASS interaction returns to field: world_tide_review
+PASS any valid proof completes review and rewards exactly four local silver: worker
+PASS review does not add to the main-story account
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS actual point on walkable ground: world_tide_review_receipt
+PASS interaction returns to field: world_tide_review_receipt
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS review opens the two-way ferry and leaves a permanent stamp
+PASS reject forged testimony before earning evidence
+PASS write representative 3.2-compatible testimony starting save
+PASS settled legacy save can revisit Tidegate
+PASS actual point on walkable ground: world_tide_review_source_fengxi
+PASS interaction returns to field: world_tide_review_source_fengxi
+PASS normal interaction persists provenance testimony
+PASS reload restores the region and its selected witness: testimony
+PASS used source cannot be taken again
+PASS other available source NPCs cannot overwrite chosen evidence
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_mark
+PASS interaction returns to field: world_tide_review_mark
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_count
+PASS interaction returns to field: world_tide_review_count
+PASS actual point on walkable ground: world_tide_review_seal
+PASS interaction returns to field: world_tide_review_seal
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS actual point on walkable ground: world_tide_review
+PASS interaction returns to field: world_tide_review
+PASS any valid proof completes review and rewards exactly four local silver: testimony
+PASS review does not add to the main-story account
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS actual point on walkable ground: world_tide_review_receipt
+PASS interaction returns to field: world_tide_review_receipt
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS review opens the two-way ferry and leaves a permanent stamp
+PASS reject forged jiang before earning evidence
+PASS write representative 3.2-compatible jiang starting save
+PASS settled legacy save can revisit Tidegate
+PASS actual point on walkable ground: world_tide_review_source_jiang
+PASS interaction returns to field: world_tide_review_source_jiang
+PASS normal interaction persists provenance jiang
+PASS reload restores the region and its selected witness: jiang
+PASS used source cannot be taken again
+PASS other available source NPCs cannot overwrite chosen evidence
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_mark
+PASS interaction returns to field: world_tide_review_mark
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_count
+PASS interaction returns to field: world_tide_review_count
+PASS actual point on walkable ground: world_tide_review_seal
+PASS interaction returns to field: world_tide_review_seal
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS actual point on walkable ground: world_tide_review
+PASS interaction returns to field: world_tide_review
+PASS any valid proof completes review and rewards exactly four local silver: jiang
+PASS review does not add to the main-story account
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS actual point on walkable ground: world_tide_review_receipt
+PASS interaction returns to field: world_tide_review_receipt
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS review opens the two-way ferry and leaves a permanent stamp
+PASS reject forged watch before earning evidence
+PASS write representative 3.2-compatible watch starting save
+PASS settled legacy save can revisit Tidegate
+PASS actual point on walkable ground: world_tide_review_source_watch
+PASS interaction returns to field: world_tide_review_source_watch
+PASS normal interaction persists provenance watch
+PASS reload restores the region and its selected witness: watch
+PASS used source cannot be taken again
+PASS other available source NPCs cannot overwrite chosen evidence
+PASS actual point on walkable ground: world_tide_to_canal
+PASS interaction returns to field: world_tide_to_canal
+PASS actual point on walkable ground: world_tide_review_mark
+PASS interaction returns to field: world_tide_review_mark
+PASS actual point on walkable ground: world_tide_canal_to_fort
+PASS interaction returns to field: world_tide_canal_to_fort
+PASS actual point on walkable ground: world_tide_review_count
+PASS interaction returns to field: world_tide_review_count
+PASS actual point on walkable ground: world_tide_review_seal
+PASS interaction returns to field: world_tide_review_seal
+PASS actual point on walkable ground: world_tide_fort_to_canal
+PASS interaction returns to field: world_tide_fort_to_canal
+PASS actual point on walkable ground: world_tide_canal_to_ford
+PASS interaction returns to field: world_tide_canal_to_ford
+PASS actual point on walkable ground: world_tide_review
+PASS interaction returns to field: world_tide_review
+PASS any valid proof completes review and rewards exactly four local silver: watch
+PASS review does not add to the main-story account
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS actual point on walkable ground: world_tide_review_receipt
+PASS interaction returns to field: world_tide_review_receipt
+PASS actual point on walkable ground: world_tide_review_shortcut
+PASS interaction returns to field: world_tide_review_shortcut
+PASS review opens the two-way ferry and leaves a permanent stamp
+PASS actual point on walkable ground: world_tide_relief_roll
+PASS interaction returns to field: world_tide_relief_roll
+PASS actual point on walkable ground: world_tide_relief_dispatch
+PASS interaction returns to field: world_tide_relief_dispatch
+PASS saved Fengxi grain changes public dispatch to Ford and saves a warehouse leg
+PASS actual point on walkable ground: world_tide_boat_to_canal
+PASS interaction returns to field: world_tide_boat_to_canal
+PASS saved Fengxi boat carries the party to the east unloading platform
+PASS actual point on walkable ground: world_tide_boat_to_ford
+PASS interaction returns to field: world_tide_boat_to_ford
+PASS the same boat runs both ways
+Stage4 Tidegate provenance and early aid: 268 checks, 0 failures

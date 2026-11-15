@@ -375,22 +375,10 @@ func _restore_origin(origin: Dictionary) -> void:
 
 func points() -> Array:
 	var facts: Dictionary = g.slot.world.tasks
-	var current := phase()
-	var result := []
-	var candidates: Array = REGIONS[region()].POINTS + LINKS
-	for point in candidates:
-		var required: Array = point.get("requires",[])
-		var match_facts: Dictionary = point.get("matches",{})
-		if point.area != g.slot.world.area or not _point_unlocked(point,facts,current):
-			continue
-		var legacy_door: bool = point.id == "world_palace_side_door" and palace_legacy_side()
-		if not required.all(func(key): return facts.has(key) or (key == "palace_side" and legacy_door)) or not match_facts.keys().all(func(key): return facts.get(key) == match_facts[key]):
-			continue
-		if facts.has(point.get("excludes",point.get("evidence",""))):
-			continue
+	var area: String = g.slot.world.area
+	var result: Array = []
+	for point in _area_points(area,REGIONS[region()].POINTS + LINKS,phase()):
 		var entry: Dictionary = point.duplicate()
-		if point.has("destination") and not region_unlocked(g.slot,_region_for_area(point.destination)):
-			continue
 		entry.pos = point.at
 		if point.id.begins_with("road_"):
 			entry.prop = "exit_open"
@@ -403,10 +391,33 @@ func points() -> Array:
 			"pos":Vector2(191,268),"index":-1,"sprite":"frost","fire_finish":true})
 	if g.slot.world.area in ["palace_cells","mountain_approach","mountain_cavern","mountain_steps","mountain_altar"]:
 		result.append_array(g.chronicle.side.ledger_points())
-	if g.slot.world.area == "shore" and g.field_key == "dawn" and not finale_rows().is_empty():
-		result.append({"id":"world_dawn_relief","name":"到渡口核对山下归人","pos":Vector2(159,185),
-			"index":-1,"sprite":"servant","read_finale":true})
+	if g.slot.world.area == "shore" and g.field_key == "dawn":
+		var stations := homecoming_points()
+		if not stations.is_empty():
+			result.append({"id":"world_dawn_relief","name":"到渡口核对山下归人","pos":Vector2(159,185),
+				"index":-1,"sprite":"servant","read_finale":true})
+			result.append_array(stations)
 	return result
+
+func _area_points(area: String, candidates: Array, current: String) -> Array:
+	var facts: Dictionary = g.slot.world.tasks
+	var available := []
+	for point in candidates:
+		if point.area != area or not _point_unlocked(point,facts,current):
+			continue
+		var requires: Array = point.get("requires",[])
+		var matching: Dictionary = point.get("matches",{})
+		var legacy_door: bool = point.id == "world_palace_side_door" and palace_legacy_side()
+		if not requires.all(func(key): return facts.has(key) or (key == "palace_side" and legacy_door)):
+			continue
+		if not matching.keys().all(func(key): return facts.get(key) == matching[key]):
+			continue
+		if facts.has(point.get("excludes",point.get("evidence",""))):
+			continue
+		if point.has("destination") and not region_unlocked(g.slot,_region_for_area(point.destination)):
+			continue
+		available.append(point)
+	return available
 
 func _point_unlocked(point: Dictionary, facts: Dictionary, current: String) -> bool:
 	var any_facts: Array = point.get("requires_any",[])
@@ -464,6 +475,8 @@ func handle(point: Dictionary) -> void:
 		g.chronicle.side.handle(point.id)
 	elif point.get("read_finale",false):
 		read_finale()
+	elif point.has("homecoming"):
+		g._talk(finale_rows(point.homecoming),g._return_to_field)
 	elif point.get("fire_finish",false):
 		_finish_fire(point)
 	elif point.get("tide_main",false):
@@ -630,40 +643,65 @@ func journal() -> Array[Dictionary]:
 			"can_deliver":false,"ready":"","locked":""})
 	return result
 
-func finale_rows() -> Array:
+func homecoming_points() -> Array:
+	var result := []
+	var groups := _finale_groups()
+	var stations := [
+		["evidence",Vector2(202,180),"到验印桌核对带回的证词","guard"],
+		["care",Vector2(204,266),"到西岸药棚探望撤下山的人","servant"],
+		["work",Vector2(451,177),"到桥东问工匠接下来留在哪里","guide"],
+		["tide",Vector2(524,271),"在东埠查看潮关回船带来的回执","boatman_front"],
+	]
+	for station in stations:
+		var id: String = station[0]
+		if not groups[id].is_empty():
+			result.append({"id":"homecoming_" + id,"pos":station[1],"name":station[2],"sprite":station[3],
+				"index":-1,"optional":true,"regional":true,"homecoming":id})
+	return result
+
+func finale_rows(topic: String = "") -> Array:
+	var groups := _finale_groups()
+	return groups.get(topic,[]) if not topic.is_empty() else groups.care + groups.evidence + groups.work + groups.tide
+
+func _finale_groups() -> Dictionary:
 	var facts: Dictionary = g.slot.world.tasks
 	var relief: Array = g.slot.world.get("finale",[])
 	if relief.is_empty() and not g.slot.cleared.has(1) and not g.slot.finished:
 		relief = RESCUES.filter(func(id): return facts.has(id))
-	var rows := []
+	var groups := {"evidence":[],"care":[],"work":[],"tide":[]}
 	if "mountain_west" in relief:
-		rows.append(["西坡山民","芦家和罗家都下了山。我们把侧坡石道留给上祭台的人，没再让他们踏过碎石。"])
+		groups.care.append(["西坡山民","芦家和罗家都下了山。我们把侧坡石道留给上祭台的人，没再让他们踏过碎石。"])
 	if "mountain_medicine" in relief:
-		rows.append(["受伤樵夫","小筑替我绑好腿板，许槐的药到了，晚来的人也有床。赴决战的那包交给聂少侠。"])
+		groups.care.append(["受伤樵夫","小筑替我绑好腿板，许槐的药到了，晚来的人也有床。赴决战的那包交给聂少侠。"])
 	if "mountain_rearguard" in relief:
-		rows.append(["外哨传令弟子","最后一队也过了石阶。秦师兄留下的那块木牌，我放在渡口让他们认领。"])
+		groups.care.append(["外哨传令弟子","最后一队也过了石阶。秦师兄留下的那块木牌，我放在渡口让他们认领。"])
 	if facts.get("palace_survival") == "rescue":
-		rows.append(["茶房杂役","西闸水浅，那晚你把我们从烟里带到了外庭。今天我们来凤溪接亲眷。"])
+		groups.care.append(["茶房杂役","西闸水浅，那晚你把我们从烟里带到了外庭。今天我们来凤溪接亲眷。"])
 	if facts.get("palace_survival") == "witness":
-		rows.append(["外庭录事","茶房亲历者交来署名记录。我们把副本留在凤溪，来领人的可以查当夜的名册。"])
+		groups.evidence.append(["外庭录事","茶房亲历者交来署名记录。我们把副本留在凤溪，来领人的可以查当夜的名册。"])
 	if facts.has("testimony_handoff"):
-		rows.append(["渡口验印人","许成留下了姓名，等没领到粮的人来找他。" if facts.testimony == "signed" else "那份拓印能复核，船户姓名留在密封纸里。"])
+		groups.evidence.append(["渡口验印人","许成留下了姓名，等没领到粮的人来找他。" if facts.testimony == "signed" else "那份拓印能复核，船户姓名留在密封纸里。"])
 	if facts.has("medicine_handoff"):
-		rows.append(["药棚值守人","凤溪后渡的药单还在。生死门带来的伤者就按那张单子领药。"])
+		groups.care.append(["药棚值守人","凤溪后渡的药单还在。生死门带来的伤者就按那张单子领药。"])
 	if facts.has("charter_handoff"):
-		rows.append(["搬绳工匠","于姑娘接了外哨的单，修好的绞索也送到了这里。" if facts.sword_charter == "commission" else "剑庐腾出的铺先给了失散的匠户。张婆婆仍在照看后来的人。"])
+		groups.work.append(["搬绳工匠","于姑娘接了外哨的单，修好的绞索也送到了这里。" if facts.sword_charter == "commission" else "剑庐腾出的铺先给了失散的匠户。张婆婆仍在照看后来的人。"])
 	if facts.has("register_handoff"):
-		rows.append(["旧岗录事","来客可以按范著留下的实名点查。" if facts.watch_register == "public" else "旧岗的匿名副页已验过。我们只记时间，没有记谁给的。"])
+		groups.evidence.append(["旧岗录事","来客可以按范著留下的实名点查。" if facts.watch_register == "public" else "旧岗的匿名副页已验过。我们只记时间，没有记谁给的。"])
 	if facts.has("carry_handoff"):
-		rows.append(["许槐","绝宫腾出的护脉药我送到了药棚。" if facts.valley_carry == "medicine" else "邪皇的换气字条交还了。后来学拳的人也能照着抄。"])
+		groups.care.append(["许槐","绝宫腾出的护脉药我送到了药棚。" if facts.valley_carry == "medicine" else "邪皇的换气字条交还了。后来学拳的人也能照着抄。"])
 	var ledger: String = g.slot.chronicle.quests.get("hidden_ledger","")
 	if ledger.begins_with("done_"):
-		rows.append(["领簿山民","倒灯拓片认得出每一户，归来的人能对上姓名。" if ledger == "done_defend" else "我们照铁板暗道越过封锁。薄铁板已送到渡口供人核对。"])
+		groups.work.append(["领簿山民","倒灯拓片认得出每一户，归来的人能对上姓名。" if ledger == "done_defend" else "我们照铁板暗道越过封锁。薄铁板已送到渡口供人核对。"])
 	for id in RESCUES:
 		if facts.has(id) and id not in relief and g.slot.cleared.has(1):
 			var label: String = {"mountain_west":"西坡住户","mountain_medicine":"药炉伤者","mountain_rearguard":"石阶最后一队"}[id]
-			rows.append(["渡口补录","决战之后，%s来报平安。" % label])
-	return rows
+			groups.care.append(["渡口补录","决战之后，%s来报平安。" % label])
+	match facts.get("tide_relief", "") if facts.has("tide_relief_receipt") else "":
+		"public":
+			groups.tide.append(["回航船工","潮关把实发簿抄了一联给凤溪。柳家二升，薛家四升。复称的票角都在，下一趟照这个数目来对。"])
+		"witness":
+			groups.tide.append(["回航船工","封卷和人证已到州府。这是给凤溪的船章副联。原账留在州府，三日的粮在潮关照发。"])
+	return groups
 
 func read_finale() -> void:
 	var rows := finale_rows()
@@ -675,6 +713,8 @@ func read_finale() -> void:
 	)
 
 func trackable_points() -> Array:
+	if tracked.is_empty():
+		return []
 	if tracked == "hidden_ledger":
 		return points().filter(func(point): return point.id == "side_hidden_ledger" or point.id == "world_dawn_relief")
 	if CampaignLinks.TASKS.has(tracked):
@@ -682,7 +722,44 @@ func trackable_points() -> Array:
 		return points().filter(func(point): return point.id == id)
 	for task in journal():
 		if task.id == tracked and (not task.complete or task.awaiting_receipt):
-			return points().filter(func(point): return point.get("evidence","") in (task.evidence if not task.complete else [task.receipt]) or point.get("result","") == task.id)
+			var evidence: Array = [task.receipt] if task.complete else task.evidence
+			var matches := func(point: Dictionary):
+				return point.get("evidence","") in evidence or point.get("result","") == task.id
+			return _next_task_points(matches)
+	return []
+
+func _next_task_points(matches: Callable) -> Array:
+	var here: Array = points()
+	var local := here.filter(matches)
+	if not local.is_empty():
+		return local
+	var current: String = g.slot.world.area
+	var phase_id := phase()
+	var data: Script = REGIONS[region()]
+	var visited := {current:true}
+	var frontier := []
+	for point in here:
+		var next: String = point.get("destination","")
+		if data.AREAS.has(next) and not visited.has(next):
+			visited[next] = true
+			frontier.append({"area":next,"first":point})
+	while not frontier.is_empty():
+		var exits := []
+		var following := []
+		for step in frontier:
+			var available := _area_points(step.area,data.POINTS,phase_id)
+			if available.any(matches):
+				if not exits.has(step.first):
+					exits.append(step.first)
+				continue
+			for point in available:
+				var next: String = point.get("destination","")
+				if data.AREAS.has(next) and not visited.has(next):
+					visited[next] = true
+					following.append({"area":next,"first":step.first})
+		if not exits.is_empty():
+			return exits
+		frontier = following
 	return []
 
 func handoff_journal() -> Array[Dictionary]:

@@ -128,3 +128,5 @@
 ## 当前实现与验收
 
 3.3.0 接通七个回访区域、二十二种区域状态和十条长任务。潮关复用原有渡口、装卸渠和粮仓地形，以回访、分账、护送、证据和新通路完成末段扩充。12–16 小时首玩主线及 18–23 小时大量选做路线仍为制作目标，待真人计时。 [第四阶段验收与实测](verification/jianghu/stage4/README.md) · [第三阶段验收与实测](verification/jianghu/stage3/README.md) · [第二阶段验收与实测](verification/jianghu/stage2/README.md)
+
+3.3.1 联合复核十章、七区和潮关后续。按实际地点、阶段和遭遇统计可玩体量，并补上章节读档交接、同区域跨图追踪、凌云山救援至凤溪安置、潮关回执至凤溪东埠的连接。 [全战役验收](verification/jianghu/full-campaign/README.md)

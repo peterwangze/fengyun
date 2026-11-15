@@ -90,6 +90,21 @@ func after_settlement(outcome: String) -> bool:
 		"followup_walk_seconds":snappedf(relief_walk / 101.0,0.1),"visits":visited}))
 	return true
 
+func verify_fengxi_receipt(outcome: String) -> bool:
+	if not _enter_region() or not _visit("road_tide_fengxi"):
+		return false
+	a._resume()
+	if not _check(a._reach("homecoming_tide"), "Fengxi's receipt is accessible after the physical return and reload"):
+		return false
+	a._key(KEY_E)
+	var word := "实发簿" if outcome == "public" else "州府"
+	_check(g.mode == "dialogue" and g.lines[0][0] == "回航船工" and g.lines[0][1].contains(word),
+		"the returning ship brings the actual receipt for " + outcome)
+	await a._capture("homecoming-tide-" + outcome)
+	a._drain_dialogue()
+	print("HOMECOMING Tidegate receipt in Fengxi: " + outcome)
+	return _visit("road_fengxi_tide") and _leave_region()
+
 func _cross_fengxi() -> bool:
 	var origin: Dictionary = g.slot.world["return"].duplicate(true)
 	if not _visit("road_tide_fengxi"):
@@ -112,7 +127,7 @@ func _review(source_point: String, source: String) -> bool:
 	_check(g.mode == "world_journal" and g.menu_items().map(func(row: Array): return row[0]) == ["粮账覆核","归灯分粮"],
 		"Tidegate exposes both tasks in its playable journal")
 	await a._capture("stage4-tide-journal")
-	a._key(KEY_ESCAPE)
+	a._key(KEY_ENTER)
 	if a.build_route == "interrupt":
 		if not _path(["world_tide_boat_to_canal","world_tide_boat_to_ford"]):
 			return false
@@ -125,6 +140,8 @@ func _review(source_point: String, source: String) -> bool:
 	if source == "canal":
 		if not _visit(source_point):
 			return false
+		_check(_tracked_point_ids() == ["world_tide_canal_to_fort"],
+			"after free evidence, Tidegate tracking guides players to the open east staircase")
 	elif _has(source_point) and not _visit(source_point):
 		return false
 	if not _visit("world_tide_canal_to_fort"):
@@ -135,6 +152,9 @@ func _review(source_point: String, source: String) -> bool:
 		return false
 	if _has("world_tide_review_seal") and not _visit("world_tide_review_seal"):
 		return false
+	if source == "canal":
+		_check(_tracked_point_ids() == ["world_tide_fort_to_canal"],
+			"after inspecting the warehouse, tracking identifies the multi-map return to the dock")
 	if not _path(["world_tide_fort_to_canal","world_tide_canal_to_ford"]):
 		return false
 	if _has(source_point) and not _visit(source_point):
@@ -174,12 +194,18 @@ func _relief(outcome: String, expect_ambush: bool = false) -> bool:
 	var main: Dictionary = _main_account()
 	if outcome == "public" and not _visit("world_tide_relief_roll"):
 		return false
-	if not _path(["world_tide_to_canal","world_tide_canal_to_fort"]):
-		return false
-	if outcome == "witness" and not _visit("world_tide_relief_roll"):
-		return false
-	if not _path(["world_tide_relief_dispatch","world_tide_fort_to_canal"]):
-		return false
+	var saved_grain: bool = g.slot.chronicle.quests.get("lamps", "") in ["wait_goods", "done_goods"]
+	if outcome == "public" and saved_grain:
+		if not _visit("world_tide_relief_dispatch") or not _visit("world_tide_to_canal"):
+			return false
+		print("STAGE4 Fengxi grain prepared both sacks at the dock")
+	else:
+		if not _path(["world_tide_to_canal","world_tide_canal_to_fort"]):
+			return false
+		if outcome == "witness" and not _visit("world_tide_relief_roll"):
+			return false
+		if not _path(["world_tide_relief_dispatch","world_tide_fort_to_canal"]):
+			return false
 	var entry: Vector2 = g.player
 	a._resume()
 	_check(g.world.active() and g.slot.world.area == "tide_canal" and g.player.distance_to(entry) < 1.0,
@@ -359,6 +385,9 @@ func _visit(id: String) -> bool:
 
 func _has(id: String) -> bool:
 	return g.field_points().any(func(point: Dictionary): return point.id == id)
+
+func _tracked_point_ids() -> Array:
+	return g.world.trackable_points().map(func(point: Dictionary): return point.id)
 
 func _check(value: bool, message: String) -> bool:
 	return a._check(value, "STAGE4 " + message)

@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+INTRO lantern_pass (凤溪的凭条)
+PASS initial scene handoff is saved as unread inside lantern_pass
+PASS handoff gives its source or recoverable older lead
+PASS skipping from one line to the next keeps the scene unread
+PASS title Continue restores the unread intro at lantern_pass (84.0, 246.0)
+PASS reading the handoff records that it has been seen
+PASS ordinary resume cannot play an intro already finished and keeps the same entry position
+PASS first stated goal is present on walkable terrain
+PASS interaction records the correct position and next step
+PASS previous-schema checkpoint can omit the introduction field
+PASS legacy checkpoint restores pass_cart (234.0, 242.0) without repeating narration
+INTRO dragon_waterway (西闸岗令)
+PASS initial scene handoff is saved as unread inside dragon_waterway
+PASS handoff gives its source or recoverable older lead
+PASS skipping from one line to the next keeps the scene unread
+PASS title Continue restores the unread intro at dragon_waterway (90.0, 258.0)
+PASS reading the handoff records that it has been seen
+PASS ordinary resume cannot play an intro already finished and keeps the same entry position
+PASS first stated goal is present on walkable terrain
+PASS interaction records the correct position and next step
+PASS previous-schema checkpoint can omit the introduction field
+PASS legacy checkpoint restores waterway_rubbing (251.0, 220.0) without repeating narration
+INTRO dragon_waterway (至尊说旧图)
+PASS initial scene handoff is saved as unread inside dragon_waterway
+PASS handoff gives its source or recoverable older lead
+PASS skipping from one line to the next keeps the scene unread
+PASS title Continue restores the unread intro at dragon_waterway (90.0, 258.0)
+PASS reading the handoff records that it has been seen
+PASS ordinary resume cannot play an intro already finished and keeps the same entry position
+PASS first stated goal is present on walkable terrain
+PASS interaction records the correct position and next step
+PASS previous-schema checkpoint can omit the introduction field
+PASS legacy checkpoint restores waterway_rubbing (251.0, 220.0) without repeating narration
+NARRATIVE RESUME 30 checks, 0 failures

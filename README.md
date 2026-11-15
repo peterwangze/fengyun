@@ -1,14 +1,14 @@
 # 风云：山河劫
 
-简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.3.0 将潮关纳入七区回访网络，加入「粮账覆核」以及公开分粮和州府会验的两条战后路线。
+简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.3.1 完成十章、七个回访区域与两种潮关结案的联合复测，修订章节交接、跨图任务追踪与凤溪归人的可玩后续。 [全战役验收](verification/jianghu/full-campaign/README.md)
 
 ## 开始游戏
 
-**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.3.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.3.0/Fengyun-3.3.0-android.apk)
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.3.1 APK](https://github.com/peterwangze/fengyun/releases/download/v3.3.1/Fengyun-3.3.1-android.apk)
 
-**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.3.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.3.0/Fengyun-3.3.0-windows-x64-setup.exe)
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.3.1 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.3.1/Fengyun-3.3.1-windows-x64-setup.exe)
 
-[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.3.0) · [第三方许可](Windows/Licenses)
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.3.1) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
@@ -16,7 +16,7 @@
 
 [四幕设计和阶段验收](CAMPAIGN_EXPANSION.md)以 3.0.0 为基线。第二章完成雨巷查账后，从西岸「走访凤溪渡路」或暂歇菜单的「回访凤溪」进入。随后「江湖行路」按剧情开放拜剑山庄、天下会外哨、生死门、无神绝宫和凌云山。区域之间也可沿路牌步行往返。主线关卡正进行时，先走到下一个安全点。
 
-凤溪的西岸、客栈和雨巷可以双向往返。打开手记可追踪「水路证词」和「渡口药单」。每条支线的两份线索可按任意顺序取得。第三章起是封渡期，两条任务可以交付。终章抵达凤溪归灯后复航，可在原地核对证人的下落与领药回条。
+凤溪的西岸、客栈和雨巷可以双向往返。打开手记可追踪「水路证词」和「渡口药单」。目标在隔壁地图时，追踪会提示当前能走的出口。每条支线的两份线索可按任意顺序取得。第三章起是封渡期，两条任务可以交付。终章抵达凤溪归灯后复航，可在验印桌、药棚和桥东分别探问证人、山民及工匠的去向。
 
 拜剑山庄可调查炉料与后棚托付，装好绞梯并决定工匠去向。天下会外哨可修巡灯吊篮、选择具名或匿名交付换岗簿。生死门可开通升担架，决定先把护脉药或金身换气线索送往绝宫。手记中的「跨区交接」列出原地点、目的地和交付状态。键盘按 Tab，手柄按 X，或触屏点按钮。主线撤离绝宫后，外哨旧岗院的驿道通战后前庭，可把未交证物补交归档。从区域出口或暂歇菜单返回主线，会回到出发点，重启后可从该处续玩。 [第二阶段交付验收](verification/jianghu/stage2/README.md)
 

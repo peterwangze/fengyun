@@ -62,6 +62,7 @@ var cultivation_observations: Array[String] = []
 var alternate_transit := false
 var stage2b_route := false
 var stage2b_skip := false
+var full_campaign := false
 var stage2b: RefCounted
 var stage3: RefCounted
 var stage4: RefCounted
@@ -112,6 +113,7 @@ func _run() -> void:
 	alternate_transit = "--alternate-transit" in OS.get_cmdline_user_args()
 	stage2b_route = "--stage2b" in OS.get_cmdline_user_args()
 	stage2b_skip = "--stage2b-skip" in OS.get_cmdline_user_args()
+	full_campaign = "--full-campaign" in OS.get_cmdline_user_args()
 	if stage2b_route:
 		stage2b = Stage2B.new(self)
 	stage3 = Stage3.new(self, "--stage3" in OS.get_cmdline_user_args())
@@ -583,6 +585,8 @@ func _run() -> void:
 					_do_point("dawn_courier")
 			_do_point("dawn_lamp")
 			await stage3.dawn_return()
+			if full_campaign:
+				await _verify_homecoming()
 			if quests and endgame:
 				_do_point("dawn_reunion")
 				_choose(int(alternate))
@@ -831,18 +835,18 @@ func _verify_afterstory() -> void:
 		_check(game.afterstory.state().tonics == opening_tonics + 1 and game.afterstory.state().supplies.guard_powder == opening_powder + 1,
 			"preserving the grain sends medicine on Tidegate's first briefing")
 		print("AID Tidegate grain +1 tonic and +1 ward powder")
-	if endgame and quests:
+	if endgame and (quests or full_campaign) and not game.chronicle.reunion_plan().is_empty():
 		var before_tonics: int = game.afterstory.state().tonics
 		var before_powder: int = game.afterstory.state().supplies.guard_powder
 		_do_point("fengxi_contact")
-		var received: int = int(alternate)
+		var received: int = int(game.chronicle.reunion_plan() == "aid")
 		_check(game.storage.read().afterstory.fengxi_contact and game.afterstory.state().tonics == before_tonics + received
 			and game.afterstory.state().supplies.guard_powder == before_powder + received,
 			"Tidegate contact consumes the stored reunion choice exactly once")
 		_do_point("fengxi_contact")
 		_check(game.afterstory.state().tonics == before_tonics + received and game.afterstory.state().supplies.guard_powder == before_powder + received,
 			"contact remains revisitable without repeating the benefit")
-		print("AID Tidegate reunion %s" % ("supplies" if alternate else "opening poise"))
+		print("AID Tidegate reunion %s" % ("supplies" if received else "opening poise"))
 	if not market_route.is_empty():
 		await _visit_tidegate_market(baseline)
 	_do_point("seal")
@@ -922,7 +926,7 @@ func _verify_afterstory() -> void:
 		_verify_battle_reinforcement()
 	if cultivation_route and build_route in ROUTE_STYLES:
 		_verify_cultivation_encounter()
-	if endgame and quests and not alternate:
+	if endgame and game.chronicle.reunion_plan() == "roll" and (quests or full_campaign):
 		var drum: Dictionary = game.encounter.foes[1]
 		_check(drum.poise == drum.max_poise - 2, "public reunion roll makes the tidegate drummer start two poise lower")
 	elif tidal_sluice:
@@ -993,6 +997,8 @@ func _verify_afterstory() -> void:
 		_check(current[key] == baseline[key],"Tidegate preserves the main campaign's " + key)
 	if stage4 != null and not await stage4.after_settlement(settlement):
 		return
+	if stage4 != null and full_campaign and not await stage4.verify_fengxi_receipt(settlement):
+		return
 	print("PASS Tidegate route=%s rescue=%s ending=%s" % [selected_route,str(current.afterstory.aid),settlement])
 	if pacing:
 		print("TIDAL " + JSON.stringify({"route":selected_route, "ending":settlement, "encounters":tidal_battles}))
@@ -1002,6 +1008,26 @@ func _resume_afterstory() -> void:
 	_check(game.mode == "title","Tidegate returns to title")
 	_select_menu_row(5)
 	_check(game.mode == "field" and game.afterstory.active,"title continues Tidegate")
+
+func _verify_homecoming() -> void:
+	var stations: Array = game.world.homecoming_points()
+	_check(stations.any(func(point: Dictionary): return point.id == "homecoming_care"),
+		"Fengxi care station is opened by the actual summit evacuation")
+	for station in stations:
+		if not _check(_reach(station.id),"homecoming station reachable on foot: " + station.id):
+			continue
+		_key(KEY_E)
+		_check(game.mode == "dialogue" and game.lines == game.world.finale_rows(station.homecoming),
+			"homecoming station shows its own branch dialogue: " + station.id)
+		await _capture(station.id)
+		_drain_dialogue()
+	_check(not _reach("homecoming_tide"),"Fengxi cannot show a Tidegate receipt before Tidegate settlement")
+	if not quests and _do_point("dawn_reunion"):
+		_check(game.chronicle.options.map(func(row: Array): return row[1]) == ["reunion_roll",""],
+			"free west-slope rescue opens the voluntary register, without inventing supply support")
+		_choose(0)
+		_check(game.storage.read().chronicle.marks.get("reunion_roll",false),"free route writes the register choice")
+	print("HOMECOMING stations=%s facts=%s" % [stations.map(func(point: Dictionary): return point.id),game.slot.world.finale])
 
 func _do_point(point: String) -> bool:
 	if not _check(_reach(point),"new point reachable: " + point + " in " + game.field_key):

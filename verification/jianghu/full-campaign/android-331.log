@@ -1,0 +1,23 @@
+Android 16 API 36, x86_64 scratch emulator; packaged release APK
+APK SHA-256 7b54154c1f14253df776b46f12745f513021ef0cc10b71e749cdf84284b70e01
+PASS final signed APK upgrades public v3.3.0 under the same package ID
+PASS upgrade preserves scratch primary and backup byte for byte
+PASS signed release launched on a dedicated scratch Android emulator
+Landscape Android SurfaceView 0,0 – 2400,1080; touch mapped from 640 × 360
+PASS Continue loads the actual active Tidegate save written while running installed v3.3.0
+PASS touch starts a fresh campaign and records its opening
+PASS relaunch and Continue preserve opening checkpoint
+PASS Tidegate remains locked before the main campaign is complete
+PASS the sixth option is playable before the main campaign is complete
+PASS old completed game reopens in Fengxi with West Slope rescue intact
+PASS old settled game opens Tidegate as the seventh region with the public result intact
+PASS virtual joystick and dialogue obtain and save the post-settlement relief roll
+PASS relaunch and Continue preserve Tidegate checkpoint, relief roll, and original settlement
+PASS returning to the title leaves the campaign completed and relief roll recorded
+PASS original postgame scene reaches regional Tidegate through the physical dock exit
+PASS leaving regional Tidegate restores the exact old postgame dock coordinates
+PASS the restarted packaged game renders on Android OpenGL ES without script errors
+PASS visual A/B same fixture/location: public 3.3.0 had no interaction at the Fengxi spawn, 3.3.1 displays 西坡山民 dialogue about the saved 芦 and 罗 households after touch
+PASS apksigner verified v2/v3 and the same release certificate SHA-256 as v3.3.0: adaf6fded6e87931f9fa40493acebd846535caa29816694b8a3f79e7ad99f41c
+PASS zipalign verified 16 KiB native library alignment
+Package code 30301, minimum Android SDK 24, target SDK 36; arm64-v8a, armeabi-v7a and x86_64 ABIs

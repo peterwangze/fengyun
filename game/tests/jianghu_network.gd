@@ -68,15 +68,27 @@ func _test_unlock() -> void:
 	_check(game.world.phase() == "evidence", "the first revisit takes place during the evidence phase")
 	_check(String(_point("world_watch").get("name", "")).contains("查验牌"), "the evidence phase shows the inspection board")
 	await _capture("fengxi-evidence-shore")
+	_key(KEY_J)
+	_key(KEY_ENTER)
+	_check(_tracked_point_ids() == ["world_inn","world_lanes"],
+		"tracking testimony at the shore points to both open investigation routes")
+	await _capture("fengxi-tracked-exits")
+	_key(KEY_J)
+	_key(KEY_ENTER)
 	_visit("world_inn")
 	await _verify_journal_tracking()
 	if _visit("world_shop"):
 		_check(game.mode == "shop", "the witness-phase merchant still opens the existing shop")
 		_key(KEY_ESCAPE)
 	_visit("world_witness")
+	_check(_tracked_point_ids() == ["world_shore"], "after finding the witness, tracking points back to the shore")
+	await _capture("fengxi-tracked-return")
 	_visit("world_shore")
+	_check(_tracked_point_ids() == ["world_lanes"], "from the shore the remaining clue routes to the rain lanes")
 	_visit("world_lanes")
+	_check(_tracked_point_ids() == ["world_stencil"], "the destination shows the actual evidence rather than the entrance")
 	_visit("world_stencil")
+	_check(_tracked_point_ids().is_empty(), "the locked early turn-in does not attract a marker")
 	_visit("world_crate")
 	_visit("world_shore")
 	_visit("world_roster")
@@ -274,6 +286,9 @@ func _verify_journal_tracking() -> void:
 	_key(KEY_ENTER)
 	var markers: Array = game.world.trackable_points()
 	_check(game.mode == "field" and markers.size() == 1 and markers[0].id == "world_witness", "tracking marks the clue in the current inn")
+
+func _tracked_point_ids() -> Array:
+	return game.world.trackable_points().map(func(point: Dictionary): return point.id)
 
 func _capture(name: String) -> void:
 	if report_dir.is_empty() or DisplayServer.get_name() == "headless":

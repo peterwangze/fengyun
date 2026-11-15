@@ -86,6 +86,9 @@ func resume() -> bool:
 					g.player = point.at
 					g._place_follower()
 	g._return_to_field()
+	if (at.is_empty() and not g.slot.get("intro_seen",true) and g.chronicle.enabled() and not g.chronicle.review
+			and room in ["lantern_pass","dragon_waterway"]):
+		g._talk(g.chronicle.opening(),g._finish_intro)
 	return true
 
 func data() -> Dictionary:

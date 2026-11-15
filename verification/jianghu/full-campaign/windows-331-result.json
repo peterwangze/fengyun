@@ -1,0 +1,24 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "3.3.1.0",
+  "SetupVersion": "3.3.1",
+  "UpdatedFrom": "3.3.0",
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "08fc1ae12fab9fb4c9a4557abb22bf730f3a5c96fe9c6e306b20234b9edca036",
+  "SetupSHA256": "6b2f0ea7638ad05d231021e79a1ebb75778ca1f18821e24c485cc415be7e1fe7",
+  "Authenticode": "NotSigned",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Installed packaged game, fresh opening and save/restart, physical West Slope survivor in reopened Fengxi, six regions before the main campaign is complete, seventh Tidegate region after public settlement, walked to relief roll and collected it, opened region journal, restarted directly into Tidegate, and returned to title while retaining the fact. Entered from the original postgame dock via its physical exit and returned to the exact dock coordinates.",
+  "InstalledGameLaterChapters": [
+    "Tidegate sixth/seventh gating",
+    "public relief roll",
+    "postgame dock transition out and back",
+    "Tidegate checkpoint and completed campaign preserved"
+  ]
+}

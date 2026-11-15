@@ -1,0 +1,828 @@
+res://tests/route.gd --profile=qa_route
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS main marker guides first-time players to Qin Shuang
+PASS journal tracking identifies the selected nearby side quest
+PASS tracking main clears the previous side marker
+PASS winning the practice duel moves the main marker to the gate guard
+PASS back gate leads to the bamboo path
+PASS cache is on walkable ground in garden
+PASS interacting claims supplies in garden
+PASS cache is one-time and persists in garden
+PASS the inn and its optional encounter wait until crossing the river
+PASS seal chase waits for investigation at the inn
+PASS cache is on walkable ground in inn
+PASS interacting claims supplies in inn
+PASS cache is one-time and persists in inn
+PASS investigating the ferry orders unlocks the optional encounter
+PASS interacting at the inn window starts the real seal chase
+PASS second round warns that the spy will flee
+PASS a free second-round action lets the spy escape without rewards
+PASS retry restores the original encounter
+PASS chipping away at the stance then using a weakness hit delays escape
+PASS focus the spy, then defeat the remaining swordsman
+PASS victory grants the one-time needle reward
+PASS optional win leaves main progression unchanged
+PASS the won encounter cannot be repeated after reload
+Route and exploration: 0 failures
+res://tests/branch_payoffs.gd --profile=qa_branch_payoffs
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS Fengxi evidence responds to the testimony
+PASS Fengxi main fight opens with any quest outcome
+PASS testimony opens one tactical gap while preserving the whistle attempt
+PASS retry reapplies the same opening gap without changing maximum poise
+PASS the journal offers a Palace follow-up only after helping the Fengxi courier
+PASS courier quest rewards remain earned, while combat aid requires the rendezvous
+PASS Godless encounter opens with any courier outcome
+PASS quiet courier grants a ward to the heavy target, intercepting opens a poise gap
+PASS retries reproduce exactly one courier aid
+PASS Fengxi lantern scene recalls the courier choice only when its later meeting took place
+PASS the journal offers a Palace follow-up only after helping the Fengxi courier
+PASS courier quest rewards remain earned, while combat aid requires the rendezvous
+PASS the journal points to the reachable contact and gives the deadline
+PASS the courier explains the specific tactical handoff
+PASS reloading after the handoff removes the interaction and preserves the aid
+PASS Godless encounter opens with any courier outcome
+PASS quiet courier grants a ward to the heavy target, intercepting opens a poise gap
+PASS retries reproduce exactly one courier aid
+PASS Fengxi lantern scene recalls the courier choice only when its later meeting took place
+PASS the journal offers a Palace follow-up only after helping the Fengxi courier
+PASS courier quest rewards remain earned, while combat aid requires the rendezvous
+PASS the journal points to the reachable contact and gives the deadline
+PASS the courier explains the specific tactical handoff
+PASS reloading after the handoff removes the interaction and preserves the aid
+PASS Godless encounter opens with any courier outcome
+PASS quiet courier grants a ward to the heavy target, intercepting opens a poise gap
+PASS retries reproduce exactly one courier aid
+PASS Fengxi lantern scene recalls the courier choice only when its later meeting took place
+PASS a courier handoff after the fight is hidden and the journal preserves the earned reward
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS Palace evacuation explains the chosen branch's later aid
+PASS the chosen or skipped branch changes the actual cavern battle after reopening the save
+PASS cavern retry preserves branch aid and inventory
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS a promise requires a mountain handoff to grant combat aid
+PASS journal explains the deadline for final-battle aid
+PASS mountain handoff persists before the duel
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS a promise requires a mountain handoff to grant combat aid
+PASS journal explains the deadline for final-battle aid
+PASS mountain handoff persists before the duel
+PASS the guard route opens a traversable short path
+PASS the altar scene reflects who took the old sword
+PASS the old-sword routes support two distinct final-battle openings
+PASS late handoff stays available and describes the resolved duel
+PASS late handoff uses dialogue that acknowledges victory
+PASS late handoff can still settle the quest
+PASS mountain rescue changes the farewell before the player leaves Fengxi
+PASS Fengxi ending reflects the river choice without requiring the optional revisit
+PASS unvisited river follow-up warns before ending
+PASS finishing without the optional revisit still records the chosen ending
+PASS mountain rescue changes the farewell before the player leaves Fengxi
+PASS Fengxi ending reflects the river choice without requiring the optional revisit
+PASS unvisited river follow-up warns before ending
+PASS finishing without the optional revisit still records the chosen ending
+PASS a direct main route retains the original ending without an empty settlement
+PASS reunion is optional and appears after the lamp
+PASS the guided witness is now visible running a stop for displaced travelers
+PASS the quiet courier route has an actual village clinic to visit
+PASS both optional callbacks record their own visits
+PASS the public roll stays available without the aid resources
+PASS touch-friendly defer leaves the choice open
+PASS the recorded witness presents the published evidence
+PASS the seized password closes the story of the freed boatman
+PASS the winter-grain branch opens a distinct aid plan
+PASS the aid ending is mutually exclusive and persists on reload
+PASS revisiting shows the chosen arrangement without opening the choice again
+PASS ending playback describes the chosen connection to Tidegate
+PASS the mountain rescue also opens the aid alternative
+PASS choosing the public roll produces its own visible ending
+PASS each reunion plan is individually valid and round-trips through the existing save
+PASS a reunion choice recorded before the lamp is rejected
+PASS each reunion plan is individually valid and round-trips through the existing save
+PASS a reunion choice recorded before the lamp is rejected
+PASS the save cannot contain both mutually exclusive reunion plans
+PASS an older Tidegate slot is still readable without the optional contact field
+PASS a Tidegate contact claim requires the briefing
+PASS the Tidegate contact boolean persists after the briefing
+PASS the Tidegate contact cannot use a string in place of the saved boolean
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS players without the crew can open the watergate normally
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS players without the crew can open the watergate normally
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS Tidegate introduces Fengxi support from either selected outcome and skips it on a neutral save
+PASS the grain branch adds one tonic and powder to the Tidegate bag only
+PASS revisiting and reloading the briefing cannot duplicate the reward
+PASS one piece of evidence cannot open the watergate
+PASS crew opens the watergate after both pieces of evidence without removing the main gate route
+PASS players without the crew can open the watergate normally
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS each Tidegate settlement uses the matching regional aid in the distribution plan
+PASS the selected settlement persists with its original resolution ID
+PASS older boat saves get crew aid only when the evidence is complete and the route is undecided
+PASS the Tidegate contact follows the basic briefing
+PASS the plans bring different people into Tidegate
+PASS the lodging network grants its supply once, independently of the winter-grain briefing
+PASS the sluice approach presents and persists the shipping manifest
+PASS the canal continues into the original chief encounter
+PASS Fengxi contact and canal manifest have distinct precedence in the chief encounter
+PASS retry reuses the correct contact outcome
+PASS Tidegate public settlement has a plan-specific aftermath
+PASS the Tidegate contact follows the basic briefing
+PASS the plans bring different people into Tidegate
+PASS the lodging network grants its supply once, independently of the winter-grain briefing
+PASS the sluice approach presents and persists the shipping manifest
+PASS the canal continues into the original chief encounter
+PASS Fengxi contact and canal manifest have distinct precedence in the chief encounter
+PASS retry reuses the correct contact outcome
+PASS Tidegate public settlement has a plan-specific aftermath
+PASS gate approach offers only the on-site witness
+PASS gate testimony persists across Tidegate reloads before reaching the warehouse
+PASS gate route retains its original guard battle
+PASS tally testimony lowers the drum's opening poise by one
+PASS the witness accompanies the ledger in the prefecture ending
+PASS the hidden ledger does not leak into the journal or map before the prison rescue
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS reading the wall stores a traceable clue for the next chapter
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS the actual waterway matches the wall carving
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS following the mountain landmark uncovers the old plates
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS unrouted elite leaves both hidden choices available
+PASS deferring does not resolve the quest
+PASS chosen ledger resolution persists and the action is consumed
+PASS both choices grant one star steel; study grants Wind insight and the fallback manual
+PASS the ambush weakens the lead enemy in the existing elite fight
+PASS the ending reflects how the hidden plates were used
+PASS the hidden ledger does not leak into the journal or map before the prison rescue
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS reading the wall stores a traceable clue for the next chapter
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS the actual waterway matches the wall carving
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS following the mountain landmark uncovers the old plates
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS unrouted elite leaves both hidden choices available
+PASS deferring does not resolve the quest
+PASS chosen ledger resolution persists and the action is consumed
+PASS both choices grant one star steel; study grants Wind insight and the fallback manual
+PASS the ambush weakens the lead enemy in the existing elite fight
+PASS the ending reflects how the hidden plates were used
+PASS side_hidden_ledger is reachable via ordinary map collision
+PASS after the elite is defeated, the journal offers study and avoids promising a missed ambush
+PASS the western cache is hidden until registration clues emerge
+PASS reading the main register alone does not expose the cache
+PASS dry_store_hint is reachable via ordinary map collision
+PASS the maintenance diary reveals the optional cache
+PASS Tidegate journal records the cache timing clue
+PASS dry_store is reachable via ordinary map collision
+PASS wrong timing stays recoverable with no loss or forced encounter
+PASS opening the chest persists and remains obtainable before fighting Han Shuo
+PASS cache grants the vest and one local-only tide core
+PASS reopening and saving cannot duplicate the unique tide core
+PASS a completed legacy Tidegate slot can still discover the chest and use the local forge
+PASS a legacy Tidegate checkpoint without cache flags remains valid
+PASS validation rejects a cache claim without reading the clue
+PASS quest choice notes fit in the choice panel
+PASS branch result, follow-up and deadline text fit the journal
+PASS sword_refuge market note and stock fit their panel
+PASS inn market note and stock fit their panel
+PASS forge market note and stock fit their panel
+PASS medicine market note and stock fit their panel
+PASS tidegate market note and stock fit their panel
+PASS tide_relief_public market note and stock fit their panel
+PASS tide_convoy market note and stock fit their panel
+PASS tide_clinic market note and stock fit their panel
+PASS inn merchant has an optional named interaction
+PASS inn merchant is reachable on the map without bypassing collision
+PASS inn merchant is distinct from nearby quest interactions
+PASS inn merchant opens the shop via normal interaction
+PASS the swordhall craft stall opens after the lesson
+PASS forge merchant has an optional named interaction
+PASS forge merchant is reachable on the map without bypassing collision
+PASS forge merchant is distinct from nearby quest interactions
+PASS forge merchant opens the shop via normal interaction
+PASS the medicine stall opens after meeting the healers
+PASS medicine merchant has an optional named interaction
+PASS medicine merchant is reachable on the map without bypassing collision
+PASS medicine merchant is distinct from nearby quest interactions
+PASS medicine merchant opens the shop via normal interaction
+PASS Tidegate goods open after the briefing
+PASS tidegate merchant has an optional named interaction
+PASS tidegate merchant is reachable on the map without bypassing collision
+PASS tidegate merchant is distinct from nearby quest interactions
+PASS tidegate merchant opens the shop via normal interaction
+PASS swordhall forge note fits the panel
+PASS reed_mantle has two standard upgrade tiers
+PASS forge_guard has two standard upgrade tiers
+PASS tide_whistle has two standard upgrade tiers
+PASS sword_tassel has two standard upgrade tiers
+PASS apothecary forge note fits the panel
+PASS reed_mantle has two standard upgrade tiers
+PASS apothecary_gourd has two standard upgrade tiers
+PASS palace forge note fits the panel
+PASS reed_mantle has two standard upgrade tiers
+PASS forge_guard has two standard upgrade tiers
+PASS tide_whistle has two standard upgrade tiers
+PASS sword_tassel has two standard upgrade tiers
+PASS apothecary_gourd has two standard upgrade tiers
+PASS peak forge note fits the panel
+PASS reed_mantle has two standard upgrade tiers
+PASS forge_guard has two standard upgrade tiers
+PASS tide_whistle has two standard upgrade tiers
+PASS sword_tassel has two standard upgrade tiers
+PASS apothecary_gourd has two standard upgrade tiers
+PASS tidegate forge note fits the panel
+PASS granary_vest has two standard upgrade tiers
+PASS the Swordhall forge opens after the lesson
+PASS swordhall bench is an optional interaction
+PASS swordhall bench is reachable via ordinary collision
+PASS swordhall bench is distinct from nearby interactions
+PASS swordhall bench opens via ordinary interaction
+PASS the apothecary bench opens after meeting the healers
+PASS apothecary bench is an optional interaction
+PASS apothecary bench is reachable via ordinary collision
+PASS apothecary bench is distinct from nearby interactions
+PASS apothecary bench opens via ordinary interaction
+PASS the Palace bench opens after rescuing the prisoner
+PASS palace bench is an optional interaction
+PASS palace bench is reachable via ordinary collision
+PASS palace bench is distinct from nearby interactions
+PASS palace bench opens via ordinary interaction
+PASS peak bench is an optional interaction
+PASS peak bench is reachable via ordinary collision
+PASS peak bench is distinct from nearby interactions
+PASS peak bench opens via ordinary interaction
+PASS the Salt Ford forge opens after the briefing
+PASS tidegate bench is an optional interaction
+PASS tidegate bench is reachable via ordinary collision
+PASS tidegate bench is distinct from nearby interactions
+PASS tidegate bench opens via ordinary interaction
+Quest branch payoffs: 0 failures
+res://tests/journal.gd --profile=qa_journal
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS chapter-one quest identifies its nearby start
+PASS journal lists the equipment, medicine, and silver rewards
+PASS future quest is shown as unavailable
+PASS quest hands off from the courtyard to the wedding hall
+PASS journal updates to 查看柜下旧单
+PASS journal updates to 安置证人
+PASS choice explains two different main-story consequences
+PASS quest completion and the branch persist
+PASS completed quest grants a reward and clears the departure warning
+PASS west-bank quest marker waits until crossing
+PASS west-bank quest marker appears after crossing
+PASS leaving Fengxi warns about unfinished river rescue
+PASS planned reunion remains available in the finale
+PASS leaving the forge warns about the unexamined ledger
+PASS Palace handoff can be located and missed
+PASS missed Palace handoff cannot appear actionable at the peak
+PASS mountain departure warns while preserving Fengxi follow-up
+PASS dawn expires the mountain and activates the river follow-up
+PASS the final departure lists only the available river follow-up
+PASS optional remedy remains reachable after the main-story briefing
+PASS medicinal quest advertises its manual, forging materials and silver
+Quest journal: 0 failures
+res://tests/touch_controls.gd --profile=qa_touch_controls --touch-controls
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS touch sets the stick origin without moving
+PASS small drags stay inside the dead zone
+PASS floating stick supports full-speed diagonal dragging
+PASS empty action area does not activate or drop movement
+PASS stick stops on release
+PASS movement starts near the bottom-left edge
+PASS backgrounding releases held movement
+PASS bottom menu opens with the other finger and clears movement
+PASS Android back returns from the journal to the menu
+PASS bottom back button resumes exploration
+PASS Android back pauses exploration
+PASS player has a nearby interaction
+PASS old action position does not trigger a nearby interaction
+PASS bottom action triggers the nearby interaction
+PASS touching a target changes the preview without committing the technique
+PASS canceling target selection preserves Qi
+PASS touch confirm executes the selected technique
+Touch controls: 0 failures
+res://tests/builds.gd --profile=qa_full_campaign_builds
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS rank one keeps ordinary techniques and gear
+PASS rank two opens interrupt with an appropriate technique and accessory
+PASS rank four strengthens both active effects
+PASS transferring the only ring changes both tactical previews
+PASS recipient immediately sees the new style
+PASS unequipped technique cannot enable interrupt
+PASS temporary Devil Blade is counted as the equipped heavy skill
+PASS selected target previews the qualifying Qi refund
+PASS weakness technique breaks a live scout with the signal badge
+PASS interrupt refunds Qi on the successful break
+PASS foe resolve prevents both break and the interrupt refund
+PASS set counter while the other fighter guards
+PASS counter stance takes the forecast hit and gains one bond and 4 Qi despite multiple enemies
+PASS counter stance aimed at the wrong fighter has no affinity payoff
+PASS cover selects a teammate and reads the forecast instead of allowing self-target
+PASS cover takes the blow and grants the equipped defender's affinity
+PASS an external ward and basic guard cannot trigger the prepared-technique reward
+PASS target preview shows the available follow-through and resource cost
+PASS partner opens a gap and the heavy technique exploits it
+PASS follow-through spends only the stated extra Qi
+PASS a heavy strike can still be cast at its base cost without the affinity bonus
+PASS heavy strike does not get the payoff from a break it opens itself
+PASS quest intelligence weakens just the named living enemy without an automatic break
+PASS quest aid applies opening protection and capped bond with visible feedback
+PASS Duan telegraphs the charge and explains how to stop it
+PASS allowing the charge arms the next round's sweep
+PASS ordinary guard softens the fire sweep for both fighters and the charge expires
+PASS interrupt style previews the extra Qi for stopping a boss windup
+PASS breaking the windup prevents the sweep and awards the stated Qi
+PASS optional forge elite pressures immediately before it can light its weapon
+PASS the forge beast shares the charge-up system on an offset turn
+PASS cavern reuse and story difficulty keep their original behavior
+PASS building four corruption telegraphs a Qi-draining sweep before the partner acts
+PASS a reckless attack loses Qi while Dream's healing suppresses the special sweep
+PASS Wind can also suppress the sweep by guarding
+PASS the golden armor attack names its intended target
+PASS guarding with the named target creates an armor gap on the next round
+PASS the gap bypasses armor without relying on the equipped synergy or the combo
+PASS the guarded opening expires after its follow-through round
+PASS equipped counter creates a follow-through opening on an ordinary foe
+PASS the next partner exploits the opening from a defensive build
+PASS the dragon telegraphs its charge before the counterplay window
+PASS the earlier cavern encounter starts with a distinct pressure turn
+PASS the phase announcement and presentation track the armed reversal
+PASS ordinary guards endure the reversal and expose an opening for the next round
+PASS the companion can exploit the protected dragon opening
+PASS the forecast includes the affinity's extra return for stopping dragon breath
+PASS an actual break cancels the charge and emits the interruption cue
+PASS story difficulty retains the familiar dragon behavior
+PASS the opening palm explicitly names its target
+PASS crossing half health visibly enters the shield phase
+PASS the opening palm explicitly names its target
+PASS crossing half health visibly enters the shield phase
+PASS the party combo breaks the shield directly and retains the ending resolution flag
+PASS one break leaves a visible crack in the shield
+PASS the recovery round cannot count as a second break
+PASS a later break clears the shield independently of the combo
+PASS taking the opening palm under guard creates a real damage window
+PASS the first drum order visibly primes a named next-round target
+PASS the first drum order visibly primes a named next-round target
+PASS breaking the drummer cancels the already armed formation and its damage shield
+PASS protecting the marked ally answers the charge and creates a counterattack window
+PASS breaking the chief before the drummer acts prevents rally from arming
+PASS defeating the drummer removes the coordination mechanic
+PASS the fifth technique appends without changing old saved move indices
+PASS old or invalid technique records cannot equip a learned-only move
+PASS manual validation learns only the named hero technique and drops unknown ids
+PASS the normal loadout and source lookup support the new technique
+PASS the equipment list exposes each slot's gear and keeps unearned pieces locked
+PASS only valid newly owned pieces become entitlements
+PASS the acquired accessories work as alternatives in the existing style system
+PASS reed mantle protects against sweeps and heavy-only armor does not
+PASS warehouse vest protects against a targeted heavy technique
+PASS gourd only boosts absorption while a ward is consumed
+PASS Crosswind's windup bonus is identical in preview and execution
+PASS Frost Gate wards its companion only on an actual live-enemy break
+PASS counter manual deals three poise and the forge gear independently raises counter damage
+PASS Needle Transfer targets a partner, healing and restoring Qi while lowering corruption
+PASS Sword Trace increases damage through armor in exchange for weaker break pressure
+PASS old gear without a forge record retains original stats
+PASS normalization limits levels to forgeable owned items and clamps the maximum
+PASS malformed level values do not unlock tiers
+PASS the name, current modifiers and exact next gain can be shown separately
+PASS the forged whistle adds base Qi then enhances the equipped interrupt build
+PASS the combat action receives exactly the forged interrupt refund
+PASS the sword tassel improves broken-target damage without increasing the build bonus
+PASS reinforced mantle helps against a sweep without weakening ordinary attacks
+PASS reinforcement follows the unique item when transferred
+PASS stance validation rejects another hero's style and rank two cannot use cultivation
+PASS Wind's Seeking stance rewards a wind attack against a telegraph
+PASS Wind's Cover stance recovers Qi for actually redirecting a hit
+PASS Cloud's counter stance increases retaliatory poise loss
+PASS switching Cloud to Pursuit adds damage to a real opening
+PASS Frost's Shelter stance strengthens his ward on an ally
+PASS Frost's Shatter stance forecasts and deals an extra poise only with a consumed mark
+PASS Dream's Breathing stance supports the partner's Qi without refunding her own cast
+PASS Dream's Warm Needle gives an actual extra four HP to a critical ally
+PASS Sage's Sword Heart adds one poise only against a telegraphed move
+PASS Sage's Listening Edge increases counter damage by six
+PASS insight waits for the base manual and invalid hero receipts are dropped
+PASS mastered description and source are available before equipping
+PASS mastered Crosswind forecasts and deals two extra poise against a windup
+PASS mastered Cloud Return refunds three Qi on a successful counter
+PASS mastered Frost Gate protects both fighters after a live break
+PASS mastered Needle Transfer restores nine Qi
+PASS mastered Sword Trace uses its published 82% armor factor
+PASS older +2 equipment retains original modifiers and can still be shared
+PASS choosing the Wind-only branch automatically removes the previous incompatible wearer
+PASS exclusive combat modifiers only apply when the named hero equips the crafted form
+PASS repeat crafting and choosing the alternate branch spend no resources
+PASS the other branch is independently craftable and trades the poise modifier for extra interrupt Qi
+PASS the choice is exclusive in either direction
+PASS exclusive branch save writes successfully
+PASS reload preserves chosen branch and paid resource balances
+PASS older earned-elite checkpoint can be written for migration
+PASS new rare materials are recovered from recorded sources without refunding spent old materials or silver
+PASS migration restores only earned insights and keeps a portable legacy +2 item
+PASS saving migrated account makes rare material recovery idempotent
+PASS the two Fengxi rewards stay locked in a normal fresh or old slot
+PASS the existing repair path does not award the regional gear without its canonical claim
+PASS the real reward claims grant the exact two intended unique items
+PASS retriggering either claim cannot create a duplicate or change silver
+PASS the single cord is portable between heroes
+PASS seal cord adds one weakness poise and activates interrupt at a Qi tradeoff
+PASS herb wrap actually improves healing while trading eight maximum HP
+PASS herb wrap's ward bonus applies on the hit that consumes a ward
+PASS both regional grants and their worn items can be saved
+PASS reload keeps equipment and both independent claim IDs
+Builds: 0 failures
+res://tests/stage3_mountain_revisit.gd --profile=qa_stage3_mountain_late
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS fixture starts in playable fractured mountain
+PASS fresh fracture begins with the altar locked
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_west_roll
+PASS interaction commits world_mountain_west_roll
+PASS walkable point world_mountain_west_reed
+PASS interaction commits world_mountain_west_reed
+PASS walkable point world_mountain_west_luo
+PASS interaction commits world_mountain_west_luo
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_west_settle
+PASS interaction commits world_mountain_west_settle
+PASS west marking alone does not skip the blood rite
+PASS blood rite plus west settlement opens the altar
+PASS actual altar interaction becomes available after evacuation
+PASS actual final fight starts
+PASS the final battle aid follows the medicine result
+PASS boss was beaten with genuine battle actions
+PASS real victory writes only the pre-battle west result
+PASS mountain reopens footsteps after the final battle
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_medicine_custodian
+PASS interaction commits world_mountain_medicine_custodian
+PASS walkable point world_mountain_medicine_pack
+PASS interaction commits world_mountain_medicine_pack
+PASS the medicine route has the correct precursor and stage
+PASS walkable point world_mountain_medicine_escort
+PASS interaction commits world_mountain_medicine_escort
+PASS walkable point world_mountain_lodge
+PASS interaction commits world_mountain_lodge
+PASS walkable point world_mountain_medicine_confirm
+PASS interaction commits world_mountain_medicine_confirm
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_cavern
+PASS interaction commits world_mountain_cavern
+PASS walkable point world_mountain_rearguard_dispatch
+PASS interaction commits world_mountain_rearguard_dispatch
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_rearguard_marks
+PASS interaction commits world_mountain_rearguard_marks
+PASS the rearguard route has the correct precursor and stage
+PASS walkable point world_mountain_rearguard_chase
+PASS interaction commits world_mountain_rearguard_chase
+PASS walkable point world_mountain_rearguard_confirm
+PASS interaction commits world_mountain_rearguard_confirm
+PASS both routes gain persistent late results in lanterns phase
+PASS late completion leaves the actual boss snapshot unchanged
+PASS the Dawn report identifies late medicine and rearguard as two separate supplemental records
+PASS walkable point world_mountain_rearguard_receipt
+PASS interaction commits world_mountain_rearguard_receipt
+PASS a late follow-up receipt saves without duplication
+PASS fixture starts in playable fractured mountain
+PASS the blood rite alone does not open the altar
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_medicine_custodian
+PASS interaction commits world_mountain_medicine_custodian
+PASS walkable point world_mountain_medicine_pack
+PASS interaction commits world_mountain_medicine_pack
+PASS the medicine route has the correct precursor and stage
+PASS walkable point world_mountain_medicine_escort
+PASS interaction commits world_mountain_medicine_escort
+PASS walkable point world_mountain_lodge
+PASS interaction commits world_mountain_lodge
+PASS walkable point world_mountain_medicine_confirm
+PASS interaction commits world_mountain_medicine_confirm
+PASS medicine alone can also open the altar after blood rite
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_cavern
+PASS interaction commits world_mountain_cavern
+PASS walkable point world_mountain_rearguard_dispatch
+PASS interaction commits world_mountain_rearguard_dispatch
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_rearguard_marks
+PASS interaction commits world_mountain_rearguard_marks
+PASS the rearguard route has the correct precursor and stage
+PASS walkable point world_mountain_rearguard_chase
+PASS interaction commits world_mountain_rearguard_chase
+PASS walkable point world_mountain_rearguard_confirm
+PASS interaction commits world_mountain_rearguard_confirm
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_cavern
+PASS interaction commits world_mountain_cavern
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_steps
+PASS interaction commits world_mountain_steps
+PASS walkable point world_mountain_west_roll
+PASS interaction commits world_mountain_west_roll
+PASS walkable point world_mountain_west_reed
+PASS interaction commits world_mountain_west_reed
+PASS walkable point world_mountain_west_luo
+PASS interaction commits world_mountain_west_luo
+PASS walkable point world_mountain_hearth
+PASS interaction commits world_mountain_hearth
+PASS walkable point world_mountain_west_settle
+PASS interaction commits world_mountain_west_settle
+PASS all three rescue results coexist before the final battle
+PASS actual altar interaction becomes available after evacuation
+PASS actual final fight starts
+PASS the final battle aid follows the medicine result
+PASS boss was beaten with genuine battle actions
+PASS actual boss win freezes all three pre-battle rescues
+PASS no pre-battle rescue is mislabeled as a late entry
+Stage3 Mountain supplemental: 118 checks, 0 failures
+res://tests/forge_migration.gd --profile=qa_full_campaign_forge_migration
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS pre-economy completed Tidegate file is accepted
+PASS legacy gate, rescue, chief and register reconstruct enough local resources to use the forge
+PASS only documented completed battles are credited
+PASS migrated player can buy and reinforce the armor to +2
+PASS the upgraded migrated file saves
+PASS reinforcement and actual costs survive reload without replenishing spent resources
+PASS legacy recovery and Tidegate purchases leave the main wallet alone
+PASS pre-forge economy file is accepted
+PASS 2.7 paid-out silver remains spent while newly introduced materials are recovered
+Forge migration: 0 failures
+res://tests/transit_pass.gd --profile=qa_full_campaign_pass
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS lantern_pass is 768 px wide and connects to the next story location
+PASS pass_cart is unique and placed on the trail
+PASS pass_cart has a valid successor index
+PASS pass_worker is unique and placed on the trail
+PASS pass_worker has a valid successor index
+PASS pass_scouts is unique and placed on the trail
+PASS pass_scouts has a valid successor index
+PASS pass_furnace is unique and placed on the trail
+PASS pass_furnace has a valid successor index
+PASS pass_rope is unique and placed on the trail
+PASS pass_rope has a valid successor index
+PASS pass_stencil is unique and placed on the trail
+PASS pass_stencil has a valid successor index
+PASS pass_gate is unique and placed on the trail
+PASS pass_gate has a valid successor index
+PASS pass_exit is unique and placed on the trail
+PASS pass_exit has a valid successor index
+PASS pass_furnace_winch is unique and placed on the trail
+PASS pass_furnace_winch has a valid successor index
+PASS pass_furnace_register is unique and placed on the trail
+PASS pass_furnace_register has a valid successor index
+PASS lantern_pass records each authored branch outcome once
+PASS lantern_pass only starts the designated confrontations
+PASS pass_cart follows the prior interaction state
+PASS pass_cart can be reached in order with normal collisions
+PASS pass_worker follows the prior interaction state
+PASS pass_worker can be reached in order with normal collisions
+PASS pass_rope follows the prior interaction state
+PASS pass_rope can be reached in order with normal collisions
+PASS pass_gate follows the prior interaction state
+PASS pass_gate can be reached in order with normal collisions
+PASS pass_exit follows the prior interaction state
+PASS pass_exit can be reached in order with normal collisions
+PASS pass_worker reaches the terminal step through more than two viewport widths
+WALK pass_worker 1468 world pixels
+PASS pass_cart follows the prior interaction state
+PASS pass_cart can be reached in order with normal collisions
+PASS pass_scouts follows the prior interaction state
+PASS pass_scouts can be reached in order with normal collisions
+PASS pass_stencil follows the prior interaction state
+PASS pass_stencil can be reached in order with normal collisions
+PASS pass_gate follows the prior interaction state
+PASS pass_gate can be reached in order with normal collisions
+PASS pass_exit follows the prior interaction state
+PASS pass_exit can be reached in order with normal collisions
+PASS pass_scouts reaches the terminal step through more than two viewport widths
+WALK pass_scouts 1444 world pixels
+PASS pass_cart follows the prior interaction state
+PASS pass_cart can be reached in order with normal collisions
+PASS pass_furnace follows the prior interaction state
+PASS pass_furnace can be reached in order with normal collisions
+PASS pass_furnace_winch follows the prior interaction state
+PASS pass_furnace_winch can be reached in order with normal collisions
+PASS pass_furnace_register follows the prior interaction state
+PASS pass_furnace_register can be reached in order with normal collisions
+PASS pass_gate follows the prior interaction state
+PASS pass_gate can be reached in order with normal collisions
+PASS pass_exit follows the prior interaction state
+PASS pass_exit can be reached in order with normal collisions
+PASS pass_furnace reaches the terminal step through more than two viewport widths
+WALK pass_furnace 1468 world pixels
+PASS outer_watch is 768 px wide and connects to the next story location
+PASS watch_signal is unique and placed on the trail
+PASS watch_signal has a valid successor index
+PASS watch_list is unique and placed on the trail
+PASS watch_list has a valid successor index
+PASS watch_guard is unique and placed on the trail
+PASS watch_guard has a valid successor index
+PASS watch_old_road is unique and placed on the trail
+PASS watch_old_road has a valid successor index
+PASS watch_exit is unique and placed on the trail
+PASS watch_exit has a valid successor index
+PASS watch_old_gate is unique and placed on the trail
+PASS watch_old_gate has a valid successor index
+PASS watch_hidden_orders is unique and placed on the trail
+PASS watch_hidden_orders has a valid successor index
+PASS outer_watch records each authored branch outcome once
+PASS outer_watch only starts the designated confrontations
+PASS watch_signal follows the prior interaction state
+PASS watch_signal can be reached in order with normal collisions
+PASS watch_list follows the prior interaction state
+PASS watch_list can be reached in order with normal collisions
+PASS watch_guard follows the prior interaction state
+PASS watch_guard can be reached in order with normal collisions
+PASS watch_exit follows the prior interaction state
+PASS watch_exit can be reached in order with normal collisions
+PASS watch_list reaches the terminal step through more than two viewport widths
+WALK watch_list 1492 world pixels
+PASS watch_signal follows the prior interaction state
+PASS watch_signal can be reached in order with normal collisions
+PASS watch_list follows the prior interaction state
+PASS watch_list can be reached in order with normal collisions
+PASS watch_old_road follows the prior interaction state
+PASS watch_old_road can be reached in order with normal collisions
+PASS watch_old_gate follows the prior interaction state
+PASS watch_old_gate can be reached in order with normal collisions
+PASS watch_hidden_orders follows the prior interaction state
+PASS watch_hidden_orders can be reached in order with normal collisions
+PASS watch_exit follows the prior interaction state
+PASS watch_exit can be reached in order with normal collisions
+PASS watch_list reaches the terminal step through more than two viewport widths
+WALK watch_list 1516 world pixels
+PASS courtyard_road is 768 px wide and connects to the next story location
+PASS escape_orders is unique and placed on the trail
+PASS escape_orders has a valid successor index
+PASS escape_wounded is unique and placed on the trail
+PASS escape_wounded has a valid successor index
+PASS escape_false_tracks is unique and placed on the trail
+PASS escape_false_tracks has a valid successor index
+PASS escape_haul is unique and placed on the trail
+PASS escape_haul has a valid successor index
+PASS escape_patrol is unique and placed on the trail
+PASS escape_patrol has a valid successor index
+PASS escape_lantern is unique and placed on the trail
+PASS escape_lantern has a valid successor index
+PASS escape_river is unique and placed on the trail
+PASS escape_river has a valid successor index
+PASS courtyard_road records each authored branch outcome once
+PASS courtyard_road only starts the designated confrontations
+PASS escape_orders follows the prior interaction state
+PASS escape_orders can be reached in order with normal collisions
+PASS escape_wounded follows the prior interaction state
+PASS escape_wounded can be reached in order with normal collisions
+PASS escape_haul follows the prior interaction state
+PASS escape_haul can be reached in order with normal collisions
+PASS escape_lantern follows the prior interaction state
+PASS escape_lantern can be reached in order with normal collisions
+PASS escape_river follows the prior interaction state
+PASS escape_river can be reached in order with normal collisions
+PASS escape_wounded reaches the terminal step through more than two viewport widths
+WALK escape_wounded 1456 world pixels
+PASS escape_orders follows the prior interaction state
+PASS escape_orders can be reached in order with normal collisions
+PASS escape_false_tracks follows the prior interaction state
+PASS escape_false_tracks can be reached in order with normal collisions
+PASS escape_patrol follows the prior interaction state
+PASS escape_patrol can be reached in order with normal collisions
+PASS escape_lantern follows the prior interaction state
+PASS escape_lantern can be reached in order with normal collisions
+PASS escape_river follows the prior interaction state
+PASS escape_river can be reached in order with normal collisions
+PASS escape_false_tracks reaches the terminal step through more than two viewport widths
+WALK escape_false_tracks 1428 world pixels
+PASS fengxi_lanes is 768 px wide and connects to the next story location
+PASS lanes_child is unique and placed on the trail
+PASS lanes_child has a valid successor index
+PASS lanes_witness is unique and placed on the trail
+PASS lanes_witness has a valid successor index
+PASS lanes_tracks is unique and placed on the trail
+PASS lanes_tracks has a valid successor index
+PASS lanes_relay is unique and placed on the trail
+PASS lanes_relay has a valid successor index
+PASS lanes_bill is unique and placed on the trail
+PASS lanes_bill has a valid successor index
+PASS lanes_exit is unique and placed on the trail
+PASS lanes_exit has a valid successor index
+PASS fengxi_lanes records each authored branch outcome once
+PASS fengxi_lanes only starts the designated confrontations
+PASS lanes_child follows the prior interaction state
+PASS lanes_child can be reached in order with normal collisions
+PASS lanes_witness follows the prior interaction state
+PASS lanes_witness can be reached in order with normal collisions
+PASS lanes_tracks follows the prior interaction state
+PASS lanes_tracks can be reached in order with normal collisions
+PASS lanes_relay follows the prior interaction state
+PASS lanes_relay can be reached in order with normal collisions
+PASS lanes_bill follows the prior interaction state
+PASS lanes_bill can be reached in order with normal collisions
+PASS lanes_exit follows the prior interaction state
+PASS lanes_exit can be reached in order with normal collisions
+PASS lanes_witness reaches the terminal step through more than two viewport widths
+WALK lanes_witness 1600 world pixels
+Early transit zones: 0 failures
+res://tests/transit_waterways.gd --profile=qa_full_campaign_waterways
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS palace_sluice has valid collision data
+PASS palace_sluice has a usable entry and connected path
+PASS palace_sluice_gate is reachable on foot
+PASS palace_sluice_guard is reachable on foot
+PASS palace_sluice_gap is reachable on foot
+PASS palace_sluice_map is reachable on foot
+PASS palace_sluice_exit is reachable on foot
+PASS palace_sluice_gap_drain is reachable on foot
+PASS tidal_canal has valid collision data
+PASS tidal_canal has a usable entry and connected path
+PASS canal_tally is reachable on foot
+PASS canal_witness is reachable on foot
+PASS canal_manifest is reachable on foot
+PASS canal_gatehouse is reachable on foot
+PASS canal_exit is reachable on foot
+PASS dragon_waterway has valid collision data
+PASS dragon_waterway has a usable entry and connected path
+PASS waterway_rubbing is reachable on foot
+PASS waterway_worker is reachable on foot
+PASS waterway_scout is reachable on foot
+PASS waterway_signal is reachable on foot
+PASS waterway_order is reachable on foot
+PASS waterway_blood is reachable on foot
+PASS waterway_exit is reachable on foot
+Waterway layouts: 0 failures

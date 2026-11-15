@@ -5,7 +5,7 @@ const DATA := {
 	"flags":["summit_aid","summit_guard","summit_west_slope","summit_safe_rear"],
 	"steps":[
 		[{"id":"summit_roster","name":"在石道口清点下山的人","at":Vector2(240,226),"sprite":"servant",
-			"lines":[["聂风","小筑的人已经走了，没到山下的还有谁？"],["山民","上面的侧阶能绕到背坡。西坡安置或石阶断后做完了，就能走对应的近路。"]]}],
+			"lines":[["聂风","小筑的人已从药炉往下走。我们先确定石阶上的人能退，才去找雄霸。"],["山民","可沿背坡清开石阶，也可去吊桥引走盯梢。若西坡或东哨的人来接，你们就跟他们走近路。"]]}],
 		[{"id":"summit_escort","name":"清出背坡的石阶","at":Vector2(625,180),"prop":"winch","flag":"summit_aid",
 			"lines":[["步惊云","先把栏木系好，孩子从里侧过。走到第二盏灯下再放手。"]]},
 		{"id":"summit_decoy","name":"在吊桥前拦住残部","at":Vector2(788,268),"sprite":"shade","foes":["claw","blade"],"flag":"summit_guard",
