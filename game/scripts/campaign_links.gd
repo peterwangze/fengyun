@@ -68,14 +68,15 @@ static func receive_points(slot: Dictionary, room: String, area: String = "") ->
 		if regional != "":
 			if regional != area:
 				continue
-		elif not ((room == "palace" and area.is_empty() and slot.chapter == 4) or area == "watch_palace_reception"):
+		elif not ((room == "palace" and area.is_empty() and slot.chapter == 4) or area in ["watch_palace_reception","palace_court"]):
 			continue
 		var branch: Dictionary = task.variants.get(facts.get(task.origin,""),{})
 		if branch.is_empty():
 			continue
 		var received := facts.has(key)
-		var position: Vector2 = task.get("late_at",task.at) if area == "watch_palace_reception" else task.at
-		var late: bool = area == "watch_palace_reception" or (slot.chapter == 4 and room == "palace"
+		var after_departure: bool = area == "watch_palace_reception" or (area == "palace_court" and slot.chapter >= 5)
+		var position: Vector2 = task.get("late_at",task.at) if after_departure else task.at
+		var late: bool = after_departure or (slot.chapter == 4 and room == "palace"
 			and (slot.cleared.has(1) if key == "carry_handoff" else slot.cleared.has(0)))
 		var lines: Array = branch.get("late",branch.lines) if late else branch.lines
 		if received:

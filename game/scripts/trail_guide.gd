@@ -11,7 +11,12 @@ const SEAL_CHASE := ["客栈截印", ["shade","blade"], [
 
 static func objective(g: Node2D) -> String:
 	if g.world.active():
-		return "用手记查看当地委托，或从旅途菜单返回主线。"
+		if g.world.fire_pending() and g.world.region() == "palace":
+			match g.slot.world.area:
+				"palace_tea": return "主廊已塌，从后院东阶下西闸；已开侧门也可走。"
+				"palace_west": return "抄西闸岗令，沿西台阶退回安全外庭。"
+				"palace_court": return "在外庭核对发令记录，带齐两份证据后向至尊辞行。"
+		return "用手记查看当地委托，或从暂歇菜单返回主线。"
 	if g.transit.active():
 		return g.transit.objective()
 	if g.afterstory.active:
@@ -46,12 +51,16 @@ static func main_point(g: Node2D, points: Array) -> Dictionary:
 	var candidates := main_points(g, points)
 	return candidates.front() if not candidates.is_empty() else {}
 
+static func is_fire_goal(g: Node2D, point: Dictionary) -> bool:
+	return g.world.fire_pending() and point.id in ["world_palace_to_laneway","world_palace_side_door",
+		"world_palace_to_court","world_palace_river_decree","world_palace_dispatch_record","evacuated"]
+
 static func main_points(g: Node2D, points: Array) -> Array[Dictionary]:
 	var candidates: Array[Dictionary] = []
 	if g.world.active():
 		return candidates
 	if g.transit.active():
-		candidates.assign(points)
+		candidates.assign(points.filter(func(point): return not point.get("optional",false)))
 		return candidates
 	var paths := _walking_targets(g)
 	for id in _next_ids(g):
@@ -141,7 +150,10 @@ static func _next_ids(g: Node2D) -> Array:
 			if won.has(1) and not c.has("evacuated"): return ["evacuated"] if c.has("fire_signal") else ["fire_signal"]
 			return ["palace_back"]
 		"cavern": return ["relic", "lost_relic", "shatter_relic", "ridge_road", "prepare", "lodge"]
-		"lodge": return ["blood_rite"] if c.enabled() and not c.has("blood_rite") else ["bedside"]
+		"lodge":
+			if c.enabled() and not c.has("blood_rite"):
+				return ["blood_rite"]
+			return ["mountain_preparations","bedside"]
 		"peak":
 			if not won.has(0): return ["fight0"]
 			if not f.altar: return ["altar"]

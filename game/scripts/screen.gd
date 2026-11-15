@@ -289,6 +289,8 @@ func _field(interactive: bool = true) -> void:
 		units = [_traveler("cloud",g.player,g.field_direction,g.facing,_walk_frame(g.moving,g.walk_distance))]
 	var marks: Array[Dictionary] = []
 	if g.transit.active() or g.world.active():
+		if g.world.active() and g.world.region() == "palace" and g.world.phase() == "aftermath" and g.field_key == "tearoom":
+			_palace_fire(g.world.fire_pending())
 		for point in g.field_points():
 			if point.has("sprite"):
 				units.append(_unit(point.sprite,point.pos,0,true))
@@ -296,7 +298,8 @@ func _field(interactive: bool = true) -> void:
 				_map_prop(point.pos,point.prop)
 			if g.world.active() and interactive:
 				var color := GOLD if point.has("evidence") or point.has("result") else TEAL
-				_guidance_marker(marks,point.pos,color,"·")
+				var symbol: String = "主" if TrailGuide.is_fire_goal(g,point) else "·"
+				_guidance_marker(marks,point.pos,TEAL if symbol == "主" else color,symbol)
 	elif g.afterstory.active:
 		_afterstory_field(units,marks)
 	else:
@@ -312,6 +315,13 @@ func _field(interactive: bool = true) -> void:
 			if interactive:
 				var symbol := "支" if not point.evidence.is_empty() and point.evidence == g.world.tracked else "交"
 				_guidance_marker(marks,point.pos,GOLD,symbol if not point.evidence.is_empty() else "·")
+		for point in g.world.main_region_points():
+			if point.has("sprite"):
+				units.append(_unit(point.sprite,point.pos,0,true))
+			if point.has("prop"):
+				_map_prop(point.pos,point.prop)
+			if interactive:
+				_guidance_marker(marks,point.pos,GOLD,"·")
 	var touch_field: bool = interactive and g.touch_ui()
 	_draw_field_actors(units)
 	if g.field_key in ["garden","village","lodge","inn","apothecary","tearoom","cavern","tidal_ford","tidal_fort"]:
@@ -459,10 +469,7 @@ func _chronicle_field(units: Array, marks: Array[Dictionary]) -> void:
 		var warmth := 0.69 + 0.10 * sin(g.elapsed*3) if g.settings.motion else 0.75
 		campaign_art._prop("signal",Vector2(276,211),0.61,Color(1,0.83,0.63,warmth))
 	if g.field_key == "tearoom" and g.slot.cleared.has(1):
-		_fill(Rect2(0,52,640,270),Color("#691d2260"))
-		for p in [Vector2(77,181),Vector2(536,174),Vector2(574,228)]:
-			var phase := 0.7 + 0.3 * sin(g.elapsed * 5 + p.x) if g.settings.motion else 0.85
-			_picture("field/props/fire",Rect2(p-Vector2(25,40),Vector2(50,45)),Color(1,0.92,0.78,phase))
+		_palace_fire(true)
 	if g.field_key == "dawn":
 		campaign_art._prop("signal",Vector2(298,201),0.82,Color.WHITE if g.chronicle.has("dawn_lamp") else Color("#828b91"))
 		var rescue: String = g.chronicle.side.state().get("lamps","")
@@ -480,6 +487,13 @@ func _chronicle_field(units: Array, marks: Array[Dictionary]) -> void:
 		if g.mode == "field":
 			var mark := p - Vector2(0,36 if spot.sprite.is_empty() else 53)
 			marks.append({"point":mark,"color":GOLD if spot.optional else TEAL,"symbol":"·" if spot.optional else ""})
+
+func _palace_fire(burning: bool) -> void:
+	_fill(Rect2(0,52,640,270),Color("#691d2260") if burning else Color("#241c2e55"))
+	var spots := [Vector2(77,181),Vector2(310,231),Vector2(518,173)] if burning else [Vector2(310,231)]
+	for p in spots:
+		var alpha := 0.7 + 0.3 * sin(g.elapsed * 5 + p.x) if g.settings.motion and burning else 0.44
+		_picture("field/props/fire",Rect2(p-Vector2(25,40),Vector2(50,45)),Color(1,0.92,0.78,alpha))
 
 func _regular_field(units: Array, marks: Array[Dictionary]) -> void:
 	var guide: Vector2 = g.guide_point()
@@ -719,25 +733,60 @@ func _world_journal() -> void:
 	_right(g.world.phase_label(),409,64,15,GOLD)
 	_touch_battle_button(Rect2(425,42,141,28),"跨区交接","handoff_open")
 	var tasks: Array = g.world.journal()
+	var state := func(task: Dictionary) -> String:
+		if task.get("expired",false):
+			return "已错过"
+		if task.get("closed",false) or (task.complete and not task.awaiting_receipt):
+			return "已完成"
+		if task.id == g.world.tracked:
+			return "追踪中"
+		if task.awaiting_receipt:
+			return "等待回访"
+		return "线索 %d / %d" % [task.steps,task.evidence.size()]
+	var instruction := func(task: Dictionary) -> String:
+		if task.get("expired",false):
+			return "错过了火场里的优先救援。外庭和西闸仍可调查。"
+		if task.awaiting_receipt:
+			return task.follow_up
+		if task.complete:
+			return task.reward
+		if task.steps == task.evidence.size():
+			return task.ready if task.can_deliver else task.locked
+		return task.description
+	if tasks.size() >= 3:
+		for i in tasks.size():
+			var task: Dictionary = tasks[i]
+			var row := Rect2(73,86+i*48,198,42)
+			_fill(row,Color("#293046") if i == g.selected else Color("#161e30"))
+			_stroke(row,GOLD if i == g.selected else LINE)
+			_text(task.title,84,row.position.y+17,13,CREAM,SERIF)
+			_text(state.call(task),84,row.position.y+34,11,TEAL)
+			_hit(row,"world_row",i)
+		var picked: Dictionary = tasks[g.selected]
+		_fill(Rect2(285,86,281,188),Color("#151d30"))
+		_stroke(Rect2(285,86,281,188),LINE)
+		_text(picked.title,298,113,16,CREAM,SERIF)
+		_paragraph(instruction.call(picked),298,144,255,14,CREAM,19)
+		if not picked.complete and not picked.get("expired",false):
+			_paragraph("报酬 · " + picked.reward,298,219,255,12,GOLD,16)
+		if not picked.get("expired",false) and not picked.get("closed",false) and (not picked.complete or picked.awaiting_receipt):
+			var caption := "取消追踪" if g.world.tracked == picked.id else "追踪此事"
+			_touch_battle_button(Rect2(422,282,144,28),caption,"confirm")
+		if not g.touch_ui():
+			_text("A 确认   B 返回" if g.using_joypad else "Enter 确认   Esc 返回",74,307,12,DIM)
+		return
 	for i in tasks.size():
 		var task: Dictionary = tasks[i]
 		var box := Rect2(73,87 + i * 102,494,92)
 		_fill(box,Color("#293046") if i == g.selected else Color("#161e30"))
 		_stroke(box,GOLD if i == g.selected else LINE)
 		_text(task.title,85,box.position.y+21,16,CREAM,SERIF)
-		var tag := "追踪中" if task.id == g.world.tracked else "线索 %d / %d" % [task.steps,task.evidence.size()]
-		var detail: String = task.description
-		if task.awaiting_receipt:
-			detail = task.follow_up
-			tag = "等待回访" if task.id != g.world.tracked else "追踪中"
-		elif task.complete:
-			detail = "报酬 · " + task.reward
-			tag = "已完成"
-		elif task.steps == task.evidence.size():
-			detail = task.ready if task.can_deliver else task.locked
-		_right(tag,552,box.position.y+21,12,TEAL)
+		var detail: String = instruction.call(task)
+		if task.complete and not task.awaiting_receipt:
+			detail = "报酬 · " + detail
+		_right(state.call(task),552,box.position.y+21,12,TEAL)
 		_paragraph(detail,85,box.position.y+45,462,13,CREAM,17)
-		if not task.complete:
+		if not task.complete and not task.get("expired",false):
 			_text("报酬 · " + task.reward,85,box.position.y+80,11,GOLD)
 		_hit(box,"menu",i)
 	_text("点按或确认以切换追踪" if g.touch_ui() else "确认切换追踪   Esc / B 返回",74,309,12,DIM)

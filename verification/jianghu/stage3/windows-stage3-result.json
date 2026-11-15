@@ -1,0 +1,23 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "3.2.0.0",
+  "SetupVersion": "3.2.0",
+  "UpdatedFrom": "3.1.0",
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "37476b6919ef7d1ce1e622ab542afc0bd98e7476974e3b33daa85d93f33e1598",
+  "SetupSHA256": "4b93e1c717acc39da88d67d3d17c71cff2756eda159187f0e0b830bf3c07c46c",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Installed packaged game, five-region picker in Palace chapter, six-region picker in Mountain chapter, keyboard movement to Palace officer and Mountain guard, both task facts persisted. Opened both region journals and restored the Lodge checkpoint after restart.",
+  "InstalledGameLaterChapters": [
+    "Palace chapter: five regions; sixth is locked",
+    "Mountain chapter: six regions; Palace dispatch and Mountain evacuation order persisted",
+    "Lodge return location and checkpoint survived restart"
+  ],
+  "Authenticode": "NotSigned"
+}

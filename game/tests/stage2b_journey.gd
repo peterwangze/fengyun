@@ -108,10 +108,10 @@ func deliver_palace() -> void:
 func late_reception() -> void:
 	if a.build_route != "retaliate" or not _open("outer_watch"):
 		return
-	_points(["world_watch_to_reception", "world_watch_reception_notice"])
-	_check(g.slot.world.area == "watch_palace_reception", "the fire changes which Palace entrance remains open")
+	_points(["world_watch_to_reception"])
+	_check(g.slot.world.area == "palace_court", "the fire changes which Palace entrance remains open")
 	await _handoff("handoff_testimony", "testimony_handoff")
-	_points(["world_watch_from_reception"])
+	_points(["road_palace_watch"])
 	_leave()
 
 func verify_palace_battle(fight: int) -> void:
@@ -141,10 +141,13 @@ func finish() -> void:
 	var actual: Dictionary = g.storage.read().world.tasks
 	var saved := HANDOFFS.filter(func(id): return actual.get(id,false))
 	if a.stage2b_skip:
-		_check(saved.is_empty() and actual.is_empty(), "the fresh no-purchase route clears the game without regional tasks")
+		var optional: Array = actual.keys().filter(func(id: String):
+			return not id.begins_with("palace_") and not id.begins_with("mountain_") and id != "dawn_relief_witnessed")
+		_check(saved.is_empty() and optional.is_empty(), "the fresh no-purchase route clears the game without stage-two optional tasks")
 	else:
 		_check(saved == HANDOFFS, "one fresh campaign delivers all five cross-region handoffs")
-		_check(_destination_ids().size() == 4 and opened >= 6, "all four revisit regions unlock organically")
+		var expected: Array = ["fengxi","swordhall","outer_watch","valley"]
+		_check(expected.all(func(id): return id in _destination_ids()) and opened >= 6, "all four stage-two revisit regions unlock organically")
 	_verify_saved_routes()
 	print("STAGE2B " + JSON.stringify({"build":a.build_route, "skip":a.stage2b_skip, "handoffs":handoffs,
 		"world_tasks":actual, "destinations":_destination_ids(), "world_walk_seconds":snappedf(travelled/101.0,0.1)}))

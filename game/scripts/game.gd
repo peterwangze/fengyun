@@ -233,8 +233,8 @@ func menu_items() -> Array:
 			var items := [["回到旅程", true], ["江湖手记", true], ["设置", true], ["准备武学",true],
 				["行装与境界", true], ["回到标题", true]]
 			if world.available():
-				items.append(["返回主线" if world.active() else _world_menu_label(),true])
-				if world.active() and world.destinations().size() > 1:
+				items.append(["返回主线" if world.active() else _world_menu_label(),world.can_leave()])
+				if world.active() and world.can_leave() and world.destinations().size() > 1:
 					items.append(["江湖行路",true])
 			return items
 		"world_map":
@@ -375,6 +375,8 @@ func menu_confirm(index: int) -> void:
 			world.from_main(world.destinations()[index].id)
 		"world_journal":
 			var task: Dictionary = world.journal()[index]
+			if task.get("expired",false) or task.get("closed",false):
+				return
 			world.tracked = "" if task.id == world.tracked or (task.complete and not task.awaiting_receipt) else task.id
 			_set_mode(back_mode)
 		"handoff_journal":
@@ -417,7 +419,7 @@ func menu_confirm(index: int) -> void:
 			else:
 				chronicle.special = ""
 				transit.battle = ""
-				world.battle_point.clear()
+				world.abandon_battle()
 				_return_to_field()
 		"ending":
 			if index == 1:
@@ -469,6 +471,10 @@ func _enter_chapter(intro: bool) -> void:
 	if entry.is_empty():
 		entry = [slot.hall.room,"spawn"] if first.active() else campaign.field_entry()
 	_load_field(entry[0],entry[1])
+	if field_key == "tearoom" and world.fire_pending():
+		world.from_main("palace","palace_tea")
+		if world.active():
+			return
 	_set_mode("field")
 	_play_music(chronicle.music_for_field())
 	if intro:
@@ -679,6 +685,7 @@ func field_points() -> Array:
 		points = first.points() if first.active() else campaign.all_points()
 		points.append_array(chronicle.points())
 		points.append_array(world.main_handoff_points())
+		points.append_array(world.main_region_points())
 		var source := "cache:" + field_key
 		if TrailGuide.CACHES.has(field_key) and not slot.supply_claims.has(source):
 			var cache: Dictionary = TrailGuide.CACHES[field_key]
@@ -721,7 +728,10 @@ func interact() -> void:
 	if spot.id == "world_visiting":
 		world.from_main()
 		return
-	if spot.get("handoff",false):
+	if spot.has("region_entry"):
+		world.from_main(spot.region_entry,spot.get("region_area",""))
+		return
+	if spot.get("handoff",false) or spot.get("regional",false):
 		world.handle(spot)
 		return
 	if transit.active():
@@ -1000,6 +1010,8 @@ func _battle_act(action: int, at: int) -> void:
 		slot.merit += battle_reward
 		slot.tonics = mini(9, encounter.tonics + (1 if active_battle == 2 else 0))
 		slot.cleared.append(active_battle)
+		if field_key == "peak" and active_battle == 1 and not chronicle.review:
+			world.record_finale()
 		debrief = "石桥已清。抵达西岸时结算历练。" if battle_reward == 0 else "获得 %d 点历练%s" % [
 			battle_reward, "  ·  境界提升至 %d" % rank() if rank() > old_rank else ""]
 		if active_battle == 2:
@@ -1166,6 +1178,7 @@ func click(kind: String, index: int) -> void:
 			var last := (Equipment.options(gear_kind).size() - 1) / 6
 			gear_page = clampi(gear_page + index,0,last)
 		"journal_row": journal_index = index
+		"world_row": selected = index
 		"handoff_open": _open_handoffs()
 		"handoff_row": selected = index
 		"journal_track": _confirm()

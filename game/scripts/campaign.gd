@@ -85,6 +85,10 @@ func points() -> Array:
 		"jail":
 			return [_spot("jail_exit","回绝宫"),_spot("cell","解开牢门")] if not state().rescued else [_spot("jail_exit","回绝宫")]
 		"lodge":
+			if g.chronicle.has("blood_rite") and g.world.mountain_gate_required() and not g.world.mountain_ready():
+				var guide := _spot("bedside","听猪皇指认三条撤离线")
+				guide.id = "mountain_preparations"
+				return [guide]
 			return [_spot("bedside","走近第二梦")]
 		"peak":
 			if g.slot.cleared.has(0) and not state().altar:
@@ -152,6 +156,8 @@ func can_show_fight(index: int) -> bool:
 		"palace":
 			return index != 1 or state().rescued
 		"peak":
+			if index == 2 and g.slot.world.tasks.has("mountain_rearguard"):
+				return false
 			return index != 1 or state().altar
 	return true
 
@@ -214,6 +220,11 @@ func handle(id: String) -> bool:
 				_change_palace("jail","spawn")
 		"jail_exit": _change_palace("palace","jail_return")
 		"cell": _play("rescue", RESCUE, _rescue)
+		"mountain_preparations":
+			g._talk([
+				["猪皇","换血已经成了。山下还有人。西坡点收、护送药担、石阶断后，先走通其中一条再上祭台。"],
+				["猪皇","西坡路最稳。石阶看民籍领住户出发，到西坡棚让山民点收。我在小筑等你回来。"],
+			],func(): g.world.from_main("mountain","mountain_lodge"))
 		"bedside": _play("farewell", FAREWELL, _leave_lodge)
 		"altar":
 			var speech := ALTAR

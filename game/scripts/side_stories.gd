@@ -75,7 +75,8 @@ const TASKS := {
 	"hidden_ledger": {
 		"title":"壁刻遗图",
 		"steps":{
-			"start":["jail",484,259,"细看墙上的刻痕","","三道短痕画的是凌云山起伏的石阶。倒过来的灯刻在向阳石背，最深一刀指着北侧缺口。","seeking"],
+			"start":["jail",484,259,"细看墙上的刻痕","","三道短痕画的是凌云山石阶，最深一刀指北。去绝宫北引水渠的干砌石上比对，才知道该看哪块石背。","seeking_route"],
+			"seeking_route":["dragon_waterway",721,197,"在引水渠比对绝宫壁刻","","三道短痕与水渠北坡相合。面朝山，最深的一道指向凌云山向阳石背的倒灯。","seeking"],
 			"seeking":["peak",422,151,"对照石背的倒灯记号","","石后有摞薄铁板，一面压着民籍，另一面刻着不伤随行人的护步。带去东侧石台问老匠。","decision"],
 			"decision":["peak",499,211,"请老匠辨认铁板","guide","星纹钢夹在民籍下。板面还刻着逆风截脉的护步。可拓印给聂兄，或记下背面暗道，先截追兵。",[
 				["留印记，研读护步","done_defend"],["记下暗道，伏截追兵","done_trade"],["暂且留下铁板","defer"]]]}},
@@ -101,12 +102,12 @@ const ROOMS := {
 	"village":[1,"凤溪西岸"], "inn":[1,"凤溪西岸客栈"],
 	"forge":[2,"拜剑山庄剑池"], "swordhall":[2,"拜剑山庄剑庐"],
 	"apothecary":[3,"生死门药庐"], "jail":[4,"绝宫天牢"], "tearoom":[4,"绝宫茶房侧廊"],
-	"peak":[5,"凌云山石阶"], "dawn":[5,"清晨凤溪"],
+	"dragon_waterway":[5,"凌云山北口引水渠"], "peak":[5,"凌云山石阶"], "dawn":[5,"清晨凤溪"],
 }
 const ROOM_CHAPTERS := {
 	"hall":"第一章", "banquet":"第一章", "village":"第二章", "inn":"第二章",
 	"forge":"第三章", "swordhall":"第三章", "apothecary":"第五章",
-	"jail":"第六章", "tearoom":"第六章", "peak":"第九章", "dawn":"第十章",
+	"jail":"第六章", "tearoom":"第六章", "dragon_waterway":"第七章", "peak":"第九章", "dawn":"第十章",
 }
 const DECISIONS := {
 	"seals":"带证人走可缩短竹径守卫视线。留口供给秦霜，能让纸探花开场少 1 格势。",
@@ -186,12 +187,13 @@ func battle_aid(room: String, encounter_index: int, special_id: String) -> Dicti
 func points() -> Array:
 	var result := []
 	for id in TASKS:
+		if id == HIDDEN_LEDGER:
+			result.append_array(ledger_points())
+			continue
 		var task: Dictionary = TASKS[id]
 		var step: String = state().get(id,"start")
 		var node: Array = task.steps.get(step,[])
 		if node.is_empty() or not _reachable(node[0]):
-			continue
-		if id == HIDDEN_LEDGER and step == "start" and not g.slot.campaign.rescued:
 			continue
 		if node[0] == g.field_key:
 			result.append({"id":"side_"+id,"name":_action(id,step,node),"pos":Vector2(node[1],node[2]),"index":-1,
@@ -200,6 +202,18 @@ func points() -> Array:
 			result.append({"id":"forge_valve_locked","name":"试拉第二道闸","pos":Vector2(228,239),"index":-1,
 				"sprite":"","optional":true})
 	return result
+
+func ledger_points() -> Array:
+	if not g.chronicle.enabled():
+		return []
+	var step: String = state().get(HIDDEN_LEDGER,"start")
+	var node: Array = TASKS[HIDDEN_LEDGER].steps.get(step,[])
+	if node.is_empty() or node[0] != g.field_key or (step == "start" and not g.slot.campaign.rescued):
+		return []
+	if not g.world.active() and not _reachable(node[0]):
+		return []
+	return [{"id":"side_" + HIDDEN_LEDGER,"name":node[3],"pos":Vector2(node[1],node[2]),"index":-1,
+		"sprite":node[4],"optional":true}]
 
 func handle(id: String) -> bool:
 	if id == "forge_valve_locked":
@@ -293,7 +307,7 @@ func journal_entry(key: String) -> Dictionary:
 		if _duel_finished():
 			entry.deadline = "从凌云山下山前"
 			entry.payoff = "决战已结束，仍可赴约交代旧剑的下落。"
-	if _missed(room):
+	if _missed(room) and key != HIDDEN_LEDGER:
 		entry.status = "已错过"
 		entry.deadline = "可在章节回看中重访"
 		return entry
@@ -317,9 +331,13 @@ func journal_entry(key: String) -> Dictionary:
 	if key == HIDDEN_LEDGER and step == "seeking":
 		entry.action = "找北侧向阳石背的倒灯"
 		entry.payoff = "三道短痕是石阶，最深一刀指向北侧缺口。"
+	if key == HIDDEN_LEDGER and step == "seeking_route":
+		entry.payoff = "可在追赶绝心时或回访凌云山北口时比对。"
+	if key == HIDDEN_LEDGER:
+		entry.deadline = "可回访"
 	if _behind_crossing(room):
 		entry.place += "（需先过河）"
-	elif room == g.field_key and _reachable(room):
+	elif room == g.field_key and (_reachable(room) or (key == HIDDEN_LEDGER and g.world.active())):
 		entry.point = Vector2(node[1],node[2])
 	return entry
 
@@ -415,6 +433,8 @@ func _deadline(room: String) -> String:
 func expiring(allowed_at_destination: String = "") -> Array[String]:
 	var result: Array[String] = []
 	for key in state():
+		if key == HIDDEN_LEDGER:
+			continue
 		var task: Dictionary = TASKS[key]
 		var node: Array = task.steps.get(state()[key],[])
 		if node.is_empty() or key == allowed_at_destination:
@@ -441,4 +461,4 @@ static func valid_state(key: String, step: Variant) -> bool:
 static func valid_chapter(key: String, step: String, chapter: int) -> bool:
 	if key != HIDDEN_LEDGER:
 		return true
-	return chapter >= (4 if step == "seeking" else 5)
+	return chapter >= (4 if step in ["seeking_route","seeking"] else 5)

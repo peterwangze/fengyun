@@ -68,8 +68,14 @@ func _test_hidden_ledger() -> void:
 		var quest := "hidden_ledger"
 		var journal: Dictionary = game.chronicle.side.journal_entry(quest)
 		var saved: Dictionary = game.storage.read()
-		_check(saved.chronicle.quests.get(quest) == "seeking" and quest in game.chronicle.side.journal_ids()
+		_check(saved.chronicle.quests.get(quest) == "seeking_route" and quest in game.chronicle.side.journal_ids()
 			and "凌云山" in journal.place and journal.status == "待回访", "reading the wall stores a traceable clue for the next chapter")
+		_chapter(5,saved.chronicle.quests)
+		game.transit.enter("dragon_waterway")
+		_visit_on_foot("side_hidden_ledger")
+		_drain_dialogue()
+		saved = game.storage.read()
+		_check(saved.chronicle.quests.get(quest) == "seeking","the actual waterway matches the wall carving")
 		_chapter(5,saved.chronicle.quests)
 		game.slot.campaign.farewell = true
 		game._enter_chapter(false)
@@ -246,6 +252,12 @@ func _test_shift() -> void:
 		game.slot.chronicle.marks.tea = true
 		game.chronicle.enter("tearoom")
 		_visit("fire_signal")
+		_drain_dialogue()
+		_visit("world_palace_to_laneway")
+		_visit("world_palace_river_decree")
+		_drain_dialogue()
+		_visit("world_palace_to_court")
+		_visit("world_palace_dispatch_record")
 		_drain_dialogue()
 		_visit("evacuated")
 		var evacuation: String = game.lines[1][1]

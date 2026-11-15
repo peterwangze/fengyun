@@ -1,0 +1,18 @@
+Android 16 API 36, x86_64 scratch emulator; packaged release APK
+APK SHA-256 fad6145122d4650b067732405d8920e0bb6861c3fb21751b087e04873bf07469
+PASS final signed APK upgrades public v3.1.0 under the same package ID
+PASS upgrade preserves scratch primary and backup byte for byte
+PASS signed release launched on a dedicated scratch Android emulator
+Landscape Android SurfaceView 0,0 – 2400,1080; touch mapped from 640 × 360
+PASS Mountain remains locked during the Palace chapter
+PASS Palace opens as the fifth region
+PASS Palace remains available as a revisit from Lodge
+PASS touch movement and dialogue with the Palace officer save the dispatch record
+PASS Mountain opens as the sixth region and keeps the exact Lodge return point
+PASS touch movement and guard dialogue save the Mountain evacuation order
+PASS touch returns to the exact Lodge scene coordinates and records restart checkpoint
+PASS relaunch and Continue preserve Lodge checkpoint and both regional facts
+PASS the restarted packaged game renders on Android OpenGL ES without script errors
+PASS apksigner verified APK Signature Scheme v2 and v3 and the public 3.1.0 certificate SHA-256 adaf6fded6e87931f9fa40493acebd846535caa29816694b8a3f79e7ad99f41c
+PASS zipalign verified 16 KiB native library alignment
+Package code 30200, Android minimum API 24 and target API 36; arm64-v8a, armeabi-v7a and x86_64 ABIs

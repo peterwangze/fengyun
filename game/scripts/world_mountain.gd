@@ -1,0 +1,221 @@
+extends RefCounted
+
+const TITLE := "凌云山"
+const VISIT_LABEL := "回访凌云山"
+const JOURNAL_TITLE := "凌云山手记"
+const ENTRY := "mountain_cavern"
+const PHASES := {"approach":"入山查脉","fractured":"断脉撤离","lanterns":"灯路开放"}
+const EVACUATIONS := ["mountain_west","mountain_medicine","mountain_rearguard"]
+
+static func unlocked(slot: Dictionary) -> bool:
+	return int(slot.get("chapter",0)) >= 5
+
+static func phase(slot: Dictionary) -> String:
+	var flags: Dictionary = slot.get("chronicle",{}).get("marks",{})
+	if slot.finished or flags.has("dawn_lamp") or (slot.get("campaign",{}).get("farewell",false)
+			and slot.cleared.any(func(flag): return int(flag) == 1)):
+		return "lanterns"
+	if flags.has("shatter_relic") or flags.has("blood_rite") or slot.get("campaign",{}).get("farewell",false):
+		return "fractured"
+	return "approach"
+
+static func ready(slot: Dictionary) -> bool:
+	var tasks: Dictionary = slot.get("world",{}).get("tasks",{})
+	return EVACUATIONS.any(func(id): return tasks.get(id,"") == "done")
+
+static func altar_open(slot: Dictionary) -> bool:
+	var flags: Dictionary = slot.get("chronicle",{}).get("marks",{})
+	return slot.finished or slot.get("campaign",{}).get("altar",false) or (flags.has("blood_rite") and ready(slot))
+
+static func music(current_phase: String, field: String) -> String:
+	if current_phase == "lanterns":
+		return "dawn"
+	if current_phase == "fractured" and field == "lodge":
+		return "blood"
+	return "peak"
+
+const AREAS := {
+	"mountain_approach":{"field":"dragon_waterway","spawn":"spawn","title":"凌云山 · 北口引水渠"},
+	"mountain_cavern":{"field":"cavern","spawn":"spawn","title":"凌云山 · 龙脉洞口"},
+	"mountain_hearth":{"field":"dragon_ridge","spawn":"spawn","title":"凌云山 · 避风药炉与西坡棚"},
+	"mountain_lodge":{"field":"lodge","spawn":"spawn","title":"凌云山 · 雨夜小筑"},
+	"mountain_steps":{"field":"summit_steps","spawn":"spawn","title":"凌云山 · 撤离石阶"},
+	"mountain_altar":{"field":"peak","spawn":"spawn","title":"凌云山 · 龙脉祭台外围"},
+}
+
+const QUESTS := [
+	{"id":"mountain_west","title":"断脉后的归路 · 西坡安置",
+		"evidence":["mountain_west_roll","mountain_west_reed","mountain_west_luo"],
+		"description":"到撤离石阶抄民籍，沿路接芦嫂和罗家，再把两户送至药炉山道西坡棚。",
+		"locked":"龙脉碎后，撤离石阶会设立核名处。先记下西坡避风棚的位置。",
+		"ready":"两户都已接上。回避风药炉西坡棚，请守棚人清点。",
+		"reward":"山民指认祭台外围石道并送来韧丝。归人时可见两户下山。",
+		"follow_up":"祭台平定后，回西坡棚查看两户下山的回条，灯路亦可从石阶去凤溪。",
+		"receipt":"mountain_west_receipt","source":"quest:mountain_west","outcomes":["done"],
+		"delivery_phases":["fractured","lanterns"],"receipt_phases":["lanterns"]},
+	{"id":"mountain_medicine","title":"断脉后的归路 · 药炉接应",
+		"evidence":["mountain_medicine_custodian","mountain_medicine_pack","mountain_medicine_escort"],
+		"description":"先问避风药炉守炉人，再在药炉山道领取药担，接着沿路将伤者护送到小筑。",
+		"locked":"龙脉碎后，守炉人会在避风药炉旁接应。等护送名单发下再去。",
+		"ready":"已把伤者和药担送到小筑，请小筑接应人同守炉人对号。",
+		"reward":"得药材，及时点收让无名留下护脉法，终战开场聂风获得护持。",
+		"follow_up":"祭台平定后，可回小筑查看伤者伤情。安顿过的伤者也会在凤溪出现。",
+		"receipt":"mountain_medicine_receipt","source":"quest:mountain_medicine","supply":"quest:mountain_medicine","outcomes":["done"],
+		"delivery_phases":["fractured","lanterns"],"receipt_phases":["lanterns"]},
+	{"id":"mountain_rearguard","title":"断脉后的归路 · 石阶断后",
+		"evidence":["mountain_rearguard_dispatch","mountain_rearguard_marks","mountain_rearguard_chase"],
+		"description":"到龙脉洞东口取秦霜留下的副令，再去撤离石阶挂记号，处理盯梢的追兵。",
+		"locked":"龙脉碎后，洞口和前哨都会有秦霜留给撤离队的副令。",
+		"ready":"已给最后一队清出路，去撤离石阶东边的前哨听他们报平安。",
+		"reward":"得锻料。祭台外侧的一组追兵撤离，最后一队的人能在凤溪报平安。",
+		"follow_up":"祭台平定后可重访石阶东哨，查看最后一队留下的路牌。",
+		"receipt":"mountain_rearguard_receipt","source":"quest:mountain_rearguard","outcomes":["done"],
+		"delivery_phases":["fractured","lanterns"],"receipt_phases":["lanterns"]},
+]
+
+const POINTS := [
+	{"id":"world_mountain_approach","area":"mountain_cavern","at":Vector2(89,226),"name":"走北口下到引水渠",
+		"prop":"exit_open","destination":"mountain_approach","arrival":Vector2(1410,238)},
+	{"id":"world_mountain_cavern","area":"mountain_approach","at":Vector2(1456,232),"name":"沿北口登龙脉洞",
+		"prop":"exit_open","destination":"mountain_cavern","arrival":Vector2(115,244)},
+	{"id":"world_mountain_hearth","area":"mountain_cavern","at":Vector2(199,263),"name":"沿洞西山路往避风药炉",
+		"prop":"exit_open","destination":"mountain_hearth","arrival":Vector2(108,238)},
+	{"id":"world_mountain_cavern","area":"mountain_hearth","at":Vector2(95,218),"name":"回龙脉洞口",
+		"prop":"exit_open","destination":"mountain_cavern","arrival":Vector2(225,269)},
+	{"id":"world_mountain_lodge","area":"mountain_hearth","at":Vector2(1442,232),"name":"走东段山路到雨夜小筑",
+		"prop":"exit_open","destination":"mountain_lodge","arrival":Vector2(121,232)},
+	{"id":"world_mountain_hearth","area":"mountain_lodge","at":Vector2(104,250),"name":"从小筑折回避风药炉",
+		"prop":"exit_open","destination":"mountain_hearth","arrival":Vector2(1401,242)},
+	{"id":"world_mountain_steps","area":"mountain_lodge","at":Vector2(527,242),"name":"沿小筑东门到撤离石阶",
+		"prop":"exit_open","destination":"mountain_steps","arrival":Vector2(111,247)},
+	{"id":"world_mountain_lodge","area":"mountain_steps","at":Vector2(106,222),"name":"回雨夜小筑",
+		"prop":"exit_open","destination":"mountain_lodge","arrival":Vector2(503,258)},
+	{"id":"world_mountain_steps","area":"mountain_hearth","at":Vector2(434,223),"name":"由西坡棚走下山石阶",
+		"prop":"exit_open","destination":"mountain_steps","arrival":Vector2(180,253)},
+	{"id":"world_mountain_hearth","area":"mountain_steps","at":Vector2(200,226),"name":"由西阶转进西坡避风棚",
+		"prop":"exit_open","destination":"mountain_hearth","arrival":Vector2(405,237)},
+	{"id":"world_mountain_altar","area":"mountain_steps","at":Vector2(1452,221),"name":"登东段石阶到祭台",
+		"prop":"exit_open","destination":"mountain_altar","arrival":Vector2(104,247),"altar_open":true},
+	{"id":"world_mountain_steps","area":"mountain_altar","at":Vector2(90,262),"name":"从祭台外围退回撤离石阶",
+		"prop":"exit_open","destination":"mountain_steps","arrival":Vector2(1418,233)},
+	{"id":"world_mountain_west_shortcut","area":"mountain_steps","at":Vector2(286,258),"name":"沿西坡住户指认的石道见祭台",
+		"prop":"exit_open","destination":"mountain_altar","arrival":Vector2(377,176),
+		"requires":["mountain_west"],"altar_open":true},
+	{"id":"world_mountain_west_shortcut","area":"mountain_altar","at":Vector2(354,164),"name":"沿外围石道回居民避险石阶",
+		"prop":"exit_open","destination":"mountain_steps","arrival":Vector2(299,243),
+		"requires":["mountain_west"]},
+	{"id":"world_return","area":"mountain_cavern","at":Vector2(301,287),"name":"离开凌云山，回出发地","prop":"exit"},
+	{"id":"world_mountain_cave_notice","area":"mountain_cavern","at":Vector2(366,220),"name":"问守洞人谷口的动静",
+		"sprite":"guide","phases":["approach"],
+		"lines":[["守洞人","北口水声比昨天急。居民和药担还在山下，不知道洞里的人会怎么争龙脉。"],
+			["守洞人","先看地形。西路去药炉，山后的小筑能上石阶。石阶顶上那面门闩还没开。"]]},
+	{"id":"world_mountain_cave_notice","area":"mountain_cavern","at":Vector2(368,227),"name":"看龙脉碎后留下的封洞告示",
+		"prop":"signal","phases":["fractured"],
+		"lines":[["封洞告示","碎石堵了旧洞。药炉去西坡，撤人去石阶。山下来人以募集安置、护药或断后任一条登记。"],
+			["守洞人","小筑须先换血，石阶开门还得等一队人真的下来。只安顿一处就能开路，其余人员由我们继续接应。"]]},
+	{"id":"world_mountain_cave_notice","area":"mountain_cavern","at":Vector2(363,217),"name":"向守灯人确认山下还有谁",
+		"sprite":"servant","phases":["lanterns"],
+		"lines":[["守灯人","上面平定了，村里继续从西坡送人。药炉和前哨还在点名，少的几户可以回去补上。"]]},
+	{"id":"world_mountain_altar_shut","area":"mountain_steps","at":Vector2(1452,221),"name":"听东阶守门人说开门条件",
+		"prop":"exit","altar_open":false,
+		"lines":[["东阶守门人","换血和山下撤离都要有眉目才开门。一队也好，西坡安置、护送药担或让最后一队过石阶，任选一项做到点收。"],
+			["东阶守门人","这张榜贴在小筑、药炉和石阶，顺路回去查；一个地方做完就可以回来。"]]},
+	{"id":"world_mountain_lodge_notice","area":"mountain_lodge","at":Vector2(301,201),"name":"查看小筑窗下的借宿记",
+		"prop":"signal","phases":["approach"],
+		"lines":[["小筑借宿记","遇涨水或塌石，到小筑可借火、取水。西坡诸户若失散，沿黄灯回避风棚点名。"]]},
+
+	{"id":"world_mountain_west_roll","area":"mountain_steps","at":Vector2(337,207),"name":"从石阶应急架拿西坡民籍",
+		"prop":"signal","phases":["fractured","lanterns"],"evidence":"mountain_west_roll",
+		"lines":[["西坡民籍","芦家在坡中木栏，罗家停在高阶断柱。没跟旧岗走的人都登记在这里，不收路钱。"],
+			["山民","把这两户带回西坡棚，沿黄色布条认路。棚在避风药炉西头，跟守棚人报两户的姓。"]]},
+	{"id":"world_mountain_west_reed","area":"mountain_steps","at":Vector2(493,254),"name":"请芦嫂带孩子沿木栏往西坡走",
+		"sprite":"maid","phases":["fractured","lanterns"],"requires":["mountain_west_roll"],"evidence":"mountain_west_reed",
+		"lines":[["芦嫂","听见山响，孩子一步也挪不动。你先走，我扶他踩栏里边的整石。"],
+			["芦家孩子","灯挂黄布的地方就是棚？我数着这排栏木跟你走。"]]},
+	{"id":"world_mountain_west_luo","area":"mountain_steps","at":Vector2(737,260),"name":"扶罗家老两口下断柱石阶",
+		"sprite":"guide","phases":["fractured","lanterns"],"requires":["mountain_west_roll"],"evidence":"mountain_west_luo",
+		"lines":[["罗老伯","石柱倒了，我家老婆子怕绕回山顶。你在前面，我拄着杖跟你去西坡。"],
+			["罗老伴","走西边下面的实路，过黄布灯，再去报到。"]]},
+	{"id":"world_mountain_west_settle","area":"mountain_hearth","at":Vector2(267,247),"name":"在避风棚为芦、罗两户点收",
+		"sprite":"servant","phases":["fractured","lanterns"],
+		"requires":["mountain_west_roll","mountain_west_reed","mountain_west_luo"],"result":"mountain_west","excludes":"mountain_west",
+		"lines":[["守棚人","芦家的孩子到了，罗家两位也在。各拿一碗热水，我按这张民籍在两户后面画记。"],
+			["守棚人","既然两家都下来了，石阶西侧的猎道可以给你们走。等祭台平定，我们按灯从这里去凤溪。"]]},
+	{"id":"world_mountain_west_reed_at_shelter","area":"mountain_hearth","at":Vector2(230,229),"name":"在棚边接上芦嫂和孩子",
+		"sprite":"maid","phases":["fractured","lanterns"],"requires":["mountain_west_reed"],"excludes":"mountain_west",
+		"lines":[["芦嫂","沿着栏木走，总算到了。我们等罗家也到棚边，就一块进门报到。"]]},
+	{"id":"world_mountain_west_luo_at_shelter","area":"mountain_hearth","at":Vector2(313,264),"name":"在棚外会合罗家两人",
+		"sprite":"guide","phases":["fractured","lanterns"],"requires":["mountain_west_luo"],"excludes":"mountain_west",
+		"lines":[["罗老伯","我们跟着黄布到了，人都在这。拿民籍到棚口报两家的姓吧。"]]},
+	{"id":"world_mountain_west_receipt","area":"mountain_hearth","at":Vector2(260,201),"name":"核对两户抵达凤溪的回条",
+		"prop":"chest","phases":["lanterns"],"requires":["mountain_west"],"evidence":"mountain_west_receipt",
+		"lines":[["守棚人","芦家在凤溪浮栈报过名，罗家今天送信说脚已经不疼。这份回条留在棚里，给来找人的乡亲看。"]]},
+
+	{"id":"world_mountain_medicine_custodian","area":"mountain_hearth","at":Vector2(561,245),"name":"听守炉人交代药担和伤员",
+		"sprite":"zhu","phases":["fractured","lanterns"],"evidence":"mountain_medicine_custodian",
+		"lines":[["守炉人","小筑那边等药，北坡有樵夫摔断了腿。把东边公用药筐带上，再把人一起送进小筑。"],
+			["守炉人","南坡有持刀人拦路。如果早验收过凤溪药单，推药人备的黄旗认熟路，能从小石梁避开。"]]},
+	{"id":"world_mountain_medicine_pack","area":"mountain_hearth","at":Vector2(831,242),"name":"拿守炉处的公用药担",
+		"prop":"chest","phases":["fractured","lanterns"],"requires":["mountain_medicine_custodian"],"missing":["medicine_handoff"],
+		"evidence":"mountain_medicine_pack",
+		"lines":[["公用药担","竹牌写着先把止血药放近，再抬伤腿。是公用药，不用动随身药囊。"]]},
+	{"id":"world_mountain_medicine_pack","area":"mountain_hearth","at":Vector2(831,242),"name":"收好凤溪分来的药担和黄旗",
+		"prop":"chest","phases":["fractured","lanterns"],"requires":["mountain_medicine_custodian","medicine_handoff"],
+		"evidence":"mountain_medicine_pack",
+		"lines":[["公用药担","筐把仍是后渡十七号。黄旗有药庐送来的叶记，带着它便能走石梁接伤者。"]]},
+	{"id":"world_mountain_medicine_escort","area":"mountain_hearth","at":Vector2(1117,237),"name":"赶开南坡截路人，接走受伤樵夫",
+		"sprite":"claw","phases":["fractured"],"requires":["mountain_medicine_pack"],"missing":["medicine_handoff"],
+		"foes":["elite","blade"],"evidence":"mountain_medicine_escort",
+		"lines":[["截路人","祭台封山，这条路上的药归我们。把担上的药留下。"],
+			["受伤樵夫","我在石墩后。赶走他们，再扶我去小筑，我还能自己抓住担绳。"]]},
+	{"id":"world_mountain_medicine_escort","area":"mountain_hearth","at":Vector2(1117,200),"name":"凭黄旗走石梁，接走受伤樵夫",
+		"sprite":"servant","phases":["fractured"],"requires":["mountain_medicine_pack","medicine_handoff"],
+		"evidence":"mountain_medicine_escort",
+		"lines":[["药庐挑夫","我认这面旗。过去后别下石梁，截路的人还在下面盯着旧坡。药箱我扛，扶樵夫往小筑走。"]]},
+	{"id":"world_mountain_medicine_escort","area":"mountain_hearth","at":Vector2(1117,237),"name":"到石梁接运还未下山的伤者",
+		"sprite":"servant","phases":["lanterns"],"requires":["mountain_medicine_pack"],"evidence":"mountain_medicine_escort",
+		"lines":[["受伤樵夫","追兵跑了，山上还有两个落在后面的。你把药担带上，我跟你走小筑的干路。"]]},
+	{"id":"world_mountain_medicine_confirm","area":"mountain_lodge","at":Vector2(441,212),"name":"在小筑给伤员交药并报到",
+		"sprite":"servant","phases":["fractured","lanterns"],
+		"requires":["mountain_medicine_custodian","mountain_medicine_pack","mountain_medicine_escort"],
+		"result":"mountain_medicine","excludes":"mountain_medicine",
+		"lines":[["小筑接应人","人和药都到了。腿折的我先绑板，别让板压过伤口。名字写在小筑药签上，我送药炉点收。"],
+			["小筑接应人","无名留了调息法在药签背面，聂风入阵前按这法运气。"]]},
+	{"id":"world_mountain_medicine_patient","area":"mountain_lodge","at":Vector2(416,258),"name":"查看靠墙的受伤樵夫",
+		"sprite":"prisoner","phases":["fractured"],"requires":["mountain_medicine_escort"],
+		"lines":[["受伤樵夫","早半个时辰躺到这里，我家人就不用翻遍南坡找我。药担在门右边，有其他人来，也请先给那些人留药。"]]},
+	{"id":"world_mountain_medicine_receipt","area":"mountain_lodge","at":Vector2(479,260),"name":"查伤员下山后的药签",
+		"prop":"signal","phases":["lanterns"],"requires":["mountain_medicine"],"evidence":"mountain_medicine_receipt",
+		"lines":[["小筑接应人","樵夫已经能拄杖下山。药炉给凤溪送了这份药签，有两个家人留在渡口等他。"]]},
+
+	{"id":"world_mountain_rearguard_dispatch","area":"mountain_cavern","at":Vector2(472,237),"name":"取秦霜留在洞口的撤离副令",
+		"sprite":"guard","phases":["fractured","lanterns"],"evidence":"mountain_rearguard_dispatch",
+		"lines":[["前哨守人","秦师兄受伤前交代，最后一队从石阶来。他派的传令弟子若赶不到，这份写了同样的路线。"],
+			["前哨守人","先给中段岔口挂三短一长的灯绳。追兵在东边守着，清开路后，去东坡听最后一队报到。"]]},
+	{"id":"world_mountain_rearguard_marks","area":"mountain_steps","at":Vector2(620,176),"name":"在中段岔口挂三短一长",
+		"prop":"signal","phases":["fractured","lanterns"],"requires":["mountain_rearguard_dispatch"],
+		"evidence":"mountain_rearguard_marks",
+		"lines":[["撤离灯绳","三短一长是回头往里侧走。把最下面的长结抬高，后队绕过栏木也能看见。"]]},
+	{"id":"world_mountain_rearguard_chase","area":"mountain_steps","at":Vector2(1000,248),"name":"截住顺石阶追来的天池残部",
+		"sprite":"claw","phases":["fractured"],"requires":["mountain_rearguard_marks"],"missing":["register_handoff"],
+		"foes":["elite","shade"],"evidence":"mountain_rearguard_chase",
+		"lines":[["天池残部","我认得那条灯绳。老了伤了都走不快，从栏边追，一会就能赶上。"],
+			["前哨哨灯","最后一队还在下坡，这里得留人拦住追兵。"]]},
+	{"id":"world_mountain_rearguard_chase","area":"mountain_steps","at":Vector2(1000,248),"name":"凭旧岗换班簿误导天池追兵",
+		"prop":"signal","phases":["fractured"],"requires":["mountain_rearguard_marks","register_handoff"],
+		"evidence":"mountain_rearguard_chase",
+		"lines":[["换岗抄件","东坡口令和外哨一样换了两次。故意敲错第一班的回音，他们便会去高架等第二班。"],
+			["前哨守人","追兵进了架道，灯绳不摘。最后一队沿栏下坡就能过来。"]]},
+	{"id":"world_mountain_rearguard_chase","area":"mountain_steps","at":Vector2(1000,248),"name":"清开残部遗下的路障",
+		"prop":"winch","phases":["lanterns"],"requires":["mountain_rearguard_marks"],"evidence":"mountain_rearguard_chase",
+		"lines":[["前哨路障","守路的人已走，栏木还倒在坡上。把木桩挪在内侧，最后一队和来抬伤员的就都能过。"]]},
+	{"id":"world_mountain_rearguard_confirm","area":"mountain_steps","at":Vector2(1314,239),"name":"听东坡前哨确认最后一队脱险",
+		"sprite":"guard","phases":["fractured","lanterns"],
+		"requires":["mountain_rearguard_dispatch","mountain_rearguard_marks","mountain_rearguard_chase"],
+		"result":"mountain_rearguard","excludes":"mountain_rearguard",
+		"lines":[["前哨守人","最后一串灯走过西坡，我点过人，这一队齐了。秦师兄的副令我给他们看了。"],
+			["前哨守人","追兵一散，祭台外头这一拨也离了，往上不用再过他们的阵。至于下山的人，去凤溪找我们就成。"]]},
+	{"id":"world_mountain_rearguard_receipt","area":"mountain_steps","at":Vector2(1357,272),"name":"查最后一队留下的报到牌",
+		"prop":"signal","phases":["lanterns"],"requires":["mountain_rearguard"],"evidence":"mountain_rearguard_receipt",
+		"lines":[["东坡报到牌","最后一队先从石缝下山，沿灯路走凤溪。负责断后的人去东岸报了姓名，可以去渡口认他们。"]]},
+]

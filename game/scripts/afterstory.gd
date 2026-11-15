@@ -397,6 +397,8 @@ func _resolve(resolution: String) -> void:
 		var manifest := "船单贴在原账旁，让等粮的人看清每只船该交几袋。" if resolution == "public" \
 			else "船单有舟工的指印，和原账一并交州府。拿回执就能按船号复核实数。"
 		scene.append(["陶伯",manifest])
+	if g.slot.world.tasks.get("palace_survival") == "witness" and g.slot.world.tasks.has("palace_survival_receipt"):
+		scene.append(["江杏","我签过茶房那份记录，外庭发令的时刻也在里面。随粮账添一份，沿途可核对是谁扣了运粮的船。"])
 	g._talk(scene,func():
 		state().resolution = resolution
 		g._commit()
@@ -421,6 +423,8 @@ func journal() -> Array:
 	match g.chronicle.reunion_plan():
 		"roll": entries.append(["渡口归人册","已查看船工回信" if f.get("fengxi_contact",false) else "盐汊渡口可访归人册"])
 		"aid": entries.append(["凤溪粮棚","已获渔户接济" if f.get("fengxi_contact",false) else "盐汊渡口可探望渔户"])
+	if g.slot.world.tasks.get("palace_survival") == "witness" and g.slot.world.tasks.has("palace_survival_receipt"):
+		entries.append(["茶房发生记录","江杏署名副本随账归档" if not f.resolution.is_empty() else "江杏带来署名副本"])
 	if f.register:
 		var dry_store := "渡口西棚可查修闸簿"
 		if f.get("dry_store",false):

@@ -48,6 +48,7 @@ const REWARDS := {
 	"quest:stairs":{"breath_pill":1,"guard_powder":1},
 	"handoff:carry_medicine":{"guard_powder":1},
 	"quest:valley_latch":{"guard_powder":1},
+	"quest:mountain_medicine":{"guard_powder":1},
 }
 
 static func fresh(chapter: int = 0) -> Dictionary:

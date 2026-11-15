@@ -1,24 +1,26 @@
 # 风云：山河劫
 
-简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.1.0 在十章主线与潮关外篇上接通四个可回访区域、两处主线分岔和五条跨区长任务。
+简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.2.0 扩充绝宫火场与凌云山撤离，六个区域随剧情变化，玩家的救援与取证结果延续到终战和凤溪归人。
 
 ## 开始游戏
 
-**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.1.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.1.0/Fengyun-3.1.0-android.apk)
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.2.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.2.0/Fengyun-3.2.0-android.apk)
 
-**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.1.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.1.0/Fengyun-3.1.0-windows-x64-setup.exe)
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.2.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.2.0/Fengyun-3.2.0-windows-x64-setup.exe)
 
-[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.1.0) · [第三方许可](Windows/Licenses)
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.2.0) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
 ### 区域回访与跨区交接
 
-[四幕设计和阶段验收](CAMPAIGN_EXPANSION.md)以 3.0.0 为基线。第二章完成雨巷查账后，从西岸「走访凤溪渡路」或暂歇菜单的「回访凤溪」进入。随后「江湖行路」按剧情开放拜剑山庄、天下会外哨和生死门。区域之间也可沿路牌步行往返。主线关卡正进行时，先走到下一个安全点。
+[四幕设计和阶段验收](CAMPAIGN_EXPANSION.md)以 3.0.0 为基线。第二章完成雨巷查账后，从西岸「走访凤溪渡路」或暂歇菜单的「回访凤溪」进入。随后「江湖行路」按剧情开放拜剑山庄、天下会外哨、生死门、无神绝宫和凌云山。区域之间也可沿路牌步行往返。主线关卡正进行时，先走到下一个安全点。
 
 凤溪的西岸、客栈和雨巷可以双向往返。打开手记可追踪「水路证词」和「渡口药单」。每条支线的两份线索可按任意顺序取得。第三章起是封渡期，两条任务可以交付。终章抵达凤溪归灯后复航，可在原地核对证人的下落与领药回条。
 
 拜剑山庄可调查炉料与后棚托付，装好绞梯并决定工匠去向。天下会外哨可修巡灯吊篮、选择具名或匿名交付换岗簿。生死门可开通升担架，决定先把护脉药或金身换气线索送往绝宫。手记中的「跨区交接」列出原地点、目的地和交付状态。键盘按 Tab，手柄按 X，或触屏点按钮。主线撤离绝宫后，外哨旧岗院的驿道通战后前庭，可把未交证物补交归档。从区域出口或暂歇菜单返回主线，会回到出发点，重启后可从该处续玩。 [第二阶段交付验收](verification/jianghu/stage2/README.md)
+
+绝宫起火后，从茶房后院东阶下西闸，沿西台阶退到安全外庭。查齐岗令和发令记录后再向至尊辞行。龙脉碎后，可先在西坡安置两家、护送药担或替石阶最后一队断后。完成换血和任一撤离后可上祭台。凤溪尾声追加归人点验，战后补救的人员也会留下记录。 [第三阶段交付验收](verification/jianghu/stage3/README.md)
 
 这部同人改编从天下会婚宴写到凤溪点灯，主线取自 2002 年电视剧《风云》，原作漫画为马荣成作品。救援、绕行和迎敌会改变遭遇数量。重返天下会、龙脉易手、雨夜换血、最终守山与凤溪尾声各有独立章节。 [战役设计](CAMPAIGN.md) · [电视剧分集梗概](https://watch.plex.tv/zh/show/wind-and-cloud-conquer-the-world-2002/season/1)
 
@@ -114,7 +116,7 @@ Android 使用 `Android` 导出预设。安装 OpenJDK 17、Android SDK 和匹�
 
 ```powershell
 New-Item -ItemType Directory -Force Android
-& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-3.1.0-android.apk')
+& $godot --headless --path game --export-release 'Android' (Join-Path $PWD 'Android/Fengyun-3.2.0-android.apk')
 ```
 
 查看 [玩法与叙事调研](DESIGN.md)、[素材记录](ASSETS.md)、[3.0.0 验收](verification/mastery/README.md) 与 [Android 触屏验收](verification/android-touch/README.md)。

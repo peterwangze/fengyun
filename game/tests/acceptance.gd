@@ -8,6 +8,7 @@ const Battle = preload("res://scripts/battle.gd")
 const Items = preload("res://scripts/items.gd")
 const Economy = preload("res://scripts/economy.gd")
 const Stage2B = preload("res://tests/stage2b_journey.gd")
+const Stage3 = preload("res://tests/stage3_journey.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const FORGING_GEAR := {"interrupt":"tide_whistle", "retaliate":"forge_guard", "exploit":"sword_tassel"}
@@ -61,6 +62,7 @@ var alternate_transit := false
 var stage2b_route := false
 var stage2b_skip := false
 var stage2b: RefCounted
+var stage3: RefCounted
 var traversed_maps: Array[Dictionary] = []
 var visited_arcs: Array[int] = []
 var arc_pacing: Array[Dictionary] = []
@@ -110,6 +112,7 @@ func _run() -> void:
 	stage2b_skip = "--stage2b-skip" in OS.get_cmdline_user_args()
 	if stage2b_route:
 		stage2b = Stage2B.new(self)
+	stage3 = Stage3.new(self, "--stage3" in OS.get_cmdline_user_args())
 	endgame = "--endgame" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
@@ -213,6 +216,9 @@ func _run() -> void:
 				_key(KEY_ENTER)
 				await _capture("2-blood-rite")
 				_drain_dialogue()
+			if not await stage3.prepare_mountain():
+				quit(1)
+				return
 			if not await _scene_step("bedside","farewell","farewell"):
 				quit(1)
 				return
@@ -223,6 +229,7 @@ func _run() -> void:
 			_check(game.field_key == "peak","farewell leads to dragon terrace")
 			if cultivation_route and build_route in ROUTE_STYLES:
 				await _resolve_hidden_ledger()
+				stage3.verify_ledger_path()
 			if forging_route and build_route in ROUTE_STYLES:
 				await _verify_peak_forge()
 			if alternate and build_route.is_empty():
@@ -326,6 +333,7 @@ func _run() -> void:
 				if not await _walk_transit("palace_sluice", "tearoom", "sluice_done"):
 					quit(1)
 					return
+				await stage3.prepare_palace_fire()
 				_do_point("tea")
 				if quests:
 					await _side_step("shift",int(alternate))
@@ -428,6 +436,7 @@ func _run() -> void:
 					and game.encounter.round_no == 1,"retry restores encounter and medicine")
 				await _tutorial_combat()
 			if chapter == 5 and fight == 1:
+				stage3.verify_tyrant_aid()
 				await _capture("04-final-battle")
 			if endgame and not game.slot.easy and chapter == 5 and fight == 0:
 				await _exercise_dragon_opening()
@@ -538,11 +547,9 @@ func _run() -> void:
 			if pacing:
 				_check_main(["exit"],"Magic pool farewell complete")
 		if chapter == 4:
-			_do_point("tearoom")
-			await _capture("2-tearoom-fire")
-			_do_point("fire_signal")
-			_do_point("evacuated")
-			_do_point("palace_back")
+			if not await stage3.evacuate_palace():
+				quit(1)
+				return
 		if chapter == 5 and quests:
 			await _side_step("stairs")
 			await _side_step("stairs")
@@ -571,6 +578,7 @@ func _run() -> void:
 					_do_point("dawn_witness")
 					_do_point("dawn_courier")
 			_do_point("dawn_lamp")
+			await stage3.dawn_return()
 			if quests and endgame:
 				_do_point("dawn_reunion")
 				_choose(int(alternate))
@@ -637,6 +645,7 @@ func _run() -> void:
 		print("ARCS " + JSON.stringify(arc_pacing))
 	if stage2b != null:
 		stage2b.finish()
+	stage3.finish()
 	_check(visited_arcs == range(10), "all ten narrative chapters were reached in order")
 	var expected_transits: Array = MAIN_TRANSITS.duplicate()
 	if tidal:
@@ -655,6 +664,7 @@ func _run() -> void:
 		_verify_market_legacy()
 	if forging_route:
 		_verify_forging_migration()
+	stage3.verify_migrated_checkpoints()
 	if failures == 0:
 		print("PASS directions, synthetic controller inputs, 1.1/1.2/1.6 saves and backup recovery")
 		if low_motion:
@@ -952,6 +962,10 @@ func _verify_afterstory() -> void:
 		var ending_evidence := "船单" if tidal_sluice else "卸粮人"
 		_check(game.mode == "dialogue" and game.lines.any(func(line: Array): return (str(line[0]) + str(line[1])).contains(ending_evidence)),
 			"the chosen canal evidence is present in the settlement")
+		var palace_witness: bool = baseline.world.tasks.get("palace_survival", "") == "witness" \
+			and baseline.world.tasks.has("palace_survival_receipt")
+		_check(game.lines.any(func(line: Array): return line[0] == "江杏") == palace_witness,
+			"the signed Palace record reaches Tidegate only after the outer-court receipt")
 		_drain_dialogue()
 	var settlement := "witness" if tidal_sluice else "public"
 	_check(game.afterstory.state().resolution == settlement,"the selected settlement is saved")
@@ -1766,7 +1780,7 @@ func _free_prisoner() -> bool:
 		return false
 	if cultivation_route and build_route in ROUTE_STYLES:
 		await _side_step("hidden_ledger")
-		_check(game.storage.read().chronicle.quests.get("hidden_ledger", "") == "seeking", "hidden records survive the prison exit")
+		_check(game.storage.read().chronicle.quests.get("hidden_ledger", "") == "seeking_route", "hidden records survive the prison exit")
 	_resume()
 	_check(game.field_key == "jail" and game.slot.campaign.rescued,"prison room and rescue survive reload")
 	if not _check(_reach("jail_exit"),"reach the side stair"):
@@ -1795,7 +1809,10 @@ func _walk_transit(room: String, destination: String, completion: String) -> boo
 	for i in 12:
 		if not game.transit.active() or game.field_key != room:
 			break
-		var markers := TrailGuide.main_points(game, game.field_points())
+		if room == "dragon_waterway" and game.field_points().any(func(entry: Dictionary): return entry.id == "side_hidden_ledger"):
+			await stage3.trace_mountain_wall()
+			quest_before.hidden_ledger = "seeking"
+		var markers := TrailGuide.main_points(game, game.field_points().filter(func(entry: Dictionary): return not entry.get("optional",false)))
 		if not _check(not markers.is_empty(), room + " has a main marker after " + str(visited)):
 			return false
 		var ids: Array = markers.map(func(marker: Dictionary): return marker.id)
@@ -1893,6 +1910,10 @@ func _transit_choices(room: String) -> String:
 		"dragon_ridge":
 			return "ridge_low" if alternate_transit or build_route in ["retaliate", "exploit"] else "ridge_high"
 		"summit_steps":
+			if stage3.branch == "west":
+				return "summit_west_slope"
+			if stage3.branch == "rearguard":
+				return "summit_safe_rear"
 			return "summit_decoy" if alternate_transit or build_route in ["retaliate", "exploit"] else "summit_escort"
 		"tidal_canal":
 			return "canal_manifest" if tidal_sluice else "canal_witness"

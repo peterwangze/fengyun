@@ -113,6 +113,8 @@ func points() -> Array:
 				else:
 					entry["objective"] = "旧门无人 · 现在可通过"
 			result.append(entry)
+	if g.field_key == "dragon_waterway":
+		result.append_array(g.chronicle.side.ledger_points())
 	return result
 
 func objective() -> String:
@@ -168,6 +170,9 @@ func encounter() -> Array:
 	return []
 
 func handle(point: Dictionary) -> void:
+	if point.id.begins_with("side_"):
+		g.chronicle.side.handle(point.id)
+		return
 	if point.has("patrol") and _patrol_time(point.patrol) > 0:
 		g._notice("先在门柱后等候，换岗时再过旧门。")
 		return

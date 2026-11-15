@@ -201,7 +201,7 @@ func points() -> Array:
 				result.append(_optional_point("shop_medicine",Vector2(394,235),"向药师购买补给","servant"))
 				result.append(_optional_point("craft_apothecary",Vector2(425,272),"使用药庐修具台","servant"))
 		"palace":
-			if g.slot.cleared.has(0):
+			if g.slot.cleared.has(0) and (not has("fire_signal") or review):
 				result.append(_point("tearoom",448,192,"进入茶房侧廊"))
 		"jail":
 			if g.slot.campaign.rescued:
@@ -218,10 +218,11 @@ func points() -> Array:
 			if g.slot.cleared.has(1) and not has("evacuated"):
 				if not has("fire_signal"):
 					result.append(_point("fire_signal",414,178,"查看绝无神和绝心","godless"))
-				elif String(side.state().get("shift","")).begins_with("done_"):
-					result.append(_point("evacuated",538,222,"从狱卒打开的便门撤离","frost"))
-				else:
-					result.append(_point("evacuated",117,271,"绕开火势，带至尊走左廊","frost"))
+				elif review:
+					if String(side.state().get("shift","")).begins_with("done_"):
+						result.append(_point("evacuated",538,222,"从狱卒打开的便门撤离","frost"))
+					else:
+						result.append(_point("evacuated",117,271,"绕开火势，带至尊走左廊","frost"))
 		"cavern":
 			if not has("relic"):
 				result.append(_point("relic",319,161,"夺取龙脉","beast"))
@@ -243,6 +244,8 @@ func points() -> Array:
 			if side.state().get("swordstory","") == "done_guard":
 				result.append(_point("mountain_path",202,263,"走守军留下的小径"))
 		"dawn":
+			if not review and not g.world.finale_rows().is_empty():
+				result.append(_optional_point("dawn_stage3",Vector2(159,185),"到渡口点验归人","servant"))
 			if dawn_witness_available():
 				var witnessed: bool = side.state().get("seals","") == "done_guide"
 				result.append(_optional_point("dawn_witness",DAWN_WITNESS,"探望引路的证人" if witnessed else "查看证人的公示","maid"))
@@ -290,6 +293,7 @@ func objective() -> String:
 				return "去东北石阶接应第二梦。" if has("pool_gate") else "刀皇闯入，先去东岸切开木栅。"
 		"apothecary": return "从南门返回魔池，去池边试刀。" if has("pool_intro") else "先问第二梦和独孤梦为何守在药庐。"
 		"palace":
+			if g.world.fire_pending(): return "进外庭踏查，补齐发令记录与西闸岗令，再向至尊辞行。"
 			if g.slot.campaign.rescued and not has("tea"): return "到茶房侧廊，听颜盈与绝心交谈。"
 			if g.slot.cleared.has(1) and not has("evacuated"): return "绝宫起火，从茶房侧门撤离。"
 		"tearoom":
@@ -306,6 +310,8 @@ func objective() -> String:
 			return "去南边的小筑协助第二梦。" if has("prepare") else "去西边替第二梦守住药炉。"
 		"lodge":
 			if not has("blood_rite"): return "在药炉旁协助第二梦，随后与她告别。"
+			if g.world.mountain_gate_required() and not g.world.mountain_ready():
+				return "去西坡、药炉或石阶，完成任一撤离后再上祭台。"
 		"dawn":
 			if not has("dawn_lamp"): return "去桥栏点灯，兑现和第二梦的约定。"
 			return "可先在西岸安置归人，或沿石桥离开。" if dawn_reunion_available() and reunion_plan().is_empty() else "沿石桥向东，与步惊云离开。"
@@ -438,11 +444,7 @@ func handle(id: String) -> bool:
 				"done_fight":
 					beat("courier_contact",[["信使","凤溪问出的口令是「收拳回阵」。开打时你喊一声，绝无神会以为亲卫要换位，足够你抢个先手。"]])
 		"fire_signal":
-			var path := "狱卒给你留了便门，大家顺着近路撤！" if String(side.state().get("shift","")).begins_with("done_") else "沿左廊走，低头避烟！"
-			beat("fire_signal",[
-				["绝无神","这杯茶……绝心，你也要我的命？"],
-				["绝心","你要我假扮至尊给你调兵。雄霸答应，等你一死，这道诏令就由我来发。"],
-				["秦霜","火已经到了柱子。" + path + "我留在这里掩护。"]])
+			g.world.escape_fire()
 		"evacuated":
 			var next := "他偷走的旧图就画着这条水道，尽头是凌云窟的龙脉。无名送我回城，你沿水道追。"
 			match side.state().get("shift",""):
@@ -489,10 +491,16 @@ func handle(id: String) -> bool:
 				var news := "你们让我送去的那封信救了人。药师留下来，今后渡工伤了能找她。" \
 					if side.state().get("courier","") == "done_quiet" else "我把当夜截到的口令和换岗时刻交给了至尊。州府正按它们找被私押的人。"
 				farewell.insert(1,["信使",news])
+			if not review:
+				for account in g.world.finale_rows():
+					if account[0] in ["西坡山民","受伤樵夫","外哨传令弟子","茶房杂役","外庭录事"]:
+						farewell.append(account)
 			beat("dawn_lamp",farewell)
 		"dawn_exit":
 			if not warn_departure(_finish_dawn):
 				_finish_dawn()
+		"dawn_stage3":
+			g.world.read_finale()
 		"dawn_witness":
 			if g.field_key != "dawn" or not dawn_witness_available():
 				return false

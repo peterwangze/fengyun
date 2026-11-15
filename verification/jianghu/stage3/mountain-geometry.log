@@ -1,0 +1,6 @@
+# 凌云山区域碰撞与通路
+覆盖入山查脉、断脉撤离、灯路开放三个状态的入口、撤离节点、门槛、区内通路、跨区连接和壁刻遗图暗道。使用游戏场景的地面、墙体和危险区数据，按四像素步长逐段验证可达性。
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+World phase3 Lingyun data geometry: 652 checks, 0 failures
