@@ -30,6 +30,7 @@ const AREAS := {
 	"watch_gate_market":{"field":"watch_gate_market","spawn":"spawn","title":"天下会外哨 · 岗下集"},
 	"watch_scree_road":{"field":"watch_scree_road","spawn":"spawn","title":"天下会外哨 · 白石沟驿路"},
 	"watch_dispatch_house":{"field":"watch_dispatch_house","spawn":"spawn","title":"天下会外哨 · 出关簿房"},
+	"watch_qingshi_hub":{"field":"watch_qingshi_hub","spawn":"spawn","title":"天下会外哨 · 青石转运集"},
 }
 
 const QUESTS := [

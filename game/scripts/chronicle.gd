@@ -120,6 +120,8 @@ func ending() -> Array:
 			ending_lines.append(["尾声","渡口挂出第一张归人名册。潮关来的船工认出了同乡的名字，照着名册送来捎信。"])
 		"aid":
 			ending_lines.append(["尾声","粮棚留着两张空床和一锅粥。潮关来的渔户在此借宿，回去时也带上了给邻人的一袋米。"])
+	if not review:
+		ending_lines.append_array(g.world.corridor_ending())
 	ending_lines.append(["尾声","两个旅人沿着山路走远。路过的船看见桥上的光，就知道已经到家了。"])
 	return ending_lines
 

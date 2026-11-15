@@ -1,0 +1,108 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 595.95 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5060 Laptop GPU
+
+PASS save accepted corridor checkpoint for resource chapter 2
+PASS walk and select world_sword_hamlet
+PASS walk and select world_timber_order
+PASS walk and select world_timber_hamlet_hub_shut
+PASS normal sword workshop return remains open before the Watch corridor
+PASS early signed order persists as preparation alone
+PASS save accepted corridor checkpoint for resource chapter 3
+PASS walk and select world_sword_hamlet
+PASS walk and select world_timber_hamlet_hub
+PASS walk and select world_timber_wheel
+PASS walk and select world_timber_choice
+PASS the chosen freight lane visibly waits for Lingyun access
+PASS walk and select world_timber_hub_scree
+PASS walk and select world_timber_scree_hub
+PASS the ordinary White Scree road reaches the unique relay map and texture in both directions
+ROUTE brace late=false
+PASS save accepted corridor checkpoint for resource chapter 5
+PASS walk and select world_sword_hamlet
+PASS walk and select world_timber_hamlet_hub
+PASS walk and select world_timber_wheel
+PASS the charcoal cart enters the relay street
+PASS walk and select world_timber_choice
+PASS capture qingshi-street
+PASS relay clerk has two actual freight choices
+PASS capture qingshi-choice
+PASS dispatch intent gives neither clearance nor boss aid
+PASS walk and select world_timber_hub_brace
+PASS the chosen outbound trip saves clearance and its actual landing
+PASS riding the car still grants no support before the receiver checks its load
+PASS walk and select world_timber_brace_delivery
+PASS recipient physically checks the dispatched material
+PASS filling either shipment leaves all original mountain rescues unmet
+PASS actual final encounter starts having completed an independent west evacuation fixture
+PASS actual final battle applies precisely the chosen branch's opening support
+PASS genuine boss battle reaches victory
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_foothill
+PASS boss snapshot freezes timely deliveries and omits late ones
+PASS actual postbattle visit is required before ledger closure
+PASS walk and select world_timber_brace_revisit
+PASS walk and select world_timber_brace_hub
+PASS walk and select world_timber_hub_receipt
+PASS real postbattle return and ledger closure survive title Continue once
+PASS late visits never rewrite the fight result
+ROUTE ring late=false
+PASS save accepted corridor checkpoint for resource chapter 5
+PASS walk and select world_sword_hamlet
+PASS walk and select world_timber_hamlet_hub
+PASS walk and select world_timber_wheel
+PASS the charcoal cart enters the relay street
+PASS walk and select world_timber_choice
+PASS relay clerk has two actual freight choices
+PASS dispatch intent gives neither clearance nor boss aid
+PASS the northern gate waits for explicit safe passage
+PASS without handoff there is no fictitious prior escort
+PASS walk and select world_timber_ring_fight
+PASS generic route starts a genuine optional two-foe encounter
+PASS losing leaves gate locked and stores no passage
+PASS retreat returns to the relay safe bay
+PASS walk and select world_timber_ring_fight
+PASS winning actual retry writes safe northern passage
+PASS walk and select world_timber_hub_ring
+PASS the chosen outbound trip saves clearance and its actual landing
+PASS riding the car still grants no support before the receiver checks its load
+PASS walk and select world_timber_ring_delivery
+PASS recipient physically checks the dispatched material
+PASS filling either shipment leaves all original mountain rescues unmet
+PASS actual final encounter starts having completed an independent west evacuation fixture
+PASS actual final battle applies precisely the chosen branch's opening support
+PASS genuine boss battle reaches victory
+PASS walk and select world_mountain_hearth
+PASS walk and select world_mountain_steps
+PASS boss snapshot freezes timely deliveries and omits late ones
+PASS actual postbattle visit is required before ledger closure
+PASS walk and select world_timber_ring_revisit
+PASS walk and select world_timber_ring_hub
+PASS walk and select world_timber_hub_receipt
+PASS real postbattle return and ledger closure survive title Continue once
+PASS late visits never rewrite the fight result
+ROUTE ring late=true
+PASS save accepted corridor checkpoint for resource chapter 5
+PASS walk and select world_sword_hamlet
+PASS walk and select world_timber_hamlet_hub
+PASS walk and select world_timber_wheel
+PASS the charcoal cart enters the relay street
+PASS walk and select world_timber_choice
+PASS relay clerk has two actual freight choices
+PASS dispatch intent gives neither clearance nor boss aid
+PASS the northern gate waits for explicit safe passage
+PASS walk and select world_timber_ring_watch
+PASS actually delivered anonymous records unlock the noncombat convoy path
+PASS walk and select world_timber_hub_ring
+PASS the chosen outbound trip saves clearance and its actual landing
+PASS riding the car still grants no support before the receiver checks its load
+PASS walk and select world_timber_ring_delivery
+PASS recipient physically checks the dispatched material
+PASS boss snapshot freezes timely deliveries and omits late ones
+PASS actual postbattle visit is required before ledger closure
+PASS walk and select world_timber_ring_revisit
+PASS walk and select world_timber_ring_hub
+PASS capture qingshi-final-ledger
+PASS walk and select world_timber_hub_receipt
+PASS real postbattle return and ledger closure survive title Continue once
+PASS late visits never rewrite the fight result
+Timber convoy: 101 checks, 0 failures

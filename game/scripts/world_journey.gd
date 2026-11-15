@@ -11,6 +11,7 @@ const Tide = preload("res://scripts/world_tide.gd")
 const Economy = preload("res://scripts/economy.gd")
 const CampaignLinks = preload("res://scripts/campaign_links.gd")
 const Atlas = preload("res://scripts/world_atlas.gd")
+const Corridors = preload("res://scripts/world_corridors.gd")
 const REGIONS := {"fengxi":Fengxi,"swordhall":Swordhall,"outer_watch":Watch,"valley":Valley,
 	"palace":Palace,"mountain":Mountain,"tide":Tide}
 const TIDE_ROOMS := ["tidal_ford","tidal_fort"]
@@ -47,19 +48,20 @@ const LINKS := [
 		"name":"从凤溪码头乘船去潮关","requires_lanterns":true},
 	{"id":"road_tide_fengxi","area":"tide_ford","at":Vector2(155,275),"destination":"shore","arrival":Vector2(118,219),
 		"name":"搭回船去凤溪"},
-] + FengxiRoad.LINKS
+] + FengxiRoad.LINKS + Corridors.POINTS
 const MAIN_ROOMS := {"village":1,"inn":1,"forge":2,"swordhall":2,"returnhall":2,
 	"pool":3,"apothecary":3,"palace":4,"jail":4,"tearoom":4,"cavern":5,"lodge":5,"peak":5,"dawn":5}
 
 var g: Node2D
 var tracked := ""
 var battle_point := {}
+var corridor_track_cache := {}
 
 func _init(game: Node2D) -> void:
 	g = game
 
 static func initial() -> Dictionary:
-	return {"area":"","entry":[],"return":{},"resume":{},"tasks":{},"legacy_aid":[],"finale":[],"tide_source":""}
+	return {"area":"","entry":[],"return":{},"resume":{},"tasks":{},"legacy_aid":[],"finale":[],"tide_source":"","corridor_finale":{}}
 
 static func migrate(slot: Dictionary) -> void:
 	var state: Dictionary = slot.world
@@ -84,6 +86,8 @@ static func valid(slot: Dictionary) -> bool:
 		return false
 	var facts: Dictionary = state.tasks
 	var known := {}
+	if not Corridors.register(known,slot):
+		return false
 	for key in REGIONS:
 		for definition in REGIONS[key].QUESTS:
 			for fact in definition.evidence:
@@ -252,7 +256,7 @@ func _atlas_route_direction(origin: String, destination: String) -> bool:
 		return false
 	var here: Script = REGIONS[origin]
 	var current: String = here.phase(g.slot)
-	var roads := LINKS.filter(func(point: Dictionary): return _region_for_area(point.destination) == destination)
+	var roads := LINKS.filter(func(point: Dictionary): return point.has("destination") and _region_for_area(point.destination) == destination)
 	for area in here.AREAS:
 		if not _area_points(area,roads,current).is_empty():
 			return true
@@ -360,6 +364,22 @@ func mountain_ready() -> bool:
 
 func record_finale() -> void:
 	g.slot.world.finale = RESCUES.filter(func(id): return g.slot.world.tasks.has(id))
+	g.slot.world.corridor_finale = Corridors.deliveries(g.slot)
+
+func corridor_ending() -> Array:
+	return Corridors.ending(g.slot)
+
+func apply_corridor_aid(encounter: RefCounted) -> void:
+	var notes := PackedStringArray()
+	for aid in Corridors.opening(g.slot):
+		var effect: Dictionary = aid.duplicate()
+		var line: String = effect.get("line", "")
+		effect.erase("line")
+		encounter.apply_quest_aid(effect)
+		if not line.is_empty():
+			notes.append(line)
+	if not notes.is_empty():
+		encounter.apply_quest_aid({"line":" · ".join(notes)})
 
 func resume() -> bool:
 	if not active():
@@ -483,6 +503,7 @@ func _point_unlocked(point: Dictionary, facts: Dictionary, current: String) -> b
 	var tide_state: Dictionary = g.slot.get("afterstory",{})
 	return (
 		(not point.has("phases") or current in point.phases)
+		and (not point.get("finished_only",false) or g.slot.finished)
 		and (not point.has("blocked_destination") or not region_unlocked(g.slot,_region_for_area(point.blocked_destination)))
 		and g.slot.chapter >= point.get("min_chapter",0)
 		and (not point.has("active_chapter") or g.slot.chapter == point.active_chapter)
@@ -548,6 +569,8 @@ func handle(point: Dictionary) -> void:
 			g.afterstory.ensure_account()
 		if fire_pending() and point.destination == "palace_court":
 			g.slot.world.tasks.palace_fire_safe = true
+		if point.has("trip_fact"):
+			g.slot.world.tasks[point.trip_fact] = true
 		var arrival: Vector2 = point.get("arrival",Vector2.ZERO)
 		g.slot.world.entry = [] if arrival == Vector2.ZERO else [arrival.x,arrival.y]
 		if g._commit():
@@ -782,6 +805,8 @@ func read_finale() -> void:
 func trackable_points() -> Array:
 	if tracked.is_empty():
 		return []
+	if Corridors.TASKS.has(tracked):
+		return _tracked_corridor_points()
 	if tracked == "hidden_ledger":
 		return points().filter(func(point): return point.id == "side_hidden_ledger" or point.id == "world_dawn_relief")
 	if CampaignLinks.TASKS.has(tracked):
@@ -795,40 +820,96 @@ func trackable_points() -> Array:
 			return _next_task_points(matches)
 	return []
 
-func _next_task_points(matches: Callable) -> Array:
+func _next_task_points(matches: Callable, across_regions: bool = false) -> Array:
 	var here: Array = points()
 	var local := here.filter(matches)
 	if not local.is_empty():
 		return local
 	var current: String = g.slot.world.area
-	var phase_id := phase()
-	var data: Script = REGIONS[region()]
-	var candidates: Array = data.POINTS + LINKS
+	var origin := region()
 	var visited := {current:true}
 	var frontier := []
 	for point in here:
 		var next: String = point.get("destination","")
-		if data.AREAS.has(next) and not visited.has(next):
+		if not next.is_empty() and (across_regions or _region_for_area(next) == origin) and not visited.has(next):
 			visited[next] = true
 			frontier.append({"area":next,"first":point})
 	while not frontier.is_empty():
 		var exits := []
 		var following := []
 		for step in frontier:
-			var available := _area_points(step.area,candidates,phase_id)
+			var data: Script = REGIONS[_region_for_area(step.area)]
+			var available := _area_points(step.area,data.POINTS + LINKS,data.phase(g.slot))
 			if available.any(matches):
 				if not exits.has(step.first):
 					exits.append(step.first)
 				continue
 			for point in available:
 				var next: String = point.get("destination","")
-				if data.AREAS.has(next) and not visited.has(next):
+				if not next.is_empty() and (across_regions or _region_for_area(next) == origin) and not visited.has(next):
 					visited[next] = true
 					following.append({"area":next,"first":step.first})
 		if not exits.is_empty():
 			return exits
 		frontier = following
 	return []
+
+func _tracked_corridor_points() -> Array:
+	var stamp := hash([tracked,g.slot.chapter,g.slot.finished,g.slot.cleared,g.slot.campaign,g.slot.chronicle,
+		g.slot.get("afterstory"),g.slot.journey,g.slot.world.area,g.slot.world.tasks])
+	if corridor_track_cache.get("stamp") != stamp:
+		var targets := _corridor_targets(Corridors.TASKS[tracked])
+		var ids := targets.map(func(point: Dictionary): return point.id)
+		var marks := [] if ids.is_empty() else _next_task_points(func(point: Dictionary): return point.id in ids,true)
+		corridor_track_cache = {"stamp":stamp,"marks":marks}
+	return corridor_track_cache.marks
+
+func _corridor_targets(task: Dictionary) -> Array:
+	var goal := Corridors.goal(task,g.slot)
+	if goal.is_empty():
+		return []
+	var waiting := []
+	for point in Corridors.POINTS:
+		if goal in [point.get("evidence"),point.get("result"),point.get("trip_fact")]:
+			waiting.append(point)
+	var direct := waiting.filter(_corridor_point_visible)
+	if not direct.is_empty():
+		return direct
+	var prep := {}
+	for point in waiting:
+		for id in point.get("requires",[]):
+			if task.get("extra",{}).has(id) and not g.slot.world.tasks.has(id):
+				prep[id] = true
+	return Corridors.POINTS.filter(func(point: Dictionary):
+		return prep.has(point.get("evidence",point.get("trip_fact"))) and _corridor_point_visible(point))
+
+func _corridor_point_visible(point: Dictionary) -> bool:
+	var id := _region_for_area(point.area)
+	return region_unlocked(g.slot,id) and not _area_points(point.area,[point],REGIONS[id].phase(g.slot)).is_empty()
+
+func corridor_journal() -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var facts: Dictionary = g.slot.world.tasks
+	for task in Corridors.TASKS.values():
+		if g.slot.chapter < task.start_chapter:
+			continue
+		var stage_index := Corridors.stage(task,facts)
+		var branch: Dictionary = task.variants.get(facts.get(task.stages[1],""),{})
+		var status: String = Corridors.LABELS[stage_index]
+		var next := "等沿途接手地点开放。"
+		var targets := _corridor_targets(task)
+		if stage_index == task.stages.size():
+			next = "两头已验回单，可沿已开通路再访接手人。"
+		elif stage_index >= 4 and not g.slot.finished:
+			next = "已经交付。终战后再找接手人，核对运送结果。"
+		elif not targets.is_empty():
+			var target: Dictionary = targets[0]
+			var place: Array = Atlas.PLACES.get(target.area,[])
+			next = (place[0] + " · " if not place.is_empty() else "") + target.name
+		var trackable: bool = not targets.is_empty() or (stage_index > 0 and stage_index < task.stages.size())
+		rows.append({"id":task.id,"title":task.title,"summary":task.summary,"branch":branch.get("label","未定走法"),
+			"state":status,"next":next,"track":trackable})
+	return rows
 
 func handoff_journal() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

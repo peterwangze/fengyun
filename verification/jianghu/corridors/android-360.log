@@ -1,0 +1,14 @@
+Android 16 API 36, x86_64 scratch emulator; packaged release APK
+APK SHA-256 f1a0bb4287565f464bf30e66e9c4e9d5280269a0372b3d0a31b4b8169c695552
+PASS signed APK upgrades public v3.5.0 under the same package ID
+PASS upgrade preserves scratch primary and backup byte for byte
+Landscape Android SurfaceView 0,0 – 2400,1080; touch mapped from 640 × 360
+PASS seven-region atlas opens the Valley clinic on a legacy completed save
+PASS the Valley dialogue writes the actual North Sluice medicine order
+PASS Continue preserves the Valley clinic and the medicine order
+PASS restarted Android release renders without script errors
+
+Version 3.6.0 (30600); package io.github.peterwangze.fengyun; minimum SDK 24, target SDK 36.
+Native ABIs arm64-v8a, armeabi-v7a, x86_64. Runtime QA used x86_64.
+apksigner v2 and v3 verified; persistent release certificate SHA-256 adaf6fded6e87931f9fa40493acebd846535caa29816694b8a3f79e7ad99f41c.
+ZIP 16 KiB alignment verified.

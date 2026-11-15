@@ -1,0 +1,67 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+FIELD shore village width=640 reachable_cells=4452 spawn=(218.0, 244.0)
+FIELD shore dawn width=640 reachable_cells=4452 spawn=(218.0, 244.0)
+FIELD inn inn width=640 reachable_cells=4287 spawn=(320.0, 260.0)
+FIELD lanes fengxi_lanes width=1536 reachable_cells=8643 spawn=(84.0, 246.0)
+FIELD market fengxi_market width=1104 reachable_cells=4052 spawn=(104.0, 266.0)
+FIELD fengxi_weighhouse fengxi_guild width=640 reachable_cells=3802 spawn=(316.0, 272.0)
+FIELD fengxi_postroad fengxi_postroad width=1536 reachable_cells=8056 spawn=(102.0, 252.0)
+FIELD elm_ford elm_ford width=1408 reachable_cells=4361 spawn=(117.0, 258.0)
+QUEST 凤溪渡口 testimony steps=2
+QUEST 凤溪渡口 medicine steps=2
+QUEST 凤溪渡口 fengxi_scales steps=2
+QUEST 凤溪渡口 postroad_relay steps=2
+FIELD sword_workshop swordhall width=640 reachable_cells=5320 spawn=(320.0, 254.0)
+FIELD sword_road lantern_pass width=1536 reachable_cells=9393 spawn=(84.0, 246.0)
+FIELD sword_charcoal_hamlet sword_charcoal_hamlet width=640 reachable_cells=4009 spawn=(106.0, 272.0)
+QUEST 拜剑山庄 sword_supply steps=2
+QUEST 拜剑山庄 sword_charter steps=2
+QUEST 拜剑山庄 sword_charcoal steps=2
+FIELD watch_lodge returnhall width=640 reachable_cells=5905 spawn=(156.0, 242.0)
+FIELD watch_road outer_watch width=1536 reachable_cells=7529 spawn=(84.0, 252.0)
+FIELD watch_palace_reception palace width=640 reachable_cells=5981 spawn=(570.0, 298.0)
+FIELD watch_gate_market watch_gate_market width=640 reachable_cells=4939 spawn=(124.0, 258.0)
+FIELD watch_scree_road watch_scree_road width=1536 reachable_cells=6330 spawn=(158.0, 254.0)
+FIELD watch_dispatch_house watch_dispatch_house width=640 reachable_cells=5090 spawn=(318.0, 266.0)
+FIELD watch_qingshi_hub watch_qingshi_hub width=1280 reachable_cells=6555 spawn=(108.0, 246.0)
+QUEST 天下会外哨 watch_register steps=2
+QUEST 天下会外哨 watch_relay steps=2
+QUEST 天下会外哨 watch_medicine_pass steps=2
+FIELD valley_clinic apothecary width=640 reachable_cells=5046 spawn=(320.0, 256.0)
+FIELD valley_trestle broken_trestle width=1536 reachable_cells=8698 spawn=(84.0, 252.0)
+FIELD valley_herb_slope valley_herb_slope width=1536 reachable_cells=8246 spawn=(114.0, 262.0)
+QUEST 生死门 valley_carry steps=2
+QUEST 生死门 valley_latch steps=2
+QUEST 生死门 valley_herbs steps=2
+FIELD palace_cells jail width=640 reachable_cells=5929 spawn=(98.0, 210.0)
+FIELD palace_west palace_sluice width=1536 reachable_cells=8164 spawn=(84.0, 258.0)
+FIELD palace_tea tearoom width=640 reachable_cells=4870 spawn=(320.0, 258.0)
+FIELD palace_quay palace_quay width=1120 reachable_cells=3852 spawn=(112.0, 253.0)
+FIELD palace_storehouse palace_storehouse width=640 reachable_cells=3970 spawn=(320.0, 266.0)
+FIELD palace_reedpath palace_reedpath width=1472 reachable_cells=3586 spawn=(98.0, 282.0)
+QUEST 无神绝宫 palace_evidence steps=2
+QUEST 无神绝宫 palace_survival steps=2
+QUEST 无神绝宫 palace_side steps=2
+QUEST 无神绝宫 palace_mooring steps=2
+FIELD mountain_approach dragon_waterway width=1536 reachable_cells=9429 spawn=(90.0, 258.0)
+FIELD mountain_cavern cavern width=640 reachable_cells=3928 spawn=(320.0, 264.0)
+FIELD mountain_hearth dragon_ridge width=1536 reachable_cells=8571 spawn=(84.0, 236.0)
+FIELD mountain_lodge lodge width=640 reachable_cells=5266 spawn=(264.0, 270.0)
+FIELD mountain_steps summit_steps width=1536 reachable_cells=9078 spawn=(84.0, 244.0)
+FIELD mountain_altar peak width=640 reachable_cells=5661 spawn=(84.0, 262.0)
+FIELD mountain_foothill lingyun_foothill width=1104 reachable_cells=3822 spawn=(64.0, 238.0)
+FIELD mountain_refuge lingyun_refuge width=640 reachable_cells=4092 spawn=(314.0, 272.0)
+FIELD mountain_ridge_route lingyun_feizhan width=1536 reachable_cells=3554 spawn=(108.0, 236.0)
+QUEST 凌云山 mountain_west steps=3
+QUEST 凌云山 mountain_medicine steps=3
+QUEST 凌云山 mountain_rearguard steps=3
+QUEST 凌云山 mountain_beam steps=2
+FIELD tide_ford tidal_ford width=640 reachable_cells=5256 spawn=(320.0, 274.0)
+FIELD tide_canal tidal_canal width=1536 reachable_cells=8634 spawn=(84.0, 258.0)
+FIELD tide_fort tidal_fort width=640 reachable_cells=5287 spawn=(320.0, 272.0)
+FIELD tide_county_office tide_county_office width=640 reachable_cells=5161 spawn=(156.0, 254.0)
+QUEST 潮关 tide_review steps=4
+QUEST 潮关 tide_relief steps=5
+QUEST 潮关 tide_county_order steps=2
+Regional geometry: 40 fields, 470 interaction anchors, 146 explicit landings, 0 failures

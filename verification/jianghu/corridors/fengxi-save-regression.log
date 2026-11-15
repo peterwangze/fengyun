@@ -1,0 +1,302 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS a new campaign cannot revisit an unvisited Fengxi
+PASS Fengxi revisit stays locked while the rain-lane checkpoint is active
+PASS ordinary collision route reaches lanes_exit
+PASS interaction priority selects lanes_exit
+PASS normal rain-lane exit saves the investigation that unlocks revisits
+PASS pause exposes the current save's Fengxi revisit
+PASS pause selection opens the same-save visit
+PASS first revisit enters an actual shore map
+PASS the first revisit takes place during the evidence phase
+PASS the evidence phase shows the inspection board
+PASS tracking testimony at the shore points to both open investigation routes
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS the regional journal lists both parallel tasks
+PASS tracking marks the clue in the current inn
+PASS ordinary collision route reaches world_shop
+PASS interaction priority selects world_shop
+PASS the witness-phase merchant still opens the existing shop
+PASS ordinary collision route reaches world_witness
+PASS interaction priority selects world_witness
+PASS after finding the witness, tracking points back to the shore
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS from the shore the remaining clue routes to the rain lanes
+PASS ordinary collision route reaches world_lanes
+PASS interaction priority selects world_lanes
+PASS the destination shows the actual evidence rather than the entrance
+PASS ordinary collision route reaches world_stencil
+PASS interaction priority selects world_stencil
+PASS the locked early turn-in does not attract a marker
+PASS ordinary collision route reaches world_crate
+PASS interaction priority selects world_crate
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS ordinary collision route reaches world_roster
+PASS interaction priority selects world_roster
+PASS having both medicine clues in the evidence phase does not close the task
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS having both testimony clues in the evidence phase does not force the choice
+PASS restart returns to the title through the replayable save
+PASS the active early revisit survives game restart
+PASS ordinary collision route reaches world_return
+PASS interaction priority selects world_return
+PASS return from the early revisit preserves the unplayed Fengxi boss and main checkpoint
+PASS ordinary collision route reaches inn
+PASS interaction priority selects inn
+PASS ordinary collision route reaches dream_intro
+PASS interaction priority selects dream_intro
+PASS ordinary collision route reaches inn_exit
+PASS interaction priority selects inn_exit
+PASS ordinary collision route reaches reunion
+PASS interaction priority selects reunion
+PASS ordinary collision route reaches exit
+PASS interaction priority selects exit
+PASS normal chapter transition carries both unfinished investigations into the blockade
+PASS ordinary collision route reaches pass_cart
+PASS interaction priority selects pass_cart
+PASS ordinary collision route reaches pass_worker
+PASS interaction priority selects pass_worker
+PASS ordinary collision route reaches pass_rope
+PASS interaction priority selects pass_rope
+PASS ordinary collision route reaches pass_gate
+PASS interaction priority selects pass_gate
+PASS ordinary collision route reaches pass_exit
+PASS interaction priority selects pass_exit
+PASS pause exposes the current save's Fengxi revisit
+PASS pause selection opens the same-save visit
+PASS the blockade unlocks the early medicine follow-up
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS the same saved witness evidence unlocks testimony in the blockade
+PASS forge fixture saves an opened world and one cleared encounter
+PASS walk away from the forge entrance before departing
+PASS pause exposes the current save's Fengxi revisit
+PASS pause selection opens the same-save visit
+PASS chapter three unlocks blockade services in the same area
+PASS the blockade replaces the board with a guard to question
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS ordinary collision route reaches world_witness
+PASS interaction priority selects world_witness
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS ordinary collision route reaches world_lanes
+PASS interaction priority selects world_lanes
+PASS ordinary collision route reaches world_stencil
+PASS interaction priority selects world_stencil
+PASS ordinary collision route reaches world_crate
+PASS interaction priority selects world_crate
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS ordinary collision route reaches world_roster
+PASS interaction priority selects world_roster
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS medicine can conclude before testimony or wait until afterward
+PASS restart returns to the title through the replayable save
+PASS both testimony clues and the inn checkpoint survive reload
+PASS ordinary collision route reaches world_shop
+PASS interaction priority selects world_shop
+PASS the same merchant explains the blockade without opening the shop
+PASS ordinary collision route reaches world_seal
+PASS interaction priority selects world_seal
+PASS the gathered testimony offers two real outcomes
+PASS testimony picks signed
+PASS testimony grants one usable Frost seal cord through its unique reward
+PASS resolved testimony cannot be paid or chosen a second time
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS ordinary collision route reaches world_medicine
+PASS interaction priority selects world_medicine
+PASS the medicine task persists alongside independent testimony
+PASS medicine grants one usable Dream herb wrap through its unique reward
+PASS collecting testimony and delivering medicine leaves the main purse intact
+PASS sending medicine opens a new local shortcut
+PASS ordinary collision route reaches world_shortcut
+PASS interaction priority selects world_shortcut
+PASS the new shortcut goes from the shore to the lanes
+PASS the shortcut physically reaches the eastern warehouse beyond the main path
+PASS restart returns to the title through the replayable save
+PASS restart restores the actual shortcut arrival
+PASS ordinary collision route reaches world_shortcut
+PASS interaction priority selects world_shortcut
+PASS the new shortcut can return to the shore
+PASS restart returns to the title through the replayable save
+PASS the completed medicine task is still unavailable after reload
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS the chosen testimony remains spent after reload
+PASS repeat travel and reloading cannot duplicate rewards
+PASS ordinary collision route reaches world_return
+PASS interaction priority selects world_return
+PASS the same save resumes the exact interrupted route without resetting its checkpoint
+PASS turning back to main keeps both optional quest results
+PASS leaving a revisit clears the return ticket
+PASS the resumed main journey can still cross the forge and fight Duan Lang
+PASS the earned seal cord can actually be equipped
+PASS the earned herb wrap can actually be equipped
+PASS the equipped seal cord increases weakness poise at a Qi cost
+PASS the equipped herb wrap trades health for medicine and ward strength
+PASS the pre-Stage2B testimony file can be saved
+PASS migration retains old aid without fabricating a testimony delivery
+PASS ordinary collision route reaches fight
+PASS interaction priority selects fight
+PASS testimony pays off in the actual palace guard fight
+PASS Palace opening reflects the saved testimony choice
+PASS the pre-Stage2B medicine file can be saved
+PASS migration retains old aid without inventing a medicine delivery
+PASS ordinary collision route reaches prepare
+PASS interaction priority selects prepare
+PASS medicine pays off in the actual stove-defense fight
+PASS a delivered medicine list wards Wind at the stove without a conflicting route ward
+FENGXI_BUDGET order=signed optional_walk_seconds=46.3 optional_dialogue_inputs=9
+PASS final chapter fixture keeps the completed investigation history
+PASS completed tasks return after navigation to reopened Fengxi
+PASS the proper branch shows a different testimony follow-up
+PASS the journal can track the follow-up in its current area
+PASS ordinary collision route reaches world_testimony_receipt
+PASS interaction priority selects world_testimony_receipt
+PASS reading testimony follow-up records one final task fact
+PASS a recorded testimony receipt disappears from the map
+PASS ordinary collision route reaches world_shortcut
+PASS interaction priority selects world_shortcut
+PASS ordinary collision route reaches world_medicine_receipt
+PASS interaction priority selects world_medicine_receipt
+PASS the two successful medicine deliveries are confirmed in the east warehouse
+PASS restart returns to the title through the replayable save
+PASS confirmed medicine receipts do not reappear after saving
+PASS both original regional journal cards are now complete
+PASS following up does not pay either task reward again
+PASS Tidegate cannot replace an unfinished post-ending revisit
+FENGXI_RECEIPTS order=signed optional_walk_seconds=3.1 optional_dialogue_inputs=3
+PASS forge fixture saves an opened world and one cleared encounter
+PASS walk away from the forge entrance before departing
+PASS pause exposes the current save's Fengxi revisit
+PASS pause selection opens the same-save visit
+PASS chapter three unlocks blockade services in the same area
+PASS the blockade replaces the board with a guard to question
+PASS ordinary collision route reaches world_roster
+PASS interaction priority selects world_roster
+PASS ordinary collision route reaches world_lanes
+PASS interaction priority selects world_lanes
+PASS ordinary collision route reaches world_crate
+PASS interaction priority selects world_crate
+PASS ordinary collision route reaches world_stencil
+PASS interaction priority selects world_stencil
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS ordinary collision route reaches world_medicine
+PASS interaction priority selects world_medicine
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS ordinary collision route reaches world_witness
+PASS interaction priority selects world_witness
+PASS medicine can conclude before testimony or wait until afterward
+PASS restart returns to the title through the replayable save
+PASS both testimony clues and the inn checkpoint survive reload
+PASS ordinary collision route reaches world_shop
+PASS interaction priority selects world_shop
+PASS the same merchant explains the blockade without opening the shop
+PASS ordinary collision route reaches world_seal
+PASS interaction priority selects world_seal
+PASS the gathered testimony offers two real outcomes
+PASS testimony picks sealed
+PASS testimony grants one usable Frost seal cord through its unique reward
+PASS resolved testimony cannot be paid or chosen a second time
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS the medicine task persists alongside independent testimony
+PASS medicine grants one usable Dream herb wrap through its unique reward
+PASS collecting testimony and delivering medicine leaves the main purse intact
+PASS sending medicine opens a new local shortcut
+PASS ordinary collision route reaches world_shortcut
+PASS interaction priority selects world_shortcut
+PASS the new shortcut goes from the shore to the lanes
+PASS the shortcut physically reaches the eastern warehouse beyond the main path
+PASS restart returns to the title through the replayable save
+PASS restart restores the actual shortcut arrival
+PASS ordinary collision route reaches world_shortcut
+PASS interaction priority selects world_shortcut
+PASS the new shortcut can return to the shore
+PASS restart returns to the title through the replayable save
+PASS the completed medicine task is still unavailable after reload
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS the chosen testimony remains spent after reload
+PASS repeat travel and reloading cannot duplicate rewards
+PASS the regional pause menu offers a return to main
+PASS return action resumes the current main game
+PASS the same save resumes the exact interrupted route without resetting its checkpoint
+PASS turning back to main keeps both optional quest results
+PASS leaving a revisit clears the return ticket
+PASS the resumed main journey can still cross the forge and fight Duan Lang
+PASS the earned seal cord can actually be equipped
+PASS the earned herb wrap can actually be equipped
+PASS the equipped seal cord increases weakness poise at a Qi cost
+PASS the equipped herb wrap trades health for medicine and ward strength
+PASS the pre-Stage2B testimony file can be saved
+PASS migration retains old aid without fabricating a testimony delivery
+PASS ordinary collision route reaches fight
+PASS interaction priority selects fight
+PASS testimony pays off in the actual palace guard fight
+PASS Palace opening reflects the saved testimony choice
+PASS the pre-Stage2B medicine file can be saved
+PASS migration retains old aid without inventing a medicine delivery
+PASS ordinary collision route reaches prepare
+PASS interaction priority selects prepare
+PASS medicine pays off in the actual stove-defense fight
+PASS a delivered medicine list wards Wind at the stove without a conflicting route ward
+FENGXI_BUDGET order=sealed optional_walk_seconds=42.1 optional_dialogue_inputs=9
+PASS final chapter fixture keeps the completed investigation history
+PASS completed tasks return after navigation to reopened Fengxi
+PASS a sealed witness is not publicly named on the shore
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS the proper branch shows a different testimony follow-up
+PASS the journal can track the follow-up in its current area
+PASS ordinary collision route reaches world_testimony_receipt
+PASS interaction priority selects world_testimony_receipt
+PASS reading testimony follow-up records one final task fact
+PASS a recorded testimony receipt disappears from the map
+PASS ordinary collision route reaches world_shore
+PASS interaction priority selects world_shore
+PASS ordinary collision route reaches world_shortcut
+PASS interaction priority selects world_shortcut
+PASS ordinary collision route reaches world_medicine_receipt
+PASS interaction priority selects world_medicine_receipt
+PASS the two successful medicine deliveries are confirmed in the east warehouse
+PASS restart returns to the title through the replayable save
+PASS confirmed medicine receipts do not reappear after saving
+PASS both original regional journal cards are now complete
+PASS following up does not pay either task reward again
+PASS Tidegate cannot replace an unfinished post-ending revisit
+FENGXI_RECEIPTS order=sealed optional_walk_seconds=5.4 optional_dialogue_inputs=3
+PASS a pre-expansion midgame save still writes
+PASS restart returns to the title through the replayable save
+PASS old save keeps the main room, silver and materials
+PASS pause exposes the current save's Fengxi revisit
+PASS pause selection opens the same-save visit
+PASS legacy unlock infers the current stage without gifting choices or resources
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS ordinary collision route reaches world_return
+PASS interaction priority selects world_return
+PASS old save restores its original checkpoint after a revisit
+PASS an already completed pre-expansion save can revisit Fengxi
+PASS the finished save sees the reopened river
+PASS reopened Fengxi makes the operating dock visible
+PASS ordinary collision route reaches world_inn
+PASS interaction priority selects world_inn
+PASS ordinary collision route reaches world_shop
+PASS interaction priority selects world_shop
+PASS the former blockade shop opens after the river is reopened
+PASS restart returns to the title through the replayable save
+PASS continue reloads post-ending exploration before the ending screen
+PASS ordinary collision route reaches world_return
+PASS interaction priority selects world_return
+PASS leaving a post-ending revisit preserves completion and goes back to the title
+Fengxi revisit: 295 checks, 0 failures

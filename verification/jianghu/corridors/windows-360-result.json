@@ -1,0 +1,25 @@
+{
+  "Result": "passed",
+  "Environment": "Windows 11 x64, build 26200",
+  "InstalledGameVersion": "3.6.0.0",
+  "SetupVersion": "3.6.0",
+  "UpdatedFrom": "3.5.0",
+  "SetupExitCode": 0,
+  "UninstallExitCode": 0,
+  "UserScope": "HKCU and LocalAppData",
+  "StartMenuShortcut": true,
+  "OptionalDesktopShortcut": true,
+  "FileHashMatchesWindowsExport": true,
+  "GameSHA256": "55d38bef8c19da56ce811fef2c2cc19b9389e50e25bb05c827863d6d4d81caac",
+  "SetupSHA256": "a552f6a50aadab1de147eefc9f65d4dc12f7a4276237050352972b6b8f768e60",
+  "Authenticode": "NotSigned",
+  "SavesPreserved": true,
+  "InstalledGameTested": "Installed game, seven-region atlas, legacy completed save, physical Valley movement, new North Sluice task order, courier journal and tracking, exact area reload, tracking an order still awaiting the next chapter.",
+  "InstalledGameLaterChapters": [
+    "seven-region atlas selects Valley",
+    "North Sluice task starts and records evidence",
+    "corridor journal selects and tracks the task",
+    "exact area and order survive restart",
+    "chapter-three order remains trackable while route is closed"
+  ]
+}

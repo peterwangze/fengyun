@@ -11,6 +11,7 @@ const Stage2B = preload("res://tests/stage2b_journey.gd")
 const Stage3 = preload("res://tests/stage3_journey.gd")
 const Stage4 = preload("res://tests/stage4_journey.gd")
 const MapExpansion = preload("res://tests/map_expansion_journey.gd")
+const CorridorJourney = preload("res://tests/corridor_journey.gd")
 const STEPS = [Vector2i(4,0),Vector2i(-4,0),Vector2i(0,4),Vector2i(0,-4)]
 const ROUTE_STYLES := {"interrupt":"截势", "retaliate":"守反", "exploit":"乘隙"}
 const FORGING_GEAR := {"interrupt":"tide_whistle", "retaliate":"forge_guard", "exploit":"sword_tassel"}
@@ -67,6 +68,7 @@ var full_campaign := false
 var stage2b: RefCounted
 var stage3: RefCounted
 var stage4: RefCounted
+var corridors: RefCounted
 var traversed_maps: Array[Dictionary] = []
 var visited_arcs: Array[int] = []
 var arc_pacing: Array[Dictionary] = []
@@ -120,6 +122,8 @@ func _run() -> void:
 	stage3 = Stage3.new(self, "--stage3" in OS.get_cmdline_user_args())
 	if "--stage4" in OS.get_cmdline_user_args():
 		stage4 = Stage4.new(self)
+	if "--corridors" in OS.get_cmdline_user_args():
+		corridors = CorridorJourney.new(self)
 	endgame = "--endgame" in OS.get_cmdline_user_args()
 	_check(game.storage.path.contains("qa"),"acceptance must use a separate QA save")
 	if failures > 0:
@@ -201,6 +205,9 @@ func _run() -> void:
 			return
 		if chapter == 2 and stage2b != null and not stage2b_skip:
 			await stage2b.finish_fengxi()
+		if corridors != null and not corridors.prepare(chapter):
+			quit(1)
+			return
 		if chapter == 5:
 			if not await _walk_transit("dragon_waterway", "cavern", "waterway_done"):
 				quit(1)
@@ -224,6 +231,9 @@ func _run() -> void:
 				await _capture("2-blood-rite")
 				_drain_dialogue()
 			if not await stage3.prepare_mountain():
+				quit(1)
+				return
+			if corridors != null and not await corridors.before_finale():
 				quit(1)
 				return
 			if not await _scene_step("bedside","farewell","farewell"):
@@ -280,6 +290,9 @@ func _run() -> void:
 		if chapter == 3:
 			_do_point("apothecary")
 			_do_point("pool_intro")
+			if corridors != null and not corridors.valley_visit():
+				quit(1)
+				return
 			if stage2b != null and not stage2b_skip:
 				await stage2b.watch_and_valley()
 			if forging_route and build_route in ROUTE_STYLES:
@@ -370,7 +383,9 @@ func _run() -> void:
 				_verify_lantern_pass_reward()
 			if chapter == 4 and stage2b != null and not stage2b_skip:
 				stage2b.verify_palace_battle(fight)
-			if quests and chapter == 5 and fight == 1:
+			if corridors != null and chapter == 5 and fight == 1:
+				corridors.finale_opening()
+			elif quests and chapter == 5 and fight == 1:
 				var aid_kind: String = game.slot.chronicle.quests.swordstory
 				var boss: Dictionary = game.encounter.foes[0]
 				var expected: bool = (boss.poise == boss.max_poise - 2) if aid_kind == "done_guard" else game.encounter.bond == 1
@@ -602,6 +617,8 @@ func _run() -> void:
 		_key(KEY_ENTER)
 		_key(KEY_ENTER)
 		_check(game.mode == "dialogue","completed save can replay epilogue")
+		if corridors != null:
+			corridors.ending()
 		_drain_dialogue()
 		_check(game.mode == "ending","epilogue replay returns to ending screen")
 	if quests:
@@ -1001,6 +1018,8 @@ func _verify_afterstory() -> void:
 	if stage4 != null and full_campaign and not await stage4.verify_fengxi_receipt(settlement):
 		return
 	if "--map-expansion" in OS.get_cmdline_user_args() and not MapExpansion.new(self).verify(settlement):
+		return
+	if corridors != null and not corridors.after_tide():
 		return
 	print("PASS Tidegate route=%s rescue=%s ending=%s" % [selected_route,str(current.afterstory.aid),settlement])
 	if pacing:

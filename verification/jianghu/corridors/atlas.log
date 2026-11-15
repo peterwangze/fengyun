@@ -1,0 +1,95 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS the atlas lists all seven existing regions in travel order
+PASS the atlas describes shore
+PASS the atlas location has real geometry shore
+PASS the atlas describes inn
+PASS the atlas location has real geometry inn
+PASS the atlas describes lanes
+PASS the atlas location has real geometry lanes
+PASS the atlas describes market
+PASS the atlas location has real geometry market
+PASS the atlas describes fengxi_weighhouse
+PASS the atlas location has real geometry fengxi_weighhouse
+PASS the atlas describes fengxi_postroad
+PASS the atlas location has real geometry fengxi_postroad
+PASS the atlas describes elm_ford
+PASS the atlas location has real geometry elm_ford
+PASS the atlas describes sword_workshop
+PASS the atlas location has real geometry sword_workshop
+PASS the atlas describes sword_road
+PASS the atlas location has real geometry sword_road
+PASS the atlas describes sword_charcoal_hamlet
+PASS the atlas location has real geometry sword_charcoal_hamlet
+PASS the atlas describes watch_lodge
+PASS the atlas location has real geometry watch_lodge
+PASS the atlas describes watch_road
+PASS the atlas location has real geometry watch_road
+PASS the atlas describes watch_gate_market
+PASS the atlas location has real geometry watch_gate_market
+PASS the atlas describes watch_scree_road
+PASS the atlas location has real geometry watch_scree_road
+PASS the atlas describes watch_dispatch_house
+PASS the atlas location has real geometry watch_dispatch_house
+PASS the atlas describes watch_qingshi_hub
+PASS the atlas location has real geometry watch_qingshi_hub
+PASS the atlas describes valley_clinic
+PASS the atlas location has real geometry valley_clinic
+PASS the atlas describes valley_trestle
+PASS the atlas location has real geometry valley_trestle
+PASS the atlas describes valley_herb_slope
+PASS the atlas location has real geometry valley_herb_slope
+PASS the atlas describes palace_court
+PASS the atlas location has real geometry palace_court
+PASS the atlas describes palace_cells
+PASS the atlas location has real geometry palace_cells
+PASS the atlas describes palace_west
+PASS the atlas location has real geometry palace_west
+PASS the atlas describes palace_tea
+PASS the atlas location has real geometry palace_tea
+PASS the atlas describes palace_quay
+PASS the atlas location has real geometry palace_quay
+PASS the atlas describes palace_storehouse
+PASS the atlas location has real geometry palace_storehouse
+PASS the atlas describes palace_reedpath
+PASS the atlas location has real geometry palace_reedpath
+PASS the atlas describes mountain_approach
+PASS the atlas location has real geometry mountain_approach
+PASS the atlas describes mountain_cavern
+PASS the atlas location has real geometry mountain_cavern
+PASS the atlas describes mountain_hearth
+PASS the atlas location has real geometry mountain_hearth
+PASS the atlas describes mountain_lodge
+PASS the atlas location has real geometry mountain_lodge
+PASS the atlas describes mountain_steps
+PASS the atlas location has real geometry mountain_steps
+PASS the atlas describes mountain_altar
+PASS the atlas location has real geometry mountain_altar
+PASS the atlas describes mountain_foothill
+PASS the atlas location has real geometry mountain_foothill
+PASS the atlas describes mountain_refuge
+PASS the atlas location has real geometry mountain_refuge
+PASS the atlas describes mountain_ridge_route
+PASS the atlas location has real geometry mountain_ridge_route
+PASS the atlas describes tide_ford
+PASS the atlas location has real geometry tide_ford
+PASS the atlas describes tide_canal
+PASS the atlas location has real geometry tide_canal
+PASS the atlas describes tide_fort
+PASS the atlas location has real geometry tide_fort
+PASS the atlas describes tide_county_office
+PASS the atlas location has real geometry tide_county_office
+PASS an early player can view the atlas with only one region open
+PASS the atlas opens the selected region's locations
+PASS the town, grain building and wild road are listed under Fengxi
+PASS Fengxi to Swordhall does not bypass the Swordhall story unlock
+PASS closing the atlas restores the player's exact location and save
+PASS a previous release save is still accepted
+PASS completed title opens the travel atlas
+PASS real land and boat connections appear after story gates
+PASS an outgoing road alone does not unlock the county office
+PASS controller X opens the focused region directory
+PASS a location tap inspects the street without travelling
+PASS confirmation travels to the region entrance and respects interior thresholds
+PASS tracking the postroad quest navigates through the market from the dock
+World atlas: 92 checks, 0 failures

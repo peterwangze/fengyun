@@ -48,3 +48,5 @@
 
 3.5.0 继续用内置 GPT 图像生成工具补绘 11 处实际场景，并用本机工具调色、导入和对齐碰撞。拜剑山庄打炭匠里参考凤溪集市和运铁山隘，强调连续石路、炭车、验炭窑和东侧旧道。1672 × 941 缩至 320 × 180。生死门松药坡参考断栈和药庐，强调横向石路、中段药寮与晒筐、两端坡口。2172 × 724 原稿取纵向 92 至 602 行，缩至 768 × 180。两张运行图均使用 Lanczos 缩放、轻度锐化和 172 色无抖动量化。 [天下会素材](art-source/watch-settlement/README.md) · [绝宫素材](art-source/palace-layers/README.md) · [凌云山素材](art-source/lingyun/README.md)
 
+3.6.0 用 GPT 图像生成工具补绘青石转运集和榆汊中渡，延续现有聚落的俯斜视角与像素密度。两图经本机 Pillow 缩放量化，再依照卸货棚、坡道、船埠和茶亭校准互动点及碰撞。 [青石转运集处理记录](art-source/qingshi-relay/README.md) · [榆汊中渡处理记录](art-source/elm-ferry/README.md)
+

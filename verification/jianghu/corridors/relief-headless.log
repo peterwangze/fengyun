@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+NORTH SLUICE route=sluice foes=invader/gate_guard saved_at_victory=true receipt=true walked=7508
+NORTH SLUICE route=litter foes=elite/shade saved_at_victory=true receipt=true walked=10084
+NORTH SLUICE legacy finish: actual battle, receipt and original ending preserved
+North Sluice corridor: 0 failures; walked 22480 px

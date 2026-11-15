@@ -10,7 +10,7 @@ const PHASES := {"evidence":"戒严取证","blockade":"封渡换岗","reopened":
 static func unlocked(slot: Dictionary) -> bool:
 	var chapter: int = slot.get("chapter",0)
 	return chapter >= 2 or (chapter == 1 and
-		(slot.get("cleared",[]).has(1) or slot.get("journey",{}).get("done",{}).has("lanes_done")))
+		(slot.get("cleared",[]).any(func(index): return int(index) == 1) or slot.get("journey",{}).get("done",{}).has("lanes_done")))
 
 static func phase(slot: Dictionary) -> String:
 	var chronicle: Dictionary = slot.get("chronicle",{})
@@ -31,6 +31,7 @@ const AREAS := {
 	"market":{"field":"fengxi_market","spawn":"spawn","title":"凤溪 · 西岸集市"},
 	"fengxi_weighhouse":{"field":"fengxi_guild","spawn":"spawn","title":"凤溪 · 丰义粮行"},
 	"fengxi_postroad":Road.AREAS.fengxi_postroad,
+	"elm_ford":{"field":"elm_ford","spawn":"spawn","title":"凤溪 · 榆汊中渡"},
 }
 
 const QUESTS := [

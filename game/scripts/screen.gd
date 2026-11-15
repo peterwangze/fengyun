@@ -216,6 +216,9 @@ func paint() -> void:
 		"handoff_journal":
 			_field(false)
 			_handoff_journal()
+		"corridor_journal":
+			_field(false)
+			_corridor_journal()
 		"world_map":
 			_atlas_overview()
 		"world_places":
@@ -391,7 +394,7 @@ func _field(interactive: bool = true) -> void:
 	elif not g.touch_ui():
 		var keys := "X 手记   Y 武学   Start 暂停" if g.using_joypad else "J 手记   K 武学   Esc 暂停"
 		if not g.using_joypad and g.world.available() and g.world.can_leave():
-			keys = "J 手记   M 舆图   Esc 暂停"
+			keys = "J 手记   R 驿路   M 舆图   Esc 暂停"
 		_right(keys,619,345,11,DIM)
 	if interactive:
 		var spot: Dictionary = g.nearest()
@@ -429,7 +432,7 @@ func _atlas_overview() -> void:
 		var start: Vector2 = Atlas.REGIONS[route[0]].at
 		var end: Vector2 = Atlas.REGIONS[route[1]].at
 		var navigable: bool = g.world.atlas_route_open(route[0],route[1])
-		var color := Color("#81b8af") if route[2] == "渡船" else Color("#b29869")
+		var color := Color("#81b8af") if route[2] in ["渡船","榆汊水路"] else Color("#b29869")
 		if navigable:
 			_line(start,end,color,2)
 		else:
@@ -767,7 +770,8 @@ func _journal() -> void:
 	_panel(Rect2(43,23,554,314),true)
 	_text("江湖手记",67,70,29,CREAM,SERIF)
 	if g.world.available():
-		_touch_battle_button(Rect2(433,45,141,28),"跨区交接","handoff_open")
+		_touch_battle_button(Rect2(351,45,106,28),"跨区交接","handoff_open")
+		_touch_battle_button(Rect2(467,45,107,28),"驿路手记","corridor_open")
 	if g.afterstory.active:
 		_text("潮关余事",69,106,15,GOLD)
 		_line(Vector2(68,116),Vector2(573,116),LINE)
@@ -826,8 +830,9 @@ func _world_journal() -> void:
 	_fill(FULL,Color("#0b1120ce"))
 	_panel(Rect2(50,25,540,302),true)
 	_text(g.world.journal_title(),74,67,27,CREAM,SERIF)
-	_right(g.world.phase_label(),409,64,15,GOLD)
-	_touch_battle_button(Rect2(425,42,141,28),"跨区交接","handoff_open")
+	_right(g.world.phase_label(),338,64,14,GOLD)
+	_touch_battle_button(Rect2(352,42,103,28),"跨区交接","handoff_open")
+	_touch_battle_button(Rect2(463,42,103,28),"驿路手记","corridor_open")
 	var tasks: Array = g.world.journal()
 	var state := func(task: Dictionary) -> String:
 		if task.get("expired",false):
@@ -893,7 +898,8 @@ func _handoff_journal() -> void:
 	_fill(FULL,Color("#0b1120ce"))
 	_panel(Rect2(43,23,554,304),true)
 	_text("跨区交接",67,70,29,CREAM,SERIF)
-	_touch_battle_button(Rect2(433,45,141,28),"返回手记","handoff_open")
+	_touch_battle_button(Rect2(351,45,106,28),"返回手记","handoff_open")
+	_touch_battle_button(Rect2(467,45,107,28),"驿路手记","corridor_open")
 	var rows: Array = g.world.handoff_journal()
 	for i in rows.size():
 		var task: Dictionary = rows[i]
@@ -915,6 +921,35 @@ func _handoff_journal() -> void:
 		_touch_battle_button(Rect2(426,275,148,29),caption,"confirm")
 	if not g.touch_ui():
 		_text("X 返回手记" if g.using_joypad else "Tab 返回手记",69,295,13,DIM)
+
+func _corridor_journal() -> void:
+	_fill(FULL,Color("#0b1120ce"))
+	_panel(Rect2(43,23,554,304),true)
+	_text("驿路手记",67,70,29,CREAM,SERIF)
+	_touch_battle_button(Rect2(467,45,107,28),"返回","cancel")
+	var rows: Array = g.world.corridor_journal()
+	for index in rows.size():
+		var row: Dictionary = rows[index]
+		var box := Rect2(63,91 + index * 49,213,42)
+		_fill(box,Color("#293046") if g.selected == index else Color("#161e30"))
+		_stroke(box,GOLD if g.selected == index else LINE)
+		_text(row.title,74,box.position.y+18,15,CREAM,SERIF)
+		_text("追踪中" if row.id == g.world.tracked else row.state,74,box.position.y+34,12,TEAL)
+		_hit(box,"corridor_row",index)
+	if rows.is_empty():
+		return
+	var selected: Dictionary = rows[g.selected]
+	var detail := Rect2(288,91,286,172)
+	_fill(detail,Color("#151d30"))
+	_stroke(detail,LINE)
+	_text(selected.branch,300,116,14,GOLD)
+	_paragraph(selected.summary,300,142,259,13,DIM,18)
+	_paragraph(selected.next,300,207,259,14,TEAL,19)
+	if selected.track or selected.id == g.world.tracked:
+		var label := "取消追踪" if selected.id == g.world.tracked else "追踪此行"
+		_touch_battle_button(Rect2(424,276,150,29),label,"confirm")
+	if not g.touch_ui():
+		_text("RB / B 返回" if g.using_joypad else "R / Esc 返回",69,298,13,DIM)
 
 func _martial_heroes() -> void:
 	for i in g.stage.party.size():

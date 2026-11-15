@@ -1,20 +1,22 @@
 # 风云：山河劫
 
-简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.5.0「山河驿路」将聚落、野外道路和功能建筑接入全部七个回访区，重点扩充天下会外哨、无神绝宫与凌云山。 [地图设计](MAP_EXPANSION.md) · [本版验收](verification/jianghu/map-expansion/README.md)
+简体中文单机武侠 RPG，支持 Android 和 Windows。采用 Godot 4.7.2 和 GDScript。3.6.0「三路同行」新增青石转运集、榆汊中渡，以三条可并行的支线连接七个回访区。 [跨区设计](CORRIDOR_DESIGN.md) · [本版验收](verification/jianghu/corridors/README.md)
 
 ## 开始游戏
 
-**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.5.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.5.0/Fengyun-3.5.0-android.apk)
+**Android** 打开 APK 安装。系统提示时，允许当前浏览器或文件管理器安装该 APK。要求 Android 7.0 或以上及 OpenGL ES 3.0，支持 ARM64、ARMv7 和 x86_64。安装后横屏离线游玩。[下载 Android 3.6.0 APK](https://github.com/peterwangze/fengyun/releases/download/v3.6.0/Fengyun-3.6.0-android.apk)
 
-**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.5.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.5.0/Fengyun-3.5.0-windows-x64-setup.exe)
+**Windows 10/11 x64** 双击安装程序，完成后从开始菜单打开「风云：山河劫」。默认安装到当前用户目录，无需管理员权限。可在 Windows「已安装的应用」中卸载，存档保留。[下载 Windows 3.6.0 安装程序](https://github.com/peterwangze/fengyun/releases/download/v3.6.0/Fengyun-3.6.0-windows-x64-setup.exe)
 
-[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.5.0) · [第三方许可](Windows/Licenses)
+[双平台发布说明和 SHA-256 校验](https://github.com/peterwangze/fengyun/releases/tag/v3.6.0) · [第三方许可](Windows/Licenses)
 
 启动后选择「开启新篇」。初次启动也可从标题选择「凤溪试玩」。已有存档可从「章节回看」重玩已到达的章节，回看使用独立的临时进度。
 
 ### 区域回访与跨区交接
 
-凤溪可回访后可按 `M` 打开江湖舆图，也可从暂歇「查看江湖舆图」进入。舆图标明开放的山道与水路，地点目录可查建筑用途和服务。3.5.0 发行一并收录此前本地版的西岸集市、丰义粮行、石塘驿道与州署外院。 [凤溪与潮关初版分层实测](verification/jianghu/layered-maps/README.md)
+凤溪可回访后可按 `M` 打开江湖舆图，也可从暂歇「查看江湖舆图」进入。舆图标明开放的山道与水路，地点目录可查建筑用途和服务。 [七区分层地图设计](MAP_EXPANSION.md)
+
+三条长支线分别从凤溪西岸、拜剑山庄打炭匠里和生死门谷口药庐出发。按 `R` 查看「驿路手记」，也可从江湖手记点同名按钮或在手记中按手柄 `RB`。选择追踪后，区域地图标出眼下可走的出口或接手人。终战前完成交接才会在战斗和尾声兑现，通关后仍可补办和回访。 [路线与触发条件](CORRIDOR_DESIGN.md)
 
 [四幕设计和阶段验收](CAMPAIGN_EXPANSION.md)以 3.0.0 为基线。第二章完成雨巷查账后，从西岸「走访凤溪渡路」或暂歇菜单的「回访凤溪」进入。随后「江湖行路」按剧情开放拜剑山庄、天下会外哨、生死门、无神绝宫和凌云山。区域之间也可沿路牌步行往返。主线关卡正进行时，先走到下一个安全点。
 

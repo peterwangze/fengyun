@@ -29,6 +29,7 @@ var afterstory: RefCounted
 var transit: Transit
 var world: WorldJourney
 var handoff_back := "journal"
+var corridor_back := "field"
 var atlas_index := 0
 var storage: RefCounted
 var music := AudioStreamPlayer.new()
@@ -248,6 +249,8 @@ func menu_items() -> Array:
 			return world.journal().map(func(task): return [task.title, true])
 		"handoff_journal":
 			return world.handoff_journal().map(func(task): return [task.title, true])
+		"corridor_journal":
+			return world.corridor_journal().map(func(task): return [task.title, true])
 		"martial": return chronicle.martial_items()
 		"cultivation":
 			var stances: Array = Martial.CULTIVATION[chronicle.martial_id()]
@@ -391,6 +394,11 @@ func menu_confirm(index: int) -> void:
 			var task: Dictionary = world.handoff_journal()[index]
 			world.tracked = "" if task.id == world.tracked or task.state == "已交接" else task.id
 			_set_mode(back_mode)
+		"corridor_journal":
+			var task: Dictionary = world.corridor_journal()[index]
+			if task.track or task.id == world.tracked:
+				world.tracked = "" if task.id == world.tracked else task.id
+				_set_mode(back_mode if corridor_back in ["journal","world_journal","handoff_journal"] else corridor_back)
 		"martial": chronicle.equip(index)
 		"cultivation": _choose_cultivation(index)
 		"gear": _equip_gear(index)
@@ -923,6 +931,8 @@ func _start_battle() -> void:
 			encounter.apply_quest_aid(chronicle.side.battle_aid(field_key,active_battle,chronicle.special))
 			encounter.apply_quest_aid(transit.battle_aid(active_battle,chronicle.special))
 		encounter.apply_quest_aid(world.battle_aid(active_battle,chronicle.special))
+		if field_key == "peak" and active_battle == 1 and not chronicle.review:
+			world.apply_corridor_aid(encounter)
 	pending_action = -1
 	bag_open = false
 	bag_index = 0
@@ -1070,6 +1080,7 @@ func cancel() -> void:
 		"settings", "journal", "world_journal", "martial", "world_map": _set_mode(back_mode)
 		"world_places": _set_mode("world_map",atlas_index)
 		"handoff_journal": _set_mode(handoff_back)
+		"corridor_journal": _set_mode(corridor_back)
 		"review": _title()
 		"choice": chronicle.cancel_choice()
 		"new": _title()
@@ -1192,6 +1203,8 @@ func click(kind: String, index: int) -> void:
 		"world_row": selected = index
 		"handoff_open": _open_handoffs()
 		"handoff_row": selected = index
+		"corridor_open": _open_corridors()
+		"corridor_row": selected = index
 		"atlas_places": _open_atlas_places(index)
 		"atlas_place_row": selected = index
 		"journal_track": _confirm()
@@ -1337,6 +1350,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					_open_cultivation()
 				elif mode == "forge":
 					_toggle_forge_branches()
+				elif mode in ["journal","world_journal","handoff_journal","corridor_journal"]:
+					_open_corridors()
 		return
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
@@ -1357,6 +1372,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_apply_settings()
 		KEY_J:
 			_open_journal()
+		KEY_R:
+			_open_corridors()
 		KEY_M:
 			if mode in ["field","pause"]:
 				_open_world_map(true)
@@ -1444,6 +1461,16 @@ func _open_handoffs() -> void:
 		handoff_back = mode
 		var ids := world.handoff_journal().map(func(task): return task.id)
 		_set_mode("handoff_journal",maxi(0,ids.find(world.tracked)))
+
+func _open_corridors() -> void:
+	if mode == "corridor_journal":
+		cancel()
+	elif mode in ["field","pause","journal","world_journal","handoff_journal"] and world.available():
+		var rows := world.corridor_journal()
+		if not rows.is_empty():
+			corridor_back = mode
+			var ids := rows.map(func(task): return task.id)
+			_set_mode("corridor_journal",maxi(0,ids.find(world.tracked)))
 
 func _show_journal() -> void:
 	if world.active():
